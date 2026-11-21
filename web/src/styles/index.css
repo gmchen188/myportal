@@ -1,0 +1,389 @@
+@import "tailwindcss";
+
+/*
+ * 设计令牌。
+ *
+ * 配色沿用 myPortal demo 的既有方案（深蓝主 #1E40AF + 浅蓝辅 #3B82F6 +
+ * 琥珀强调 #D97706），但改成 CSS 变量 + Tailwind 主题 —— demo 是单文件
+ * 手写 CSS，变量散在 :root 里；正式前端要能改一处、全局生效。
+ *
+ * **严重度颜色是功能性的，不是装饰**：
+ *   critical 红 / high 粉红 / medium 黄 / normal 绿 / unknown 灰
+ * 灰是独立的一档 —— "没有数据"不等于"正常"。给一台没接入监控的设备
+ * 画绿色，运维会以为它安全 —— 那是最危险的一种错。
+ *
+ * 浅色与深色主题各一套，同一个色值在两种底色上都过 WCAG AA 4.5:1。
+ */
+
+@theme {
+    --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeafe;
+    --color-brand-200: #bfdbfe;
+    --color-brand-300: #93c5fd;
+    --color-brand-400: #60a5fa;
+    --color-brand-500: #3b82f6;
+    --color-brand-600: #2563eb;
+    --color-brand-700: #1e40af;
+    --color-brand-800: #1e3a8a;
+    --color-brand-900: #1e3162;
+
+    --color-accent-500: #d97706;
+    --color-accent-600: #b45309;
+
+    --color-sev-critical: #dc2626;
+    --color-sev-high: #ec4899;
+    --color-sev-medium: #f59e0b;
+    --color-sev-low: #64748b;
+    --color-sev-normal: #16a34a;
+    --color-sev-unknown: #94a3b8;
+
+    --font-sans: "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+}
+
+:root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --border: #dde3ee;
+    --border-strong: #c3ccdd;
+    --fg: #16202f;
+    --fg-muted: #5a6a82;
+    --fg-subtle: #8695ab;
+    --sidebar: #0f1d38;
+    --sidebar-fg: #c6d2e6;
+    --sidebar-fg-active: #ffffff;
+    --sidebar-active-bg: #1e40af;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+    --shadow-lg: 0 10px 24px rgb(16 24 40 / 12%);
+}
+
+:root[data-theme="dark"] {
+    --bg: #0b1220;
+    --surface: #131c2e;
+    --surface-2: #18233a;
+    --border: #26344c;
+    --border-strong: #35455f;
+    --fg: #e6ecf7;
+    --fg-muted: #9fb0c9;
+    --fg-subtle: #7183a0;
+    --sidebar: #080e1a;
+    --sidebar-fg: #93a5c0;
+    --sidebar-fg-active: #ffffff;
+    --sidebar-active-bg: #1e40af;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+@layer base {
+    * {
+        border-color: var(--border);
+    }
+
+    html {
+        color-scheme: light;
+    }
+
+    html[data-theme="dark"] {
+        color-scheme: dark;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        font-size: 14px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* 跳转导航链接：键盘用户能跳过侧栏 */
+    .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 100;
+        padding: 10px 16px;
+        background: var(--sidebar-active-bg);
+        color: #fff;
+        border-radius: 0 0 var(--radius) 0;
+    }
+
+    .skip-link:focus {
+        left: 0;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+
+    .card-h {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-h h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .card-h .sub {
+        color: var(--fg-subtle);
+        font-size: 12px;
+    }
+
+    .card-h .right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 14px;
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--fg);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover:not(:disabled) {
+        background: var(--surface-2);
+        border-color: var(--fg-subtle);
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn.primary {
+        background: var(--color-brand-700);
+        border-color: var(--color-brand-700);
+        color: #fff;
+    }
+
+    .btn.primary:hover:not(:disabled) {
+        background: var(--color-brand-800);
+    }
+
+    .btn.danger {
+        color: var(--color-sev-critical);
+        border-color: var(--color-sev-critical);
+    }
+
+    .link {
+        color: var(--color-brand-600);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+    }
+
+    .bdg {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .bdg.ok {
+        background: rgb(22 163 74 / 12%);
+        color: var(--color-sev-normal);
+        border-color: rgb(22 163 74 / 30%);
+    }
+
+    .bdg.warn {
+        background: rgb(245 158 11 / 12%);
+        color: var(--color-accent-600);
+        border-color: rgb(245 158 11 / 30%);
+    }
+
+    .bdg.err {
+        background: rgb(220 38 38 / 12%);
+        color: var(--color-sev-critical);
+        border-color: rgb(220 38 38 / 30%);
+    }
+
+    .bdg.info {
+        background: rgb(59 130 246 / 12%);
+        color: var(--color-brand-600);
+        border-color: rgb(59 130 246 / 30%);
+    }
+
+    .bdg.neutral {
+        background: rgb(100 116 139 / 12%);
+        color: var(--fg-muted);
+        border-color: rgb(100 116 139 / 30%);
+    }
+
+    .tbl-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    th {
+        text-align: left;
+        padding: 9px 12px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--fg-subtle);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    tbody tr:hover {
+        background: var(--surface-2);
+    }
+
+    .mono {
+        font-family: var(--font-mono);
+        font-size: 12px;
+    }
+
+    .muted {
+        color: var(--fg-muted);
+    }
+
+    .subtle {
+        color: var(--fg-subtle);
+        font-size: 12px;
+    }
+
+    .strong {
+        font-weight: 600;
+    }
+
+    .input,
+    .select {
+        height: 34px;
+        width: 100%;
+        padding: 0 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--fg);
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+    .input:focus,
+    .select:focus {
+        border-color: var(--color-brand-500);
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(59 130 246 / 18%);
+    }
+
+    textarea.input {
+        height: auto;
+        padding: 9px 10px;
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    .label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--fg-muted);
+    }
+
+    .req::after {
+        content: " *";
+        color: var(--color-sev-critical);
+    }
+
+    .grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    .g-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .g-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .g-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .g-21 {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+
+    @media (max-width: 1100px) {
+        .g-4 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .g-21,
+        .g-3 {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .g-2,
+        .g-4 {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}
