@@ -164,10 +164,18 @@ jobs:
       - name: Assemble publish directory
         continue-on-error: true
         run: |
+          set -euo pipefail
           mkdir -p _site/demo
-          cp -r demo/* _site/demo/
-          if [ -d web/dist ]; then cp -r web/dist/* _site/; fi
-          ls -la _site
+          # 只拷 demo 的 HTML —— 截图与素材不进发布产物：
+          #   1) 它们是文档素材，不是运行所需
+          #   2) 28 张截图共 9.3MB，会把 artifact 撑大到 9.8MB
+          cp demo/index.html _site/demo/
+          if [ -d web/dist ]; then
+            # 不要 sourcemap —— 生产部署不需要，还占 1.9MB
+            find web/dist -type f ! -name '*.map' -exec cp --parents {} _site/ \;
+          fi
+          du -sh _site
+          find _site -type f | head -20
 
       # **不用 upload-pages-artifact** —— 它内部固定用 upload-artifact@v3
       # 的 SHA（bbbca2d），而 v3 的产物存储在旧后端，deploy-pages 找不到：
