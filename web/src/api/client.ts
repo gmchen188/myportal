@@ -471,7 +471,18 @@ export const api = {
     },
 
     siem: {
-        status: () => request<SiemStatus>("/api/siem/status"),
+        /**
+         * 连接状态与四段诊断。
+         *
+         * `refresh=true` 绕过后台的探测缓存 —— 「重新检测」按钮要用它，
+         * 否则用户点了看到的是 10 秒前的旧结果。
+         */
+        status: (params: { refresh?: boolean } = {}) => {
+            const qs = new URLSearchParams()
+            if (params.refresh) qs.set("refresh", "true")
+            const s = qs.toString()
+            return request<SiemStatus>(`/api/siem/status${s ? `?${s}` : ""}`)
+        },
 
         /**
          * 把 SIEM 的事件与设备同步进 myPortal。

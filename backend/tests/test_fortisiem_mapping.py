@@ -257,3 +257,60 @@ class TestFortiSiemIncidentNormalization:
         assert out[0]["src_ip"] is None
         assert out[0]["dest_ip"] is None
         assert out[0]["user"] is None
+
+class TestStatusCache:
+    """探测结果的缓存。
+
+    /health（侧栏指示灯）与 /api/siem/status（面板）都会调 status()，
+    前端两个都是 30 秒轮询 —— 不缓存就是每分钟 4 次完整探测。
+    """
+
+    def test_repeated_status_uses_cache(self, monkeypatch):
+        """10 秒内重复调用只探测一次。"""
+        from app.connectors import fortisiem as fs
+
+        calls = {"n": 0}
+
+        def fake_probe(self):
+            calls["n"] += 1
+            return fs.SiemStatus(configured=True, connected=True, stage="ok")
+
+        monkeypatch.setattr(fs.FortiSiemClient, "_probe", fake_probe)
+        c = fs.FortiSiemClient(client_id="a", client_secret="b")
+        c.status(use_cache=False)
+        c.status()
+        c.status()
+        assert calls["n"] == 1, f"应只探测 1 次，实际 {calls['n']}"
+
+    def test_refresh_bypasses_cache(self, monkeypatch):
+        """use_cache=False 强制重测 —— 用户点了「重新检测」就该真测。"""
+        from app.connectors import fortisiem as fs
+
+        calls = {"n": 0}
+
+        def fake_probe(self):
+            calls["n"] += 1
+            return fs.SiemStatus(configured=True, connected=True, stage="ok")
+
+        monkeypatch.setattr(fs.FortiSiemClient, "_probe", fake_probe)
+        c = fs.FortiSiemClient(client_id="a", client_secret="b")
+        c.status()
+        c.status(use_cache=False)
+        assert calls["n"] == 2, f"应探测 2 次，实际 {calls['n']}"
+
+    def test_cache_expires(self, monkeypatch):
+        """过了 TTL 缓存失效，重新探测。"""
+        from app.connectors import fortisiem as fs
+
+        calls = {"n": 0}
+
+        def fake_probe(self):
+            calls["n"] += 1
+            return fs.SiemStatus(configured=True, connected=True, stage="ok")
+
+        monkeypatch.setattr(fs.FortiSiemClient, "_probe", fake_probe)
+        monkeypatch.setattr(fs, "_STATUS_CACHE_TTL", 0.0)
+        c = fs.FortiSiemClient(client_id="a", client_secret="b")
+        c.status()
+        c.status()
+        assert calls["n"] == 2, f"TTL=0 时不应缓存，实际探测 {calls['n']} 次"

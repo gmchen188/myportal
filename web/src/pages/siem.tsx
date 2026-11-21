@@ -17,7 +17,7 @@ import { Download, RefreshCw } from "lucide-react"
 import { useState } from "react"
 
 import { SiemStageList } from "@/components/siem-diagnostics"
-import { useSiemStatus, useSiemSync } from "@/hooks/use-siem"
+import { useSiemStatus, useSiemSync, useSiemRefresh } from "@/hooks/use-siem"
 
 /** 时间窗口的选项。分钟数。 */
 const WINDOWS = [
@@ -29,6 +29,7 @@ const WINDOWS = [
 
 export function SiemPage() {
     const status = useSiemStatus()
+    const refresh = useSiemRefresh()
     const sync = useSiemSync()
     const [minutes, setMinutes] = useState(1440)
     const [overwrite, setOverwrite] = useState(false)
@@ -63,11 +64,11 @@ export function SiemPage() {
                     <button
                         type="button"
                         className="btn"
-                        onClick={() => void status.refetch()}
-                        disabled={status.isFetching}
+                        onClick={() => refresh.mutate()}
+                        disabled={refresh.isPending || status.isFetching}
                     >
                         <RefreshCw size={14} />
-                        {status.isFetching ? "检测中…" : "重新检测"}
+                        {refresh.isPending ? "检测中…" : "重新检测"}
                     </button>
                     <button
                         type="button"

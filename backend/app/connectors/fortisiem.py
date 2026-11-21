@@ -137,6 +137,19 @@ def _parse_kv_blob(raw: str | None) -> dict[str, str]:
     return out
 
 
+# 探测结果的缓存时长（秒）。
+#
+# **为什么需要缓存**：/health（侧栏指示灯）与 /api/siem/status（面板）都会
+# 调 status()，前端两个都是 30 秒轮询 —— 不缓存就是每分钟 4 次完整探测
+# （每次 = 1 TCP + 1 TLS + 1 OAuth + 1 CMDB XML，实测 156ms）。
+#
+# 而且 /health 只需要一个「连上了没有」的布尔值给指示灯 —— 让它为了
+# 显示个绿点而跑完整探测是浪费。
+#
+# 10 秒的窗口足够消掉重复探测，又短到「拔了网线再插上」几十秒内能反映。
+_STATUS_CACHE_TTL = float(os.getenv("FORTISIEM_STATUS_CACHE_TTL", "10"))
+
+
 @dataclass
 class SiemStatus:
     configured: bool = False
@@ -162,6 +175,9 @@ class FortiSiemClient:
     _token: str | None = field(default=None, init=False)
     _token_expires: float = field(default=0.0, init=False)
     _client: httpx.Client | None = field(default=None, init=False)
+    # 探测结果缓存（见 _STATUS_CACHE_TTL 的说明）
+    _status_cache: SiemStatus | None = field(default=None, init=False)
+    _status_cache_expires: float = field(default=0.0, init=False)
 
     @property
     def configured(self) -> bool:
@@ -321,7 +337,17 @@ class FortiSiemClient:
             )
         return out
 
-    def status(self) -> SiemStatus:
+    def status(self, *, use_cache: bool = True) -> SiemStatus:
+        """带缓存的探活入口。真正的探测逻辑在 _probe() 里。"""
+        now = time.time()
+        if use_cache and self._status_cache and now < self._status_cache_expires:
+            return self._status_cache
+        result = self._probe()
+        self._status_cache = result
+        self._status_cache_expires = now + _STATUS_CACHE_TTL
+        return result
+
+    def _probe(self) -> SiemStatus:
         """探活，并把「连不上」拆成可定位的阶段。
 
         分四段，每段的结果单独报出来：
@@ -332,6 +358,10 @@ class FortiSiemClient:
             api     能不能读到设备        —— 不行 = 权限或接口问题
 
         **不合并成一句「连接失败」** —— 那等于让运维自己猜。
+
+        `use_cache=True` 时，10 秒内重复调用直接复用上一次结果 ——
+        避免 /health 与 /api/siem/status 的双轮询把探测打两遍。
+        需要强制重测时传 `use_cache=False`。
         """
         probes: dict[str, Any] = {}
 

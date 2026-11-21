@@ -59,14 +59,17 @@ def _tenant_org(p: Principal) -> str:
 
 
 @router.get("/status")
-def siem_status():
+def siem_status(refresh: bool = Query(False, description="强制重测，绕过探测缓存")):
     """FortiSIEM 连接状态与设备列表。
 
     带上**分阶段诊断**（tcp / tls / auth / api）：运维看到的是"卡在哪一段"，
     不是一句"连接失败"。
+
+    `refresh=true` 绕过探测缓存 —— 用户点了「重新检测」就该真测一次，
+    不能给他 10 秒前的旧结果。
     """
     c = get_client()
-    st = c.status()
+    st = c.status(use_cache=not refresh)
     out: dict[str, Any] = {
         "configured": st.configured,
         "connected": st.connected,
