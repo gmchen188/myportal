@@ -29,9 +29,9 @@ jobs:
     name: Demo self-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -43,9 +43,9 @@ jobs:
     name: Backend tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -65,9 +65,9 @@ jobs:
     name: Build docx / pptx
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -83,8 +83,11 @@ jobs:
       - name: Build plan doc
         run: python tools/build_plan_doc.py
 
+      # v4+ 的 upload-artifact 不允许同名 artifact 上传两次 ——
+      # 本 job 只跑一次，没问题。但 build-docs 与 publish-demo 都写 Docx/
+      # 时要注意 artifact 名不要撞。
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: myportal-docs
           path: Docx/
@@ -103,16 +106,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       # demo/ 是纯静态：单文件 HTML，无外部依赖。用官方 static action 部署，
       # 不用自己写 action（自己写要处理 404 回退、缓存头、路径重写，
       # 官方 action 已经把这些做对了）。
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: demo
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
