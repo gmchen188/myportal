@@ -17,6 +17,7 @@ import { Download, RefreshCw } from "lucide-react"
 import { useState } from "react"
 
 import { stageLabel } from "@/api/client"
+import type { SiemStatus } from "@/api/client"
 import { SiemStageList } from "@/components/siem-diagnostics"
 import { useSiemStatus, useSiemSync, useSiemRefresh } from "@/hooks/use-siem"
 
@@ -38,6 +39,44 @@ export function SiemPage() {
         return e?.detail ?? e?.message ?? "未知错误"
     })()
     const sync = useSiemSync()
+
+    /**
+     * 同步失败时后台带回来的四段实测结果。
+     *
+     * 502 的 body 里有 `probes` —— 后台特意塞进去的运维定位信息。
+     * extractErrorMeta 把它提取出来了（ApiError.meta），但不渲染
+     * 就等于白带。
+     */
+    const syncProbes = (() => {
+        const e = sync.error as { meta?: { probes?: Record<string, { ok: boolean; detail?: string }> } } | null
+        const p = e?.meta?.probes
+        return p && Object.keys(p).length > 0 ? p : null
+    })()
+
+    /** 把 probes 拼成一个 SiemStageList 能吃的 SiemStatus */
+    const syncProbeStatus = (() => {
+        const e = sync.error as { meta?: { stage?: string; probes?: Record<string, { ok: boolean; detail?: string }> } } | null
+        const probes = e?.meta?.probes ?? {}
+        const stage = e?.meta?.stage ?? null
+        return {
+            configured: true,
+            connected: !stage || stage === "ok",
+            org: null,
+            // **顶层 error 传 null** —— stageRows 对失败段是
+            // `status.error ?? probe.detail`，传了顶层 error 就会把
+            // 每一段自己的实测 detail 盖掉（全变成同一句 502）。
+            // 这里要的就是「每段各自的实测结果」。
+            error: null,
+            stage: (stage ?? "ok") as SiemStatus["stage"],
+            probes: {
+                tcp: probes.tcp,
+                tls: probes.tls,
+                auth: probes.auth,
+                api: probes.api,
+            },
+            devices: [],
+        } as SiemStatus
+    })()
     const [minutes, setMinutes] = useState(1440)
     const [overwrite, setOverwrite] = useState(false)
 
@@ -68,6 +107,28 @@ export function SiemPage() {
                             </option>
                         ))}
                     </select>
+                    {/*
+                      overwrite 复选框放在按钮旁边 ——
+                      之前它只在下面的同步卡片里，而上面的主按钮看不到它，
+                      按钮的行为却依赖于它。
+                    */}
+                    <label
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontSize: 12,
+                            cursor: "pointer",
+                        }}
+                        title="只影响事件；设备行只补空字段，不覆盖你填的"
+                    >
+                        <input
+                            type="checkbox"
+                            checked={overwrite}
+                            onChange={(e) => setOverwrite(e.target.checked)}
+                        />
+                        覆盖已有事件
+                    </label>
                     <button
                         type="button"
                         className="btn"
@@ -264,26 +325,12 @@ export function SiemPage() {
                                     去重，重复同步不会重复入库。
                                 </p>
 
-                                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, marginBottom: 10 }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={overwrite}
-                                        onChange={(e) => setOverwrite(e.target.checked)}
-                                    />
-                                    覆盖已存在的行（默认不覆盖 —— 保留先到的那条）
-                                </label>
-
-                                <button
-                                    type="button"
-                                    className="btn primary"
-                                    style={{ width: "100%" }}
-                                    onClick={() => sync.mutate({ minutes, devices: true, overwrite })}
-                                    disabled={sync.isPending}
-                                >
-                                    <Download size={14} />
-                                    {sync.isPending ? "同步中…" : "同步到资产清单"}
-                                </button>
-
+                                {/*
+                                  同步按钮只在上面的工具栏里有一个 ——
+                                  之前这里还有一个一模一样的 primary 按钮，
+                                  运维不知道该点哪个。overwrite 复选框
+                                  也移到了工具栏（紧挨着按钮）。
+                                */}
                                 {sync.isError && (
                                     <div
                                         style={{
@@ -298,6 +345,25 @@ export function SiemPage() {
                                         {sync.error instanceof Error
                                             ? sync.error.message
                                             : String(sync.error)}
+                                        {/*
+                                          502 的 body 里带了四段实测结果（probes）——
+                                          后台特意塞进去的运维定位信息。提取出来了
+                                          就得用上，否则等于白带。
+                                        */}
+                                        {syncProbes && (
+                                            <div
+                                                style={{
+                                                    marginTop: 8,
+                                                    paddingTop: 8,
+                                                    borderTop: "1px solid var(--border)",
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                                                    失败时的分段实测结果
+                                                </div>
+                                                <SiemStageList status={syncProbeStatus} />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

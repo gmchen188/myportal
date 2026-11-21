@@ -158,3 +158,61 @@ describe("SiemPage 的失败态", () => {
         expect(screen.queryByText(/undefined/)).toBeNull()
     })
 })
+
+
+/**
+ * I-5 —— 502 的 probes 提取了就得用。
+ *
+ * 后台在 502 的 body 里塞了四段实测结果（probes），extractErrorMeta
+ * 把它提取出来了，但如果没有消费者，那些信息就白带了 ——
+ * 运维只看到一句「FortiSIEM 不可达」，不知道卡在哪一段、哪一段通了。
+ */
+describe("同步失败时的分段实测结果", () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it("要渲染出后台带回来的四段诊断", async () => {
+        const { useSiemStatus, useSiemSync, useSiemRefresh } = await import("@/hooks/use-siem")
+        const { SiemPage } = await import("@/pages/siem")
+
+        vi.mocked(useSiemStatus).mockReturnValue({
+            data: status(),
+            isPending: false,
+            isFetching: false,
+            isError: false,
+            error: null,
+            refetch: vi.fn(),
+        } as never)
+        vi.mocked(useSiemSync).mockReturnValue({
+            mutate: vi.fn(),
+            isPending: false,
+            isError: true,
+            error: Object.assign(new Error("[502] FortiSIEM 不可达"), {
+                meta: {
+                    stage: "auth",
+                    probes: {
+                        tcp: { ok: true, detail: "172.16.20.48:443 可连接" },
+                        tls: { ok: true, detail: "TLS 握手成功" },
+                        auth: { ok: false, detail: "未配置 FORTISIEM_CLIENT_ID" },
+                    },
+                },
+            }),
+            data: undefined,
+        } as never)
+        vi.mocked(useSiemRefresh).mockReturnValue({
+            mutate: vi.fn(),
+            isPending: false,
+            isError: false,
+            error: null,
+            data: undefined,
+        } as never)
+
+        render(<SiemPage />)
+
+        expect(screen.getByText(/失败时的分段实测结果/)).toBeTruthy()
+        // 四段都要出现，失败那段要标红
+        expect(screen.getAllByText(/TCP 连接/).length).toBeGreaterThan(0)
+        expect(screen.getByText(/未配置 FORTISIEM_CLIENT_ID/)).toBeTruthy()
+    })
+})
