@@ -7,6 +7,9 @@
     GET    /api/topologies/{id}/graph   取投影后的节点/连线/区域
     DELETE /api/topologies/{id}
 
+    GET    /api/topologies/{id}/importable-assets  可导入的资产清单
+    POST   /api/topologies/{id}/import-assets      把资产导入成节点
+
 存整份 XML，读的时候投影 —— 见 services/topology_parse.py 的说明。
 """
 
@@ -21,6 +24,11 @@ from sqlalchemy.orm import Session
 
 from ..auth import Principal, principal_from_request
 from ..db import DeviceMonitor, Topology, get_session
+from ..services.topology_import import (
+    TopologyImportError,
+    import_assets_as_nodes,
+    list_importable_assets,
+)
 from ..services.topology_parse import parse_topology
 
 router = APIRouter(prefix="/api/topologies", tags=["topologies"])
@@ -168,3 +176,61 @@ def upsert_monitor(
     m.enabled = body.enabled
     db.commit()
     return m.to_dict()
+
+
+# ── 资产 → 拓扑节点 ────────────────────────────────────────────────────────
+class ImportAssetsIn(BaseModel):
+    asset_ids: list[int] = []
+    zone: str | None = None          # 强制放到某个区域；不给就用资产自己的 zone
+    link_from_node_id: str | None = None   # 从哪个既有节点连一条线过来
+
+
+@router.get("/{topology_id}/importable-assets")
+def get_importable_assets(
+    topology_id: int,
+    p: Principal = Depends(principal_from_request),
+    db: Session = Depends(get_session),
+):
+    """该租户里、还没绑到这张拓扑图上的资产。
+
+    排除的是**已经绑到本拓扑**的（按 natural_id / IP 判重）—— 已绑到别的拓扑
+    的仍然列出来，标 ``bound_elsewhere``，让用户知道这台设备已经在别处接了监控。
+    """
+    t = db.get(Topology, topology_id)
+    if not t or t.tenant_id != p.tenant_id:
+        raise HTTPException(404, "拓扑图不存在")
+    try:
+        return list_importable_assets(db, p.tenant_id, topology_id)
+    except TopologyImportError as e:
+        raise HTTPException(404, str(e))
+
+
+@router.post("/{topology_id}/import-assets")
+def post_import_assets(
+    topology_id: int,
+    body: ImportAssetsIn,
+    p: Principal = Depends(principal_from_request),
+    db: Session = Depends(get_session),
+):
+    """把资产清单里的设备导入成拓扑节点，并建立 device_monitors 绑定。
+
+    幂等：同一个资产重复导入不会产生第二个节点 —— 已绑定的跳过，图里已有同名
+    节点的复用那个节点。
+    """
+    t = db.get(Topology, topology_id)
+    if not t or t.tenant_id != p.tenant_id:
+        raise HTTPException(404, "拓扑图不存在")
+    try:
+        result = import_assets_as_nodes(
+            db,
+            p.tenant_id,
+            topology_id,
+            body.asset_ids,
+            zone=body.zone,
+            link_from_node_id=body.link_from_node_id,
+        )
+    except TopologyImportError as e:
+        raise HTTPException(400, str(e))
+
+    result["topology"] = t.to_dict()
+    return result

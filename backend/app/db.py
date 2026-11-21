@@ -183,6 +183,31 @@ class Topology(Base):
 
     tenant = relationship("Tenant", back_populates="topologies")
 
+    def node_count(self) -> int:
+        """这张图上**真正的设备节点数**。
+
+        **不能用 len(node_bindings)** —— 那是「有多少节点绑了监控通道」，
+        不是「图上有多少节点」。一张 11 个节点、只绑了 4 台设备的图，
+        绑定数是 4，节点数是 11。拓扑列表那一列说的是「节点」。
+
+        绑定数与节点数本来就不该相等：
+          · 节点没绑设备   → 绑定数 < 节点数（绝大多数节点是这样）
+          · 同一台设备画了  → 绑定数可能 > 节点数
+            多个节点
+
+        XML 解析放在函数里惰性导入 —— db.py 是数据层，不该在模块顶层
+        依赖 services（services 又依赖 db，顶层互相 import 会成环）。
+        """
+        try:
+            from .services.topology_parse import parse_topology
+
+            g = parse_topology(self.xml or "")
+            if not g.get("error"):
+                return len(g.get("nodes") or [])
+        except Exception:  # pragma: no cover - 解析器出问题不该让列表页 500
+            pass
+        return len(self.node_bindings or {})
+
     def to_dict(self, include_xml: bool = False) -> dict[str, Any]:
         d = {
             "id": self.id,
@@ -191,7 +216,7 @@ class Topology(Base):
             "node_bindings": self.node_bindings or {},
             "origin": self.origin,
             "source_image": self.source_image,
-            "node_count": len(self.node_bindings or {}),
+            "node_count": self.node_count(),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
