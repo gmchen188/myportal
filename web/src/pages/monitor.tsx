@@ -118,6 +118,30 @@ export function MonitorPage() {
     const byId = useMemo(() => new Map(positioned.map((n) => [n.node_id, n])), [positioned])
 
     /**
+     * 跳到某个区域（把画布横向滚过去）。
+     *
+     * **为什么需要这个** ——
+     * 画布按内容算宽度，实测 2010px。移动端视口只有 341px，
+     * 也就是 **5.9 屏** —— 初始视图只露出 Zone 3 和 Zone 4，
+     * Zone 0/1/2 的告警状态全在屏幕外。
+     *
+     * 一个监控面板让用户看不见告警，比界面难看严重得多。
+     * 光加一句「可横向滚动」不够 —— 用户不知道要滚多远，
+     * 也不知道滚过去有什么。给一个「按区域跳转」的入口。
+     */
+    const scrollToZone = (z: { x?: number; y?: number }) => {
+        const el = canvasRef.current
+        if (!el) return
+        el.scrollTo({ left: Math.max(0, (z.x ?? 0) - 40), behavior: "smooth" })
+    }
+
+    /** 区域按 x 排序 —— 跳转按钮的顺序要跟画布上的左右顺序一致 */
+    const zoneList = useMemo(
+        () => [...zones].sort((a, b) => (a.x ?? 0) - (b.x ?? 0) || (a.y ?? 0) - (b.y ?? 0)),
+        [zones],
+    )
+
+    /**
      * 画布尺寸 —— **按内容算，不能写死**。
      *
      * 写死 900×2000 的时候，导入的设备落在 y=988~1220，被裁在画布外 ——
@@ -191,6 +215,43 @@ export function MonitorPage() {
                 <div className="card" style={{ padding: 12, marginBottom: 12, borderColor: "var(--color-sev-critical)" }}>
                     <b style={{ color: "var(--color-sev-critical)" }}>拓扑解析失败</b>
                     <div className="subtle" style={{ marginTop: 4 }}>{panel.data.parse_error}</div>
+                </div>
+            )}
+
+            {/*
+              区域导航 —— **画布比屏幕宽时，这是用户唯一能可靠到达
+              看不见区域的路径**。
+
+              实测：桌面 1.7 屏 / 平板 3.9 屏 / 移动 5.9 屏。
+              移动端初始只露出 Zone 3 与 Zone 4，Zone 0/1/2 的告警
+              状态全在屏幕外。没有这个导航，用户根本不知道还有区域。
+            */}
+            {zoneList.length > 0 && (
+                <div
+                    className="subtle"
+                    style={{
+                        display: "flex",
+                        gap: 6,
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        marginBottom: 8,
+                        fontSize: 12,
+                    }}
+                >
+                    <span style={{ flex: "0 0 auto" }}>
+                        {canvasSize.w > 400 ? "画布比屏幕宽，可横向滚动；或直接跳到：" : "区域："}
+                    </span>
+                    {zoneList.map((z) => (
+                        <button
+                            key={z.id}
+                            type="button"
+                            className="btn"
+                            style={{ padding: "3px 9px", fontSize: 12 }}
+                            onClick={() => scrollToZone(z)}
+                        >
+                            {z.title ?? z.id}
+                        </button>
+                    ))}
                 </div>
             )}
 
