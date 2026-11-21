@@ -1,3 +1,16 @@
+/**
+ * 同步后必须作废 events 缓存。
+ *
+ * 漏掉的话：用户点了同步、看到「新增 2 条」，但事件列表还是同步前的
+ * 旧数据 —— 直到轮询自然过期才变。**静默过期比报错更坏**：
+ * 用户会以为同步没生效。
+ *
+ * ## 为什么放在独立文件
+ *
+ * siem.test.tsx 的顶层 `vi.mock` 把 use-siem 整个 mock 掉了，
+ * 在那里测不到 hook 的真实行为。这里只 mock `@/api/client`，
+ * hook 本身是真的跑。
+ */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, waitFor } from "@testing-library/react"
 import React from "react"
