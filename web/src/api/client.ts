@@ -625,11 +625,15 @@ export const api = {
          *
          * 默认回溯 24 小时、同时同步设备、不覆盖已有行 —— 与后台默认值一致。
          */
-        sync: (params: { minutes?: number; devices?: boolean; overwrite?: boolean } = {}) => {
+        sync: (params: { minutes?: number; devices?: boolean; overwrite?: boolean; limit?: number } = {}) => {
             const qs = new URLSearchParams()
             qs.set("minutes", String(params.minutes ?? 1440))
             qs.set("devices", String(params.devices ?? true))
             qs.set("overwrite", String(params.overwrite ?? false))
+            // 显式发 limit —— 后端默认只给 200 条，上限 1000。
+            // 不发的话用户选「最近 30 天」实际最多拿 200 条，
+            // 数字看着是诚实的但没人知道还有更多。
+            qs.set("limit", String(params.limit ?? 1000))
             return request<SiemSyncResult>(`/api/siem/sync?${qs.toString()}`, { method: "POST" })
         },
     },

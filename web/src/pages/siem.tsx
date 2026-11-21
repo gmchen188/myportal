@@ -16,10 +16,9 @@
 import { Download, RefreshCw } from "lucide-react"
 import { useState } from "react"
 
-import { stageLabel } from "@/api/client"
-import type { SiemStatus } from "@/api/client"
+import { type SiemStatus, stageLabel } from "@/api/client"
 import { SiemStageList } from "@/components/siem-diagnostics"
-import { useSiemStatus, useSiemSync, useSiemRefresh } from "@/hooks/use-siem"
+import { useSiemRefresh, useSiemStatus, useSiemSync } from "@/hooks/use-siem"
 
 /** 时间窗口的选项。分钟数。 */
 const WINDOWS = [
@@ -457,8 +456,15 @@ export function SiemPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {devices.map((d) => (
-                                        <tr key={d.natural_id || d.name}>
+                                    {/*
+                                      key 兜底可能撞 ——
+                                      natural_id 为空是真实存在的（后端会跳过
+                                      没有 natural_id 的设备），两台同名设备会
+                                      产生重复 React key（警告 + 渲染错位）。
+                                      兜底时补上索引。
+                                    */}
+                                    {devices.map((d, i) => (
+                                        <tr key={d.natural_id || `${d.name}#${i}`}>
                                             <td className="strong">{d.name || "—"}</td>
                                             <td className="mono muted">{d.natural_id || "—"}</td>
                                             <td className="mono muted">{d.access_ip || "—"}</td>

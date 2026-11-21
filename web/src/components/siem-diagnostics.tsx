@@ -13,11 +13,10 @@
  * 颜色来自设计令牌，不在组件里硬编码。
  */
 
-import { STAGE_LABEL } from "@/api/client"
-import type { SiemProbe, SiemStage, SiemStatus } from "@/api/client"
+import { type SiemProbe, type SiemStage, type SiemStatus, STAGE_LABEL } from "@/api/client"
 
 /** 四段探测的固定顺序 —— 与后台的探测顺序一致。 */
-export const STAGE_ORDER: Exclude<SiemStage, "ok">[] = ["tcp", "tls", "auth", "api"]
+const STAGE_ORDER: Exclude<SiemStage, "ok">[] = ["tcp", "tls", "auth", "api"]
 
 // STAGE_LABEL 从 @/api/client 引入 —— 中文标签只有一份，
 // 错误文案那边也要用。
@@ -63,7 +62,11 @@ export function stageRows(status: SiemStatus): StageRow[] {
             // 失败的那段，**顶层的 error 是权威的失败原因**（契约里的
             // error 字段），probe.detail 是这一段的实测细节。
             // 两者不同时以 error 为准 —— 它才是后台给出的结论。
-            detail: failedHere || !probe.ok ? (status.error ?? probe.detail) : probe.detail,
+            // **只有权威段才用顶层 error** ——
+            // 顶层 error 是「卡在哪一段」的结论，只对 status.stage
+            // 指的那一段成立。别的段失败时借用它，会显示成别段的原因。
+            // 非权威段失败就用它自己的 probe.detail。
+            detail: failedHere ? (status.error ?? probe.detail) : probe.detail,
         }
     })
 }

@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { extractDetail, extractErrorMeta } from "@/api/client"
+import { ApiError, extractDetail, extractErrorMeta } from "@/api/client"
 import type { SiemStatus } from "@/api/client"
+import { SiemStageList, stageRows } from "@/components/siem-diagnostics"
 
 // vi.mock 会被 vitest 提升到文件顶部 —— 必须写在顶层，不能放在测试体里。
 vi.mock("@/hooks/use-siem", () => ({
@@ -10,7 +11,6 @@ vi.mock("@/hooks/use-siem", () => ({
     useSiemSync: vi.fn(),
     useSiemRefresh: vi.fn(),
 }))
-import { SiemStageList, stageRows } from "@/components/siem-diagnostics"
 
 function status(over: Partial<SiemStatus> = {}): SiemStatus {
     return {
@@ -77,8 +77,11 @@ describe("FortiSIEM 分段诊断", () => {
                 })}
             />,
         )
-        expect(screen.getByText("失败")).toBeDefined()
-        expect(screen.getByText(/网络不通/)).toBeDefined()
+        // getByText 找不到就抛异常，所以 `.toBeDefined()` 永远为真 ——
+        // 那是**空断言**，看起来在测东西其实什么都没测。
+        // 用 toBeInTheDocument 才是真断言（setup.ts 已引 jest-dom）。
+        expect(screen.getByText("失败")).toBeInTheDocument()
+        expect(screen.getByText(/网络不通/)).toBeInTheDocument()
     })
 
     it("颜色之外还有文字与形状 —— 不靠颜色单独传达状态", () => {
@@ -173,13 +176,22 @@ describe("重新检测的失败态", () => {
             mutate: vi.fn(),
             isPending: false,
             isError: true,
-            error: { detail: "[502] FortiSIEM 不可达" },
+            // **真实的 ApiError 形状** —— 生产的 detail 是 extractDetail()
+            // 的产物（不含 "[502] " 前缀，前缀只在 .message 里）。
+            // 之前 mock 成 { detail: "[502] ..." }，于是 /502/ 断言靠 mock
+            // 才成立 —— 真实生产渲染其实不显示状态码。
+            error: new ApiError(502, "FortiSIEM 不可达（卡在 认证取 Token 这一段）"),
             data: undefined,
         } as never)
 
         render(<SiemPage />)
-        expect(screen.getByText(/重新检测失败/)).toBeTruthy()
-        expect(screen.getByText(/502/)).toBeTruthy()
+        expect(screen.getByText(/重新检测失败/)).toBeInTheDocument()
+        // 断言真实渲染出来的内容（不是状态码 —— 状态码只在 .message 里，
+        // 页面显示的是人话）
+        expect(screen.getByText(/FortiSIEM 不可达/)).toBeInTheDocument()
+        // 「认证取 Token」在页面里出现多次（四段诊断的标签也有它），
+        // 所以用 getAllByText —— 断言的是「至少显示了一次」。
+        expect(screen.getAllByText(/认证取 Token/).length).toBeGreaterThan(0)
     })
 })
 
