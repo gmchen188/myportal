@@ -59,7 +59,10 @@ def _tenant_org(p: Principal) -> str:
 
 
 @router.get("/status")
-def siem_status(refresh: bool = Query(False, description="强制重测，绕过探测缓存")):
+def siem_status(
+    p: Principal = Depends(principal_from_request),
+    refresh: bool = Query(False, description="强制重测，绕过探测缓存"),
+):
     """FortiSIEM 连接状态与设备列表。
 
     带上**分阶段诊断**（tcp / tls / auth / api）：运维看到的是"卡在哪一段"，
@@ -67,6 +70,14 @@ def siem_status(refresh: bool = Query(False, description="强制重测，绕过�
 
     `refresh=true` 绕过探测缓存 —— 用户点了「重新检测」就该真测一次，
     不能给他 10 秒前的旧结果。
+
+    ## 为什么要认证
+
+    这个端点**泄露的东西不少**：SIEM 组织名、四段探测细节、
+    以及**设备清单**（名称 / 访问 IP / SN / 型号 / 版本）。
+
+    同文件的 incidents / sync 都有 `Depends(principal_from_request)`，
+    只有这里漏了 —— 实测 `MP_ENV=prod` 下无 token 直接 200。
     """
     c = get_client()
     st = c.status(use_cache=not refresh)
