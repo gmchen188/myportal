@@ -72,6 +72,19 @@ class DeviceState:
     channel: str = "fortisiem"
     connected: bool = True
 
+    # ── 布局（来自拓扑图）────────────────────────────────────
+    # **必须带上** —— 前端要靠 node_id 当 React 的 key，靠 x/y/w/h
+    # 画节点的位置和大小。少了这些：
+    #   · key 全是 undefined → React 警告「duplicate key」
+    #   · Math.max(n.w, 120) → NaN → 节点宽度无效，渲染不出来
+    node_id: str | None = None
+    zone: str | None = None
+    zone_key: str | None = None
+    x: float | None = None
+    y: float | None = None
+    w: float | None = None
+    h: float | None = None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "natural_id": self.natural_id,
@@ -84,6 +97,13 @@ class DeviceState:
             "top_title": self.top_title,
             "channel": self.channel,
             "connected": self.connected,
+            "node_id": self.node_id,
+            "zone": self.zone,
+            "zone_key": self.zone_key,
+            "x": self.x,
+            "y": self.y,
+            "w": self.w,
+            "h": self.h,
         }
 
 
@@ -280,6 +300,15 @@ def compute_device_states(
             ip=ip or None,
             label=label,
             channel=d.get("channel", "fortisiem"),
+            # 布局字段从设备清单带过来（路由那边已经把拓扑节点的
+            # node_id / zone / x / y / w / h 填进 devices 了）
+            node_id=d.get("node_id"),
+            zone=d.get("zone"),
+            zone_key=d.get("zone_key"),
+            x=d.get("x"),
+            y=d.get("y"),
+            w=d.get("w"),
+            h=d.get("h"),
         )
 
         if not matched:

@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
-import { ExternalLink, Network, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { ExternalLink, Import, Network, Trash2 } from "lucide-react"
 
 import { api } from "@/api/client"
+import { ImportAssetsDialog } from "@/components/import-assets-dialog"
 import { useDeleteTopology } from "@/hooks/use-topologies"
 
 /**
@@ -14,6 +16,7 @@ import { useDeleteTopology } from "@/hooks/use-topologies"
 export function TopologiesPage() {
     const topologies = useQuery({ queryKey: ["topologies"], queryFn: () => api.topologies.list() })
     const del = useDeleteTopology()
+    const [importTarget, setImportTarget] = useState<{ id: number; name: string } | null>(null)
 
     const ntBase = import.meta.env.VITE_NT_BASE ?? "/networktopology/zh"
 
@@ -82,16 +85,28 @@ export function TopologiesPage() {
                                     <td className="mono muted">{t.node_count}</td>
                                     <td><span className="bdg neutral">{t.origin}</span></td>
                                     <td className="mono muted">{t.updated_at?.slice(0, 16).replace("T", " ") ?? "—"}</td>
-                                    <td style={{ width: 40 }}>
-                                        <button
-                                            type="button"
-                                            className="btn"
-                                            style={{ height: 26, padding: "0 7px" }}
-                                            onClick={() => del.mutate(t.id)}
-                                            aria-label={`删除 ${t.name}`}
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
+                                    <td style={{ width: 78 }}>
+                                        <div style={{ display: "flex", gap: 5 }}>
+                                            <button
+                                                type="button"
+                                                className="btn"
+                                                style={{ height: 26, padding: "0 7px" }}
+                                                onClick={() => setImportTarget({ id: t.id, name: t.name })}
+                                                aria-label={`导入设备到 ${t.name}`}
+                                                title="把资产清单里的设备导入成这张图的节点"
+                                            >
+                                                <Import size={13} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn"
+                                                style={{ height: 26, padding: "0 7px" }}
+                                                onClick={() => del.mutate(t.id)}
+                                                aria-label={`删除 ${t.name}`}
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -104,6 +119,14 @@ export function TopologiesPage() {
                     </table>
                 </div>
             </div>
+
+            {importTarget && (
+                <ImportAssetsDialog
+                    topologyId={importTarget.id}
+                    topologyName={importTarget.name}
+                    onClose={() => setImportTarget(null)}
+                />
+            )}
         </div>
     )
 }

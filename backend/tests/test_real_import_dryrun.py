@@ -101,7 +101,17 @@ def test_real_topology_import_dryrun(real_db, capsys):
                   f"style={n['style_names']} pos=({n['x']},{n['y']})")
 
         assert after["error"] is None
-        assert len(after["nodes"]) == len(before["nodes"]) + len(ids)
+        # **幂等语义，不假设真实库的初始状态。**
+        #
+        # 真实库里这些设备可能已经被导入过（开发时手工点过 UI）——
+        # 那时再导入就是 added=0、节点数不变。断言「节点数 +3」会在
+        # 那种情况下假失败。真正该保证的是：
+        #   · 导入是幂等的（重复导入不产生新节点）
+        #   · 图里能解析出每台设备
+        assert res["added"] + len(res.get("skipped") or []) == len(ids)
+        labels_after = {n["label"] for n in after["nodes"]}
+        for a in siem_assets:
+            assert (a.name or a.natural_id) in labels_after, f"{a.name} 没出现在图里"
         # 原有节点一个不少
         old_labels = {n["label"] for n in before["nodes"]}
         new_labels = {n["label"] for n in after["nodes"]}

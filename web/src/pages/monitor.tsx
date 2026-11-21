@@ -117,6 +117,27 @@ export function MonitorPage() {
 
     const byId = useMemo(() => new Map(positioned.map((n) => [n.node_id, n])), [positioned])
 
+    /**
+     * 画布尺寸 —— **按内容算，不能写死**。
+     *
+     * 写死 900×2000 的时候，导入的设备落在 y=988~1220，被裁在画布外 ——
+     * 用户滚到底也看不到自己刚导入的设备。内容有多高，画布就有多高。
+     */
+    const canvasSize = useMemo(() => {
+        const PAD = 60
+        let maxX = 1200
+        let maxY = 700
+        for (const z of zones) {
+            maxX = Math.max(maxX, (z.x ?? 0) + (z.w ?? 0))
+            maxY = Math.max(maxY, (z.y ?? 0) + (z.h ?? 0))
+        }
+        for (const n of positioned) {
+            maxX = Math.max(maxX, (n.px ?? 0) + (n.w ?? 0))
+            maxY = Math.max(maxY, (n.py ?? 0) + (n.h ?? 0))
+        }
+        return { w: maxX + PAD, h: maxY + PAD }
+    }, [zones, positioned])
+
     if (topologies.isLoading) return <p className="muted">加载中…</p>
     if (!topologies.data?.items.length) {
         return (
@@ -185,7 +206,13 @@ export function MonitorPage() {
                             "repeating-linear-gradient(0deg, transparent 0 19px, var(--border) 19px 20px), repeating-linear-gradient(90deg, transparent 0 19px, var(--border) 19px 20px)",
                     }}
                 >
-                    <div style={{ position: "relative", width: 2000, height: 900 }}>
+                    <div
+                        style={{
+                            position: "relative",
+                            width: canvasSize.w,
+                            height: canvasSize.h,
+                        }}
+                    >
                         {/* 区域框 */}
                         {zones.map((z) => (
                             <div
@@ -219,7 +246,13 @@ export function MonitorPage() {
 
                         {/* 连线 */}
                         <svg
-                            style={{ position: "absolute", inset: 0, width: 2000, height: 900, pointerEvents: "none" }}
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                width: canvasSize.w,
+                                height: canvasSize.h,
+                                pointerEvents: "none",
+                            }}
                             aria-hidden="true"
                         >
                             {links.map((l) => {

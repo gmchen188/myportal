@@ -296,6 +296,34 @@ export interface GraphLink {
     color: string
 }
 
+/** 可导入为拓扑节点的资产 —— 还没绑到这张图上的。 */
+export interface ImportableAsset {
+    id: number
+    natural_id: string | null
+    name: string | null
+    type: string | null
+    ip: string | null
+    vendor: string | null
+    model: string | null
+    zone: string | null
+    status: string | null
+    source: string | null
+    /** 图里已经有同名的节点 —— 导入会复用它，不新画 */
+    already_in_graph: boolean
+    /** 已经绑到别的拓扑图上了 */
+    bound_elsewhere: boolean
+}
+
+/** 导入的结果。skipped 说明为什么没导。 */
+export interface ImportAssetsResult {
+    added: number
+    nodes: Array<{ node_id: string; label: string; natural_id: string; ip: string | null }>
+    skipped: Array<{ asset_id: number; natural_id: string; name: string | null; reason: string }>
+    bound_existing: number
+    monitors: number
+    warnings: string[]
+}
+
 export interface TopologyGraph {
     nodes: GraphNode[]
     zones: GraphZone[]
@@ -508,6 +536,29 @@ export const api = {
             request<Topology>("/api/topologies", { method: "POST", body }),
         remove: (id: number) => request<{ deleted: number }>(`/api/topologies/${id}`, { method: "DELETE" }),
         graph: (id: number) => request<TopologyGraph>(`/api/topologies/${id}/graph`),
+
+        /**
+         * 可导入为拓扑节点的资产 —— 还没绑到这张图上的。
+         *
+         * 「已绑到本拓扑」的会被排除 —— 重复导入不产生重复节点。
+         */
+        importableAssets: (id: number) =>
+            request<{ items: ImportableAsset[] }>(`/api/topologies/${id}/importable-assets`),
+
+        /**
+         * 把资产导入成拓扑节点，并建立 device_monitors 绑定。
+         *
+         * 绑定建好之后，SIEM 的真实事件才能点亮对应节点的色 ——
+         * 没有绑定，事件收进来了也看不到。
+         */
+        importAssets: (
+            id: number,
+            body: { asset_ids: number[]; zone?: string; link_from_node_id?: string },
+        ) =>
+            request<ImportAssetsResult>(`/api/topologies/${id}/import-assets`, {
+                method: "POST",
+                body,
+            }),
         monitors: (id: number) =>
             request<{ items: Array<{ node_id: string; node_label: string | null; natural_id: string | null; ip: string | null; channel: string; enabled: boolean }> }>(
                 `/api/topologies/${id}/monitors`,
