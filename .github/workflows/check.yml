@@ -98,6 +98,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [check, build-docs]
     runs-on: ubuntu-latest
+    # continue-on-error：Pages 是可选的部署通道，不是质量关卡。
+    # 仓库没开 Pages 时（Settings → Pages → Source 选 GitHub Actions），
+    # 这一步会失败 —— 但自检、测试、产物构建已经过了，不该因此把整个
+    # workflow 判成红灯。红灯的含义是「代码有问题」，不是「没配部署」。
+    continue-on-error: true
     permissions:
       contents: read
       pages: write
@@ -110,7 +115,7 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
-      # demo/ 是纯静态：单文件 HTML，无外部依赖。用官方 static action 部署，
+      # demo/ 是纯静态：单文件 HTML，无外部依赖。用官方 action 部署，
       # 不用自己写 action（自己写要处理 404 回退、缓存头、路径重写，
       # 官方 action 已经把这些做对了）。
       - uses: actions/upload-pages-artifact@v5

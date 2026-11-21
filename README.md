@@ -91,8 +91,47 @@ python verify_sso.py         # 端到端验证
 ## Git 约定
 
 - 分支：`main` 为主干，功能分支用 `feature/xxx` / `fix/xxx`
-- `main` 推送会触发 `.github/workflows/check.yml`：跑 `check_demo.py`，绿才允许部署
 - 提交信息用中文，格式 `type(scope): 摘要`
+
+### CI 流水线
+
+`.github/workflows/check.yml` 四个 job：
+
+| job | 做什么 | 失败意味着 |
+|---|---|---|
+| Demo self-check | `tools/check_demo.py`（57 项断言） | demo 界面坏了 |
+| Backend tests | `pytest`（33 项断言） | 后台逻辑坏了 |
+| Build docx / pptx | 从源码重建产物 → artifact | 构建脚本坏了 |
+| Publish demo to Pages | 部署 `demo/` 到 GitHub Pages | **不影响其它三个**（`continue-on-error`） |
+
+产物在 CI 里重建而不是靠本地跑：`Docx/` 与 `_ref/` 的素材变了，上游产物不会
+自己更新 —— 每次从源码重建，产物与源码不可能对不上。
+
+### Pages 需要手动开一次
+
+仓库默认没启用 Pages，首次推送时 `publish-demo` 会失败：
+
+```
+Get Pages site failed. Please verify that the repository has Pages enabled
+```
+
+**开法**：仓库 → Settings → Pages → Source 选 **GitHub Actions** → Save。
+
+开了之后这个 job 就会绿。没开之前它显示为「部分失败」而不是纯红 —— 红灯的
+含义是「代码有问题」，不是「没配部署」。
+
+### 凭据
+
+`gh` 与 git 用同一个 fine-grained PAT：
+
+```bash
+gh auth login --with-token <<< "$TOKEN"
+```
+
+> **仓库名大小写敏感**。GitHub 保留曾用过的名字（`myPortal` 之后 `myportal`
+> 会被拒），且 fine-grained PAT 的仓库白名单是**建仓库时**锁定的 ——
+> 新建的仓库不在名单里会 403，需要改 PAT 的 Repository access。
+
 
 ### 什么不进库
 
