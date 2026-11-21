@@ -39,9 +39,37 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
         },
     })
 
+    /**
+     * 三种失败要分开说 —— 说错了用户会做错事。
+     *
+     * | 状态码 | 含义 | 用户该做什么 |
+     * |---|---|---|
+     * | 401 | 用户名或密码不对 | 换密码重试 |
+     * | 429 | 连续失败被锁定 | **等 N 分钟**，再试也没用 |
+     * | 403 | 账号被停用 | 找管理员 |
+     *
+     * 之前三种都显示成同一句话。用户被锁定后看到「用户名或密码不正确」
+     * 会以为是密码错了，反复重试 —— 每次都失败，更困惑。
+     */
+    const errorKind = (() => {
+        const e = login.error as { status?: number } | null
+        if (!e) return null
+        if (e.status === 429) return "locked" as const
+        if (e.status === 403) return "disabled" as const
+        if (e.status === 401) return "credentials" as const
+        return "unknown" as const
+    })()
+
     const errorText = (() => {
         const e = login.error as { detail?: string; message?: string } | null
         if (!e) return null
+        if (errorKind === "locked") {
+            // 后端 detail 已经带了剩余分钟数（「账号已锁定，请 15 分钟后再试」）
+            return e.detail ?? "账号已锁定，请稍后再试"
+        }
+        if (errorKind === "disabled") {
+            return e.detail ?? "账号已停用，请联系管理员"
+        }
         return e.detail ?? e.message ?? "登录失败"
     })()
 
@@ -112,11 +140,19 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
 
                     {login.isError && (
                         <div
-                            className="bdg err"
+                            // **锁定不是「密码错了」** —— 红色错误块会让人
+                            // 以为是密码问题反复重试。锁定用警示色，
+                            // 并且明确告诉用户要等。
+                            className={errorKind === "locked" ? "bdg warn" : "bdg err"}
                             style={{ display: "block", marginBottom: 12 }}
                             role="alert"
                         >
                             {errorText}
+                            {errorKind === "locked" && (
+                                <div style={{ marginTop: 4, fontSize: 12, opacity: 0.85 }}>
+                                    锁定期间重试没有用 —— 等提示里的分钟数到了再来。
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -127,7 +163,11 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
                         disabled={login.isPending || !username.trim() || !password}
                     >
                         <LogIn size={14} />
-                        {login.isPending ? "登录中…" : "登录"}
+                        {login.isPending
+                            ? "登录中…"
+                            : errorKind === "locked"
+                              ? "账号已锁定"
+                              : "登录"}
                     </button>
                 </form>
 

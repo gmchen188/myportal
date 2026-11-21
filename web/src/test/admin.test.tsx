@@ -90,6 +90,68 @@ describe("登录页", () => {
         expect(localStorage.getItem("myportal.token")).toBe("tok-123")
     })
 
+    /**
+     * 锁定（429）与密码错（401）必须分开说。
+     *
+     * 后端连续 5 次失败锁 15 分钟，锁定时返回 **429**（不是 401）。
+     * 之前三种失败都显示同一句话 —— 用户被锁定后看到「用户名或密码
+     * 不正确」会以为是密码错了，反复重试，每次都失败，更困惑。
+     */
+    it("账号被锁定（429）要明确告诉用户要等，不能说成密码错", async () => {
+        const { api } = await import("@/api/client")
+        const { LoginPage } = await import("@/pages/login")
+        const { ApiError } = await import("@/api/client")
+        vi.mocked(api.auth.login).mockRejectedValue(
+            new ApiError(429, "账号已锁定，请 15 分钟后再试"),
+        )
+
+        render(<LoginPage onLoggedIn={vi.fn()} />, { wrapper })
+        fireEvent.change(screen.getByLabelText("用户名"), { target: { value: "admin" } })
+        fireEvent.change(screen.getByLabelText("密码"), { target: { value: "whatever" } })
+        fireEvent.click(screen.getByRole("button", { name: "登录" }))
+
+        await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument())
+        const alert = screen.getByRole("alert")
+        expect(alert.textContent).toContain("锁定")
+        expect(alert.textContent).toContain("15 分钟")
+        // **不能出现「密码不正确」** —— 那是误导
+        expect(alert.textContent).not.toContain("密码不正确")
+        // 还要说清「重试没用」
+        expect(alert.textContent).toContain("重试没有用")
+    })
+
+    it("账号停用（403）要说成停用，不是密码错", async () => {
+        const { api } = await import("@/api/client")
+        const { LoginPage } = await import("@/pages/login")
+        const { ApiError } = await import("@/api/client")
+        vi.mocked(api.auth.login).mockRejectedValue(new ApiError(403, "账号已停用"))
+
+        render(<LoginPage onLoggedIn={vi.fn()} />, { wrapper })
+        fireEvent.change(screen.getByLabelText("用户名"), { target: { value: "admin" } })
+        fireEvent.change(screen.getByLabelText("密码"), { target: { value: "whatever" } })
+        fireEvent.click(screen.getByRole("button", { name: "登录" }))
+
+        await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument())
+        expect(screen.getByRole("alert").textContent).toContain("停用")
+        expect(screen.getByRole("alert").textContent).not.toContain("密码不正确")
+    })
+
+    it("锁定时按钮要换文案，让用户知道不是还能试", async () => {
+        const { api } = await import("@/api/client")
+        const { LoginPage } = await import("@/pages/login")
+        const { ApiError } = await import("@/api/client")
+        vi.mocked(api.auth.login).mockRejectedValue(
+            new ApiError(429, "账号已锁定，请 15 分钟后再试"),
+        )
+
+        render(<LoginPage onLoggedIn={vi.fn()} />, { wrapper })
+        fireEvent.change(screen.getByLabelText("用户名"), { target: { value: "admin" } })
+        fireEvent.change(screen.getByLabelText("密码"), { target: { value: "whatever" } })
+        fireEvent.click(screen.getByRole("button", { name: "登录" }))
+
+        await waitFor(() => expect(screen.getByRole("button", { name: "账号已锁定" })).toBeInTheDocument())
+    })
+
     it("登录失败要显示后端给的提示", async () => {
         const { api } = await import("@/api/client")
         const { LoginPage } = await import("@/pages/login")
