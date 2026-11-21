@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.connectors.fortisiem import get_client  # noqa: E402
 from app.db import init_db  # noqa: E402
-from app.routers import assets, monitoring, topologies  # noqa: E402
+from app.routers import assets, monitoring, siem, topologies  # noqa: E402
 
 app = FastAPI(
     title="myPortal backend",
@@ -54,6 +54,7 @@ app.add_middleware(
 app.include_router(assets.router)
 app.include_router(topologies.router)
 app.include_router(monitoring.router)
+app.include_router(siem.router)
 
 
 @app.on_event("startup")
@@ -75,32 +76,6 @@ def health():
             "stage": siem.stage,
         },
     }
-
-
-@app.get("/api/siem/status")
-def siem_status():
-    """FortiSIEM 连接状态与设备列表。
-
-    带上**分阶段诊断**（tcp / tls / auth / api）：运维看到的是"卡在哪一段"，
-    不是一句"连接失败"。
-    """
-    c = get_client()
-    st = c.status()
-    out = {
-        "configured": st.configured,
-        "connected": st.connected,
-        "org": st.org,
-        "error": st.error,
-        "stage": st.stage,
-        "probes": st.probes or {},
-        "devices": [],
-    }
-    if st.connected:
-        try:
-            out["devices"] = c.devices()
-        except Exception as e:
-            out["error"] = str(e)[:300]
-    return out
 
 
 @app.exception_handler(500)

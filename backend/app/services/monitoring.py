@@ -150,6 +150,76 @@ def severity_from_score(score: float | None, category: str | None) -> str:
     return cat if cat != "unknown" else "normal"
 
 
+def match_device_to_nodes(
+    device: dict[str, Any],
+    nodes: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """把一台设备匹配到拓扑图上的节点。
+
+    **为什么要自动匹配**：拓扑图里的方块只有标签（FW-EDGE-01），
+    SIEM 里的设备只有 natural_id 和 IP。两边对不上，事件就落不到
+    节点上，监控面板永远是灰的。自动匹配让「从 SIEM 同步的设备」
+    直接接进已有的拓扑图，不需要人工维护绑定表。
+
+    匹配键与优先级（与 `compute_device_states` 的事件匹配保持一致 ——
+    那边是 natural_id → IP → 名称依次试、命中就全收）：
+
+        1. natural_id == 节点 label   优先级最高
+        2. device.name == 节点 label
+        3. device.ip == 节点 ip
+
+    **三个键不互斥** —— 同一台设备可能同时命中不同节点的不同键，
+    那就都返回（和 compute_device_states 一样，命中即收）。
+
+    三条硬规则：
+
+    1. **空值不参与匹配** —— device.ip 为 None/空串时，绝不能匹配到
+       「没有 ip 的节点」。那会把一台设备绑到几十个节点上。
+    2. **大小写不敏感** —— SIEM 的 naturalId 可能有大小写差异。
+    3. **natural_id 先 URL 解码** —— FortiSIEM 返回的 naturalId 是
+       URL 编码的（"HOST%2d1.1.1.1"），不解码对不上标签。
+    """
+    from urllib.parse import unquote
+
+    def _norm(v: Any) -> str:
+        return str(v or "").strip().lower()
+
+    def _nid(v: Any) -> str:
+        raw = str(v or "").strip()
+        if not raw:
+            return ""
+        # 只在有 % 时才解 —— 避免无谓的处理
+        return unquote(raw).strip().lower() if "%" in raw else raw.lower()
+
+    dev_nid = _nid(device.get("natural_id"))
+    dev_name = _norm(device.get("name"))
+    dev_ip = _norm(device.get("ip") or device.get("access_ip"))
+
+    matched: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for n in nodes:
+        nid = str(n.get("id") or "")
+        if nid in seen:
+            continue
+        label = _norm(n.get("label") or n.get("node_label"))
+        node_ip = _norm(n.get("ip"))
+
+        hit = False
+        if dev_nid and label and dev_nid == label:
+            hit = True
+        if dev_name and label and dev_name == label:
+            hit = True
+        # IP 比较要求两边都有值 —— 空 IP 不参与
+        if dev_ip and node_ip and dev_ip == node_ip:
+            hit = True
+
+        if hit:
+            seen.add(nid)
+            matched.append(n)
+
+    return matched
+
+
 def compute_device_states(
     devices: Iterable[dict[str, Any]],
     incidents: Iterable[dict[str, Any]],

@@ -7,3 +7,5 @@ SQLAlchemy>=2.0
 openpyxl>=3.1
 # .xls 老格式导入需要（可选，装不上也不影响 .xlsx）
 xlrd>=2.0
+# .env 加载（FortiSIEM 凭据等运行期配置）
+python-dotenv>=1.0

@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -36,6 +37,104 @@ FS_VERIFY_TLS = os.getenv("FORTISIEM_VERIFY_TLS", "false").lower() not in ("0", 
 
 # 内部面要这个 Accept —— 严格 JSON 会 406
 _ACCEPT = "application/json, text/plain, */*"
+
+
+# ── 字段映射（实机 7.5.1 验证，2026-11-21）────────────────────────────────
+#
+# 实机拉到的字段名与文档不完全一致，按实测来：
+#
+#   租户/组织   customer            （**不是** organization —— 那是别的版本）
+#   严重度类别   eventSeverityCat    HIGH / MEDIUM / LOW
+#   严重度数值   eventSeverity       1-10
+#   事件标题     incidentTitle
+#   设备名      incidentRptDevName
+#   设备 IP     incidentRptIp
+#   源 IP       incidentSrc         形如 "srcIpAddr:172.16.0.57, srcGeoCountry:, "
+#   目标/用户   incidentTarget      形如 "destName:xxx, destIpAddr:1.2.3.4, user:admin, "
+#   事件 ID     incidentId
+#   状态        incidentStatus      0=未解决 3=已解决
+#   时间        incidentFirstSeen   毫秒时间戳
+#
+# **严重度以类别为准，不以数值为准。** 实机数据里两者是冲突的：
+#
+#   (eventSeverity=6, eventSeverityCat='MEDIUM')
+#   (eventSeverity=7, eventSeverityCat='MEDIUM')
+#   (eventSeverity=9, eventSeverityCat='HIGH')
+#
+# 数值 9 按「0-10 惯例」会被读成 critical，但 SIEM 自己判的是 HIGH。
+# **SIEM 的类别是它的判定结果，数值只是它用来判定的输入之一** ——
+# 拿输入推翻结论会得到错色（critical 红 vs high 粉红）。
+# 所以：类别认得就用类别；类别缺失才退回数值。
+#
+# 注意这与 `services/monitoring.py` 的 `severity_from_score()` 语义不同 ——
+# 那个是给 webhook/syslog 用的（那里 severity 字段是 0-100 分数惯例，
+# 数值优先是合理的）。**两个来源不能共用一套规则。**
+
+_SEVERITY_BY_CAT = {
+    "critical": "critical",
+    "high": "high",
+    "medium": "medium",
+    "low": "low",
+    "informational": "informational",
+    "info": "informational",
+}
+
+
+def severity_from_siem(cat: str | None, score: float | None) -> str:
+    """从 FortiSIEM 的 (eventSeverityCat, eventSeverity) 推出级别。
+
+    **类别优先**（见上方字段映射的说明）。类别缺失或认不出时退回数值，
+    数值也认不出才是 unknown。
+    """
+    key = (cat or "").strip().lower()
+    if key in _SEVERITY_BY_CAT:
+        return _SEVERITY_BY_CAT[key]
+    if score is not None:
+        # 数值兜底：1-10 惯例（实机观测到的范围）
+        if score >= 9:
+            return "critical"
+        if score >= 7:
+            return "high"
+        if score >= 4:
+            return "medium"
+        if score >= 1:
+            return "low"
+    return "unknown"
+
+
+def _url_decode(raw: str) -> str:
+    """解 URL 编码。
+
+    FortiSIEM 的 naturalId 字段是 URL 编码的 —— 实机返回 "HOST%2d1.1.1.1"，
+    其中 %2d 就是 "-"。不解码的话这个 natural_id 与别处对不上，
+    事件按 natural_id 归集到设备时就会落空。
+    """
+    if not raw or "%" not in raw:
+        return raw
+    from urllib.parse import unquote
+
+    return unquote(raw)
+
+
+def _parse_kv_blob(raw: str | None) -> dict[str, str]:
+    """解析 "srcIpAddr:1.2.3.4, srcGeoCountry:, " 这种 KV 串。
+
+    FortiSIEM 把 src/dest 的多个属性塞在一个逗号分隔串里，格式不统一
+    （有的带空格，有的没有）。按 'key:value' 拆，取第一个冒号前的键名。
+    """
+    out: dict[str, str] = {}
+    if not raw:
+        return out
+    for part in raw.split(","):
+        part = part.strip()
+        if not part or ":" not in part:
+            continue
+        k, _, v = part.partition(":")
+        k = k.strip()
+        v = v.strip()
+        if k and v and k not in out:
+            out[k] = v
+    return out
 
 
 @dataclass
@@ -137,7 +236,10 @@ class FortiSiemClient:
             out.append(
                 {
                     "name": (d.findtext("name") or "").strip(),
-                    "natural_id": (d.findtext("naturalId") or "").strip(),
+                    # naturalId 是 **URL 编码**的 —— 实机返回 "HOST%2d1.1.1.1"
+                    # （%2d 就是 "-"）。不解码的话资产清单里的 natural_id
+                    # 会跟别处对不上，事件归集按 natural_id 匹配时也匹配不上。
+                    "natural_id": _url_decode((d.findtext("naturalId") or "").strip()),
                     "access_ip": (d.findtext("accessIp") or "").strip(),
                     "sn": (d.findtext("sn") or "").strip(),
                     "org": (org.get("name") if org is not None else None),
@@ -155,16 +257,19 @@ class FortiSiemClient:
         limit: int = 200,
         minutes: int = 1440,
     ) -> list[dict[str, Any]]:
-        """取事件。
-
-        走 `/phoenix/rest/pub/incident`（POST  richer）。7.5.1 上
+        """取事件。走 `/phoenix/rest/pub/incident`（POST richer）。7.5.1 上
         `/phoenix/rest/pub/v2/query/incidents` 是 404 —— 别用那条。
+
+        **返回已归一的事件字典**，字段名对齐我方 `incidents` 表：
+        title / severity / device_* / src_ip / dest_ip / user / occurred_at。
+        归一放在 connector 做，不在路由做 —— 换数据源时只改这一处。
         """
         now = int(time.time() * 1000)
         payload = {
             "start": 0,
             "size": limit,
-            "incidentStatus": [0],
+            # 0=未解决 1/2=处理中 3=已解决 —— 全要，历史也要
+            "incidentStatus": [0, 1, 2, 3],
             "timeFrom": now - minutes * 60 * 1000,
             "timeTo": now,
         }
@@ -177,14 +282,43 @@ class FortiSiemClient:
         data = r.json()
         items = data.get("data") or data.get("incidents") or []
         target = (org or self.org or "").lower()
-        out = []
+
+        out: list[dict[str, Any]] = []
         for i in items:
-            # 租户过滤：组织名匹配。**匹配不上就丢弃**，而不是放行 ——
-            # 无法归属的记录不能归给任何租户。
-            org_name = (i.get("organization") or i.get("org_name") or "").lower()
+            # 租户过滤：实机字段是 `customer`（旧文档写的 organization 是别的版本）。
+            # **匹配不上就丢弃** —— 无法归属的记录不能归给任何租户。
+            org_name = (i.get("customer") or i.get("organization") or i.get("org_name") or "").lower()
             if target and org_name and org_name != target:
                 continue
-            out.append(i)
+
+            src = _parse_kv_blob(i.get("incidentSrc"))
+            tgt = _parse_kv_blob(i.get("incidentTarget"))
+            score = i.get("eventSeverity")
+            first_seen = i.get("incidentFirstSeen")
+            out.append(
+                {
+                    "external_id": str(i.get("incidentId") or ""),
+                    "title": (i.get("incidentTitle") or i.get("eventName") or "").strip()[:400],
+                    "severity": severity_from_siem(i.get("eventSeverityCat"), score),
+                    "score": float(score) if score is not None else None,
+                    "source": "fortisiem",
+                    "device_name": (i.get("incidentRptDevName") or "").strip(),
+                    "device_ip": (i.get("incidentRptIp") or "").strip(),
+                    "src_ip": src.get("srcIpAddr"),
+                    "dest_ip": tgt.get("destIpAddr"),
+                    "user": tgt.get("user"),
+                    # 毫秒时间戳 → 带时区的 datetime
+                    "occurred_at": (
+                        datetime.fromtimestamp(first_seen / 1000, tz=timezone.utc)
+                        if first_seen
+                        else None
+                    ),
+                    # 0=未解决 3=已解决。保持 SIEM 原值。
+                    "incident_status": i.get("incidentStatus"),
+                    "org": i.get("customer"),
+                    "raw": i,
+                }
+            )
         return out
 
     def status(self) -> SiemStatus:
