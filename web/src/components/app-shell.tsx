@@ -61,6 +61,18 @@ export function AppShell() {
             </a>
 
             {/* 侧栏 */}
+            {/*
+              **桌面端用 md:!static 而不是内联 position:fixed** ——
+              内联样式的优先级高于 Tailwind class，原来写的是
+              className="md:static" + style={{position:"fixed"}}，结果
+              class 根本没生效：1440px 下侧栏仍是 fixed，position:fixed 的
+              aside 会盖在主区上（实测 main left=0 / width=1440），
+              表格左侧「严重度」「设备」两列被压在侧栏下面看不见。
+
+              所以桌面端的 position 交给 class（md:!static 带 !important，
+              能压过内联），内联只保留移动端需要的 fixed/inset/transform。
+              md:!transform-none 同理 —— 桌面端不要位移。
+            */}
             <aside
                 style={{
                     width: 216,
@@ -69,13 +81,14 @@ export function AppShell() {
                     color: "var(--sidebar-fg)",
                     display: "flex",
                     flexDirection: "column",
+                    // 移动端：抽屉，固定在左侧
                     position: "fixed",
                     inset: "0 auto 0 0",
                     transform: drawer ? "translateX(0)" : "translateX(-100%)",
                     transition: "transform 0.2s",
                     zIndex: 40,
                 }}
-                className="md:static md:!transform-none"
+                className="md:!static md:!transform-none"
                 id="sidebar"
             >
                 <div
