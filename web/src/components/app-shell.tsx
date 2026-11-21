@@ -4,7 +4,6 @@
  * 布局用 CSS Grid 而不是固定像素 —— 375px 窄屏下侧栏收成抽屉。
  */
 
-import { useQuery } from "@tanstack/react-query"
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 import {
     Boxes,
@@ -21,7 +20,8 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { api, getTenant, setToken, setTenant } from "@/api/client"
+import { getTenant, setTenant } from "@/api/client"
+import { useAuth } from "@/components/auth-context"
 import { useHealth } from "@/hooks/use-health"
 
 const NAV = [
@@ -48,14 +48,12 @@ export function AppShell() {
     const location = useLocation()
     const { data: health } = useHealth()
 
-    // 当前是谁 —— 决定要不要显示「管理后台」入口、顶栏显示谁
-    const { data: me } = useQuery({
-        queryKey: ["auth-me"],
-        queryFn: () => api.auth.me(),
-        retry: false,
-        staleTime: 60_000,
-    })
-    const canManage = me?.can_write ?? false
+    // 当前是谁 —— **从 context 取，不自己发请求**。
+    //
+    // 之前这里自己 useQuery(["auth-me"])，与 AuthGate 构成两个
+    // observer 共用一个 queryKey —— 后台不可达时形成死循环。
+    // 详见 components/auth-context.tsx。
+    const { me, canManage, logout } = useAuth()
 
     // 路由变了就收起抽屉
     useEffect(() => {
@@ -231,16 +229,7 @@ export function AppShell() {
                                 type="button"
                                 className="btn"
                                 style={{ height: 30 }}
-                                onClick={async () => {
-                                    try {
-                                        await api.auth.logout()
-                                    } finally {
-                                        // **令牌必须清掉** —— 服务端不持有它，
-                                        // 留着的话刷新页面还能继续用。
-                                        setToken(null)
-                                        window.location.reload()
-                                    }
-                                }}
+                                onClick={() => void logout()}
                                 title="退出登录"
                                 aria-label="退出登录"
                             >

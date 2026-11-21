@@ -1,8 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
 import { Navigate, Route, Routes } from "react-router-dom"
 
-import { api } from "@/api/client"
 import { AppShell } from "@/components/app-shell"
+import { AuthProvider, useAuth } from "@/components/auth-context"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { AdminPage } from "@/pages/admin"
 import { AssetsPage } from "@/pages/assets"
@@ -34,18 +33,19 @@ function guarded(node: React.ReactNode) {
  * 或者后台根本还没配好管理员账号。只看本地有没有 token 会让用户
  * 停在一个什么都加载不出来的页面上，还以为是系统坏了。
  *
- * 后台的 `/api/auth/me` **任何模式都要令牌**（严格认证），所以
- * 这个判断在开发模式同样有效。
+ * ## 关键：这里**不再自己发请求**
+ *
+ * 认证状态全部来自 `useAuth()`（AuthProvider 里的唯一 observer）。
+ *
+ * 之前 AuthGate 与 AppShell 各自 `useQuery(["auth-me"])` —— 两个
+ * observer 共用一个 queryKey，在后台不可达时形成死循环（实测
+ * 渲染 626 次 / fetch 781 次，页面永远卡在加载）。详见
+ * `components/auth-context.tsx` 的说明。
  */
 function AuthGate({ children }: { children: React.ReactNode }) {
-    const me = useQuery({
-        queryKey: ["auth-me"],
-        queryFn: () => api.auth.me(),
-        retry: false,
-        staleTime: 60_000,
-    })
+    const { isChecking, backendUnavailable, me, refresh } = useAuth()
 
-    if (me.isPending) {
+    if (isChecking) {
         return (
             <div
                 style={{
@@ -60,35 +60,23 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         )
     }
 
-    if (me.isError) {
-        /*
-          区分两种失败 —— 处置完全不同：
-
-          · **401 未授权** → 用户没登录（或令牌过期）→ 显示登录页
-          · **其他错误（404 / 网络失败）** → **后台根本没连上**
-
-          第二种在 GitHub Pages 上是常态：Pages 是纯静态站，没有
-          后端，`/api/auth/me` 直接 404。没有这一步的话，演示站会
-          永远停在登录页，登录还必然失败 —— 演示能力直接没了。
-
-          所以：后台不可用时**退回演示模式**，不挡路。
-          生产部署（有后台）时永远走 401 分支，认证一点不松。
-        */
-        const status = (me.error as { status?: number } | null)?.status
-        if (status === 401 || status === 403) {
-            return <LoginPage onLoggedIn={() => void me.refetch()} />
-        }
-        // 后台不可达 —— 放行，页面自己会显示各自的数据加载失败
-        return <>{children}</>
+    // 没登录（401/403）→ 显示登录页
+    if (!me && !backendUnavailable) {
+        return <LoginPage onLoggedIn={refresh} />
     }
 
+    // 后台不可达（404 / 500 / 超时）→ 退回演示模式，不挡路。
+    //
+    // GitHub Pages 上没有后台，这是常态。演示站不能卡在登录页 ——
+    // 登录也必然失败。
     return <>{children}</>
 }
 
 export function App() {
     return (
-        <AuthGate>
-            <Routes>
+        <AuthProvider>
+            <AuthGate>
+                <Routes>
                 <Route element={<AppShell />}>
                     <Route index element={guarded(<OverviewPage />)} />
                     <Route path="assets" element={guarded(<AssetsPage />)} />
@@ -97,9 +85,10 @@ export function App() {
                     <Route path="events" element={guarded(<EventsPage />)} />
                     <Route path="siem" element={guarded(<SiemPage />)} />
                     <Route path="admin" element={guarded(<AdminPage />)} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
-            </Routes>
-        </AuthGate>
+                </Routes>
+            </AuthGate>
+        </AuthProvider>
     )
 }
