@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>myPortal · 船舶网络安全运营门户</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   设计令牌 —— 唯一事实来源: design-system/MASTER.md
+   深蓝主 + 浅蓝辅 + 红/橙强调（硅谷现代化风格）
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --primary:#1E40AF; --on-primary:#FFFFFF;
+  --secondary:#3B82F6; --on-secondary:#000000;
+  --accent:#D97706;   --on-accent:#000000;
+  --bg:#F8FAFC; --fg:#1E3A8A;
+  --card:#FFFFFF; --card-fg:#1E3A8A;
+  --muted:#E9EEF6; --muted-fg:#475569;
+  --border:#DBEAFE; --ring:#1E40AF;
+  --destructive:#C81E1E; --success:#047857; --warning:#A35208;
+  --c1:#1E40AF; --c2:#3B82F6; --c3:#06B6D4; --c4:#059669;
+  --c5:#D97706; --c6:#DC2626; --c7:#7C3AED; --c8:#64748B;
+  /* 严重度三件套：文字 / 底色 / 边框（浅色主题） */
+  --sev-critical:#b91c1c; --sev-critical-bg:#fef2f2; --sev-critical-bd:#fecaca;
+  --sev-high:#c2410c;     --sev-high-bg:#fff7ed;     --sev-high-bd:#fed7aa;
+  --sev-medium:#b45309;   --sev-medium-bg:#fffbeb;   --sev-medium-bd:#fde68a;
+  --sev-low:#1d4ed8;      --sev-low-bg:#eff6ff;      --sev-low-bd:#bfdbfe;
+  --sev-ok:#15803d;       --sev-ok-bg:#f0fdf4;       --sev-ok-bd:#bbf7d0;
+  --sev-info:#0369a1;     --sev-info-bg:#e0f2fe;     --sev-info-bd:#bae6fd;
+  --sev-neutral:#475569;  --sev-neutral-bg:#f1f5f9;  --sev-neutral-bd:#e2e8f0;
+  --sidebar:#0F172A; --sidebar-fg:#94A3B8; --sidebar-active:#1E40AF;
+  --font:"Inter","Segoe UI",-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;
+  --mono:"JetBrains Mono","Fira Code",Consolas,"Microsoft YaHei",monospace;
+  --r:8px; --shadow:0 1px 2px rgba(15,23,42,.06);
+  --shadow-lg:0 8px 24px rgba(15,23,42,.10);
+}
+[data-theme="dark"]{
+  --bg:#0B1220; --fg:#E2E8F0;
+  --card:#111A2E; --card-fg:#E2E8F0;
+  --muted:#1B2740; --muted-fg:#94A3B8;
+  --border:#24334F; --ring:#3B82F6;
+  --primary:#3B82F6; --on-primary:#0B1220;
+  --destructive:#F87171; --success:#34D399; --warning:#FBBF24;
+  --sev-critical:#F87171; --sev-critical-bg:#2A1519; --sev-critical-bd:#4C2328;
+  --sev-high:#FB923C; --sev-high-bg:#2A1B12; --sev-high-bd:#4A2E1B;
+  --sev-medium:#FBBF24; --sev-medium-bg:#2A2211; --sev-medium-bd:#4A3D1B;
+  --sev-low:#38BDF8; --sev-low-bg:#11202E; --sev-low-bd:#1C3A52;
+  --sev-ok:#34D399; --sev-ok-bg:#0F2620; --sev-ok-bd:#1B4437;
+  --sev-info:#60A5FA; --sev-info-bg:#111C30; --sev-info-bd:#1E3554;
+  --sev-neutral:#94A3B8; --sev-neutral-bg:#1B2740; --sev-neutral-bd:#2A3A57;
+  --sidebar:#080F1D; --sidebar-fg:#7D8DA8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--card-fg);
+  -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-9999px;top:0;background:var(--primary);color:#fff;padding:10px 16px;z-index:200;border-radius:0 0 var(--r) 0}
+.skip:focus{left:0}
+
+/* ── 登录页 ───────────────────────────────────────────────── */
+.login{display:grid;grid-template-columns:1.15fr 1fr;min-height:100vh}
+.login-brand{background:linear-gradient(150deg,#0F172A 0%,#1E3A8A 55%,#1E40AF 100%);
+  color:#fff;padding:56px 60px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.login-brand::after{content:"";position:absolute;right:-140px;bottom:-140px;width:460px;height:460px;
+  border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.30),transparent 68%)}
+.login-brand::before{content:"";position:absolute;right:60px;top:120px;width:220px;height:220px;
+  border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.22),transparent 65%)}
+.lb-top{display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+.lb-top b{display:block;font-size:16px;font-weight:700;line-height:1.25}
+.lb-top span{display:block;color:#93C5FD;font-size:11.5px;line-height:1.35}
+.lb-logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-weight:800;font-size:17px;letter-spacing:-.5px}
+.lb-mid{position:relative;z-index:2;max-width:520px}
+.lb-mid h1{font-size:40px;line-height:1.18;font-weight:800;letter-spacing:-1px;margin-bottom:18px}
+.lb-mid p{color:#BFDBFE;font-size:15px;line-height:1.75;margin-bottom:28px}
+.lb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.lb-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  border-radius:10px;padding:14px 16px;backdrop-filter:blur(8px)}
+.lb-stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.6px}
+.lb-stat span{font-size:12px;color:#BFDBFE}
+.lb-bot{position:relative;z-index:2;display:flex;gap:26px;flex-wrap:wrap;font-size:12px;color:#93C5FD}
+.lb-bot i{font-style:normal;display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:#34D399;box-shadow:0 0 7px #34D399}
+.login-panel{display:flex;align-items:center;justify-content:center;padding:40px 32px;background:var(--card)}
+.login-box{width:100%;max-width:400px}
+.login-box h2{font-size:25px;font-weight:800;color:var(--fg);margin-bottom:6px;letter-spacing:-.4px}
+.login-box .sub{color:var(--muted-fg);font-size:13.5px;margin-bottom:28px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted-fg);margin-bottom:7px}
+.field input,.field select{width:100%;height:44px;padding:0 13px;border:1.5px solid var(--border);
+  border-radius:var(--r);background:var(--bg);color:var(--card-fg);font-size:14px;font-family:inherit}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(30,64,175,.13)}
+.btn{height:46px;width:100%;border-radius:var(--r);background:var(--primary);color:#fff;
+  font-size:15px;font-weight:700;transition:filter .18s,transform .18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{filter:brightness(1.1)}
+.btn:active{transform:translateY(1px)}
+.login-conn{margin-top:22px;padding-top:18px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:9px;font-size:12.5px}
+.login-conn div{display:flex;justify-content:space-between;align-items:center;color:var(--muted-fg)}
+.login-conn b{color:var(--card-fg);font-weight:600}
+.lang-switch{display:flex;gap:6px;justify-content:center;margin-top:18px}
+.lang-switch button{padding:5px 13px;border-radius:20px;font-size:12.5px;font-weight:600;
+  color:var(--muted-fg);border:1px solid var(--border)}
+.lang-switch button[aria-pressed="true"]{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ── 应用外壳 ─────────────────────────────────────────────── */
+.app{display:none;min-height:100vh}
+.app.on{display:grid;grid-template-columns:246px 1fr}
+.side{background:var(--sidebar);color:var(--sidebar-fg);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+.side-brand{display:flex;align-items:center;gap:11px;padding:19px 20px;border-bottom:1px solid rgba(148,163,184,.14)}
+.side-logo{width:34px;height:34px;border-radius:8px;background:var(--primary);
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+.side-brand b{color:#fff;font-size:15px;font-weight:700;display:block;line-height:1.2}
+.side-brand span{font-size:11px;color:var(--sidebar-fg)}
+.nav{padding:12px 10px 20px;flex:1}
+.nav-h{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  color:#64748B;padding:14px 12px 7px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;
+  color:var(--sidebar-fg);font-size:13.5px;text-decoration:none;transition:background .16s,color .16s}
+.nav a:hover{background:rgba(148,163,184,.11);color:#E2E8F0}
+.nav a.on{background:var(--sidebar-active);color:#fff;font-weight:600}
+.nav a svg{width:17px;height:17px;flex-shrink:0;opacity:.9}
+.nav .tag{margin-left:auto;font-size:10.5px;padding:1px 7px;border-radius:20px;
+  background:rgba(148,163,184,.2);color:#CBD5E1;font-weight:600}
+.nav a.on .tag{background:rgba(255,255,255,.24);color:#fff}
+.side-foot{padding:14px 20px;border-top:1px solid rgba(148,163,184,.14);font-size:11.5px;color:#64748B}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.top{height:60px;background:var(--card);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;padding:0 26px;position:sticky;top:0;z-index:50}
+.top h1{font-size:17px;font-weight:700;color:var(--fg)}
+.crumb{font-size:12px;color:var(--muted-fg)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:20px;
+  border:1px solid var(--border);background:var(--bg);font-size:12.5px;font-weight:600;color:var(--muted-fg)}
+.icon-btn{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid var(--border);background:var(--bg);color:var(--muted-fg)}
+.icon-btn:hover{background:var(--muted);color:var(--card-fg)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-size:12.5px;font-weight:700}
+.content{padding:22px 26px 44px;flex:1}
+
+/* ── 卡片与栅格 ───────────────────────────────────────────── */
+.grid{display:grid;gap:16px}
+.g-6{grid-template-columns:repeat(6,1fr)}
+.g-4{grid-template-columns:repeat(4,1fr)}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.g-2{grid-template-columns:repeat(2,1fr)}
+.g-21{grid-template-columns:2fr 1fr}
+.g-12{grid-template-columns:1fr 2fr}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--shadow);padding:18px}
+.card-h{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.card-h h3{font-size:14.5px;font-weight:700;color:var(--card-fg)}
+.card-h .sub{font-size:12px;color:var(--muted-fg)}
+.card-h .right{margin-left:auto;display:flex;gap:7px;align-items:center}
+.link{font-size:12.5px;color:var(--secondary);font-weight:600;text-decoration:none}
+.link:hover{text-decoration:underline}
+
+/* KPI */
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:17px 18px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.kpi.k-crit::before{background:var(--sev-critical)} .kpi.k-ok::before{background:var(--sev-ok)}
+.kpi.k-info::before{background:var(--sev-info)} .kpi.k-warn::before{background:var(--sev-medium)}
+.kpi .lab{font-size:12px;color:var(--muted-fg);font-weight:600;display:flex;align-items:center;gap:6px}
+.kpi .val{font-size:31px;font-weight:800;letter-spacing:-1px;color:var(--card-fg);
+  font-family:var(--mono);line-height:1.15;margin:7px 0 4px}
+.kpi .val small{font-size:15px;font-weight:600;color:var(--muted-fg);margin-left:3px;font-family:var(--font)}
+.kpi .dlt{font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+.up{color:var(--sev-critical)} .down{color:var(--sev-ok)}
+
+/* 徽章 */
+.bdg{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;
+  font-size:11.5px;font-weight:700;border:1px solid;white-space:nowrap}
+.b-critical{color:var(--sev-critical);background:var(--sev-critical-bg);border-color:var(--sev-critical-bd)}
+.b-high{color:var(--sev-high);background:var(--sev-high-bg);border-color:var(--sev-high-bd)}
+.b-medium{color:var(--sev-medium);background:var(--sev-medium-bg);border-color:var(--sev-medium-bd)}
+.b-low{color:var(--sev-low);background:var(--sev-low-bg);border-color:var(--sev-low-bd)}
+.b-ok{color:var(--sev-ok);background:var(--sev-ok-bg);border-color:var(--sev-ok-bd)}
+.b-info{color:var(--sev-info);background:var(--sev-info-bg);border-color:var(--sev-info-bd)}
+.b-neutral{color:var(--sev-neutral);background:var(--sev-neutral-bg);border-color:var(--sev-neutral-bd)}
+.bdg svg{width:11px;height:11px}
+
+/* 表格 */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--muted);color:var(--muted-fg);font-size:11.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:10px 13px;white-space:nowrap;
+  position:sticky;top:0;border-bottom:1px solid var(--border)}
+tbody td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--card-fg);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--muted)}
+tbody td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.strong{font-weight:700}
+.muted{color:var(--muted-fg)}
+.sm{font-size:12px}
+
+/* 进度条 */
+.bar{height:6px;border-radius:3px;background:var(--muted);overflow:hidden;min-width:60px}
+.bar>i{display:block;height:100%;border-radius:3px;background:var(--primary)}
+.bar.crit>i{background:var(--sev-critical)} .bar.warn>i{background:var(--sev-medium)}
+.bar.ok>i{background:var(--sev-ok)}
+
+/* 图表 */
+.chart{width:100%;display:block;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:12px;color:var(--muted-fg)}
+.legend i{width:9px;height:9px;border-radius:2.5px;display:inline-block;margin-right:6px;vertical-align:-1px}
+.tip{position:fixed;background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:8px 11px;font-size:12px;box-shadow:var(--shadow-lg);pointer-events:none;z-index:300;display:none}
+.tip b{font-family:var(--mono)}
+
+/* 标签页 */
+.tabs{display:flex;gap:3px;background:var(--muted);padding:3px;border-radius:9px;width:fit-content}
+.tabs button{padding:7px 15px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted-fg);transition:.16s}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--primary);box-shadow:var(--shadow)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:5px 13px;border-radius:20px;font-size:12.5px;font-weight:600;
+  border:1px solid var(--border);background:var(--card);color:var(--muted-fg);transition:.16s}
+.chip:hover{border-color:var(--secondary);color:var(--secondary)}
+.chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* 拓扑 */
+.topo{position:relative;background:var(--bg);border-radius:10px;border:1px solid var(--border);
+  padding:18px;overflow-x:auto}
+.zone{border:1.5px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card)}
+.zone-h{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12.5px;font-weight:700}
+.zone-h .tag{font-size:10.5px;padding:1px 8px;border-radius:20px;font-weight:600;
+  background:var(--sev-info-bg);color:var(--sev-info);border:1px solid var(--sev-info-bd)}
+.devs{display:flex;flex-wrap:wrap;gap:7px}
+.dev{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;font-size:11.5px;
+  background:var(--muted);border:1px solid var(--border);font-weight:600}
+.dev .st{width:6px;height:6px;border-radius:50%}
+
+/* AI 助手 */
+.chat{display:flex;flex-direction:column;gap:16px;max-height:520px;overflow-y:auto;padding:4px}
+.msg{display:flex;gap:11px;max-width:88%}
+.msg.u{align-self:flex-end;flex-direction:row-reverse}
+.av{width:31px;height:31px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+.av.a{background:var(--primary);color:#fff} .av.u{background:var(--muted);color:var(--muted-fg)}
+.bub{background:var(--muted);border-radius:12px;padding:12px 15px;font-size:13.5px;line-height:1.7}
+.msg.u .bub{background:var(--primary);color:#fff}
+.bub h4{font-size:13.5px;font-weight:700;margin-bottom:7px}
+.bub p{margin-bottom:9px} .bub p:last-child{margin-bottom:0}
+.bub ul{margin:7px 0 7px 18px} .bub li{margin-bottom:4px}
+.tooltrace{margin-top:11px;border-top:1px dashed var(--border);padding-top:10px;font-size:11.5px;color:var(--muted-fg)}
+.tooltrace b{font-family:var(--mono);color:var(--sev-info)}
+.cite{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;background:var(--sev-info-bg);
+  color:var(--sev-info);border:1px solid var(--sev-info-bd);padding:1px 8px;border-radius:20px;margin:3px 5px 0 0}
+.nlp-box{display:flex;gap:10px;align-items:flex-end;border:1.5px solid var(--border);
+  border-radius:12px;padding:10px 12px;background:var(--bg)}
+.nlp-box textarea{flex:1;border:none;background:none;resize:none;font-family:inherit;font-size:14px;
+  color:var(--card-fg);min-height:44px;line-height:1.6;outline:none}
+.mic{width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;flex-shrink:0}
+.mic.rec{background:var(--sev-critical);animation:pulse 1.3s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(185,28,28,.5)}50%{box-shadow:0 0 0 9px rgba(185,28,28,0)}}
+
+/* 许可卡 */
+.lic{border:1px solid var(--border);border-radius:10px;padding:13px 15px;background:var(--card)}
+.lic.ex{background:var(--sev-critical-bg);border-color:var(--sev-critical-bd)}
+.lic.warn{background:var(--sev-medium-bg);border-color:var(--sev-medium-bd)}
+.lic-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.lic-h b{font-size:13px;font-weight:700;font-family:var(--mono)}
+.lic p{font-size:11.5px;color:var(--muted-fg);margin-top:5px}
+.countdown{font-family:var(--mono);font-size:23px;font-weight:800;letter-spacing:-.5px}
+.countdown small{font-size:12px;font-family:var(--font);font-weight:600;color:var(--muted-fg)}
+
+/* 合规矩阵 */
+.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mcell{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--card);position:relative}
+.mcell .code{font-family:var(--mono);font-size:11px;color:var(--muted-fg)}
+.mcell h4{font-size:13.5px;font-weight:700;margin:4px 0 10px}
+.mcell .pct{font-family:var(--mono);font-size:22px;font-weight:800;letter-spacing:-.5px}
+.foot{margin-top:26px;padding:16px 20px;background:var(--muted);border-radius:10px;
+  font-size:12px;color:var(--muted-fg);display:flex;gap:10px;align-items:flex-start;line-height:1.7}
+
+/* ── 拓扑大图 ─────────────────────────────────────────────── */
+.topo-canvas{position:relative;background:
+  radial-gradient(circle at 1px 1px,var(--border) 1px,transparent 0) 0 0/22px 22px,
+  var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.topo-canvas svg{width:100%;height:auto;display:block}
+.gzone{fill:var(--card);stroke:var(--border);stroke-width:1.5}
+.gzone.warn{stroke:var(--sev-medium-bd);stroke-dasharray:7 5}
+.gzt{font-size:12px;font-weight:700;fill:var(--card-fg)}
+.gzs{font-size:10.5px;fill:var(--muted-fg)}
+.gnode rect{fill:var(--muted);stroke:var(--border);stroke-width:1.2}
+.gnode text{font-size:10.5px;fill:var(--card-fg);font-weight:600}
+.gnode.crit rect{fill:var(--sev-critical-bg);stroke:var(--sev-critical-bd)}
+.gnode.warn rect{fill:var(--sev-medium-bg);stroke:var(--sev-medium-bd)}
+.glink{fill:none;stroke:var(--sev-ok);stroke-width:1.8}
+.glink.pending{stroke:var(--sev-medium);stroke-dasharray:6 4}
+.glink.hot{stroke:var(--sev-critical);stroke-width:2.4}
+.glegend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12px;color:var(--muted-fg)}
+.glegend i{width:20px;height:0;border-top-width:2.5px;border-top-style:solid;display:inline-block;
+  vertical-align:4px;margin-right:6px}
+
+/* ── 船舶详情 hero ─────────────────────────────────────────── */
+.vhero{border-radius:12px;padding:22px 24px;background:linear-gradient(120deg,#0F172A,#1E3A8A 62%,#1E40AF);
+  color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.vhero::after{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.30),transparent 68%)}
+.vhero h2{font-size:26px;font-weight:800;letter-spacing:-.5px;position:relative;z-index:2}
+.vhero .vs{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px;position:relative;z-index:2}
+.vhero .vs div{font-size:12.5px;color:#BFDBFE}
+.vhero .vs b{display:block;color:#fff;font-size:15px;font-family:var(--mono);font-weight:700;margin-top:2px}
+.vhero .vbadges{position:absolute;right:24px;top:22px;display:flex;gap:8px;z-index:2}
+
+/* ── 规则配置表单 ─────────────────────────────────────────── */
+.rform{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.fgrp{border:1px solid var(--border);border-radius:10px;padding:15px 16px;background:var(--card);margin-bottom:14px}
+.fgrp h4{font-size:13.5px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px}
+.fgrp h4 .n{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.frow.one{grid-template-columns:1fr}
+.fld label{display:block;font-size:11.5px;font-weight:600;color:var(--muted-fg);margin-bottom:5px}
+.fld input,.fld select{width:100%;height:38px;padding:0 11px;border:1.5px solid var(--border);
+  border-radius:7px;background:var(--bg);color:var(--card-fg);font-size:13px;font-family:inherit}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,64,175,.12)}
+.fld .hint{font-size:11px;color:var(--muted-fg);margin-top:4px}
+.chk{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1.5px solid var(--border);
+  border-radius:8px;margin-bottom:8px;font-size:13px;cursor:pointer;transition:.15s}
+.chk:hover{border-color:var(--secondary)}
+.chk.on{border-color:var(--primary);background:var(--sev-info-bg)}
+.chk .box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);background:var(--card);
+  display:grid;place-items:center;flex-shrink:0}
+.chk.on .box{background:var(--primary);border-color:var(--primary)}
+.chk .box svg{width:11px;height:11px;color:#fff;opacity:0}
+.chk.on .box svg{opacity:1}
+.chk .cm{margin-left:auto;font-size:11px;color:var(--muted-fg);font-family:var(--mono)}
+.preview{position:sticky;top:76px}
+.pv-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.pv-line:last-child{border-bottom:none}
+.pv-line span{color:var(--muted-fg)}
+.pv-line b{font-family:var(--mono);font-weight:700}
+.pv-warn{background:var(--sev-critical-bg);border:1px solid var(--sev-critical-bd);border-radius:8px;
+  padding:11px 13px;font-size:12px;color:var(--sev-critical);margin-top:12px;line-height:1.65}
+
+/* ── 租户切换 ─────────────────────────────────────────────── */
+.tsw{position:relative}
+.tsw-btn{display:flex;align-items:center;gap:9px;height:34px;padding:0 11px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);font-size:12.5px;font-weight:600;color:var(--card-fg)}
+.tsw-btn:hover{border-color:var(--secondary)}
+.tsw-btn .av-s{width:20px;height:20px;border-radius:5px;background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-size:9.5px;font-weight:800;flex-shrink:0}
+.tsw-menu{position:absolute;right:0;top:40px;width:290px;background:var(--card);border:1px solid var(--border);
+  border-radius:11px;box-shadow:var(--shadow-lg);padding:6px;z-index:120;display:none}
+.tsw-menu.on{display:block}
+.tsw-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;width:100%;text-align:left}
+.tsw-item:hover{background:var(--muted)}
+.tsw-item.on{background:var(--sev-info-bg)}
+.tsw-item .av-s{width:26px;height:26px;border-radius:6px;background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-size:10.5px;font-weight:800;flex-shrink:0}
+.tsw-item .ti{flex:1;min-width:0}
+.tsw-item .ti b{display:block;font-size:13px;font-weight:600}
+.tsw-item .ti span{display:block;font-size:11px;color:var(--muted-fg);font-family:var(--mono)}
+.tsw-item .ck{color:var(--sev-ok);font-size:15px;font-weight:700}
+.tsw-hd{font-size:10.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted-fg);
+  padding:9px 11px 5px}
+
+/* ── 审计日志 ─────────────────────────────────────────────── */
+.act{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11.5px;
+  padding:2px 8px;border-radius:5px;background:var(--muted);border:1px solid var(--border)}
+.act.write{color:var(--sev-medium);background:var(--sev-medium-bg);border-color:var(--sev-medium-bd)}
+.act.read{color:var(--sev-info);background:var(--sev-info-bg);border-color:var(--sev-info-bd)}
+.act.del{color:var(--sev-critical);background:var(--sev-critical-bg);border-color:var(--sev-critical-bd)}
+.diff{font-family:var(--mono);font-size:11px;color:var(--muted-fg);margin-top:3px}
+.diff .was{color:var(--sev-critical);text-decoration:line-through;opacity:.75}
+.diff .now{color:var(--sev-ok)}
+
+/* 响应式 */
+@media(max-width:1200px){.rform{grid-template-columns:1fr}.preview{position:static}
+  .g-6{grid-template-columns:repeat(3,1fr)} .g-4{grid-template-columns:repeat(2,1fr)}
+  .g-21,.g-12{grid-template-columns:1fr} .matrix{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.login{grid-template-columns:1fr}.login-brand{display:none}
+  .app.on{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;z-index:100;transform:translateX(-100%);
+  transition:transform .22s;width:246px}.side.open{transform:none}
+  .g-6,.g-4,.g-3,.g-2{grid-template-columns:repeat(2,1fr)} .matrix{grid-template-columns:repeat(2,1fr)}
+  .content{padding:16px}.top{padding:0 14px}}
+@media(max-width:640px){.g-6,.g-4,.g-3,.g-2{grid-template-columns:1fr}.matrix{grid-template-columns:1fr}
+  .lb-stats{grid-template-columns:1fr}.lb-mid h1{font-size:30px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<!-- ══════════════ 登录页 ══════════════ -->
+<div class="login" id="login">
+  <div class="login-brand">
+    <div class="lb-top">
+      <div class="lb-logo">myP</div>
+      <div><b style="font-size:16px">myPortal</b><span style="color:#93C5FD;font-size:11.5px">船舶网络安全运营门户</span></div>
+    </div>
+    <div class="lb-mid">
+      <h1 data-i="login.h1">一个门户，看住整支船队的安全态势</h1>
+      <p data-i="login.p">叠加在 FortiSIEM 之上的多租户运营层。把设备、事件与 IACS UR 合规条款，按租户、按船重新组织，交给一个看板。</p>
+      <div class="lb-stats">
+        <div class="lb-stat"><b>12</b><span data-i="login.s1">在管船舶</span></div>
+        <div class="lb-stat"><b>428</b><span data-i="login.s2">CBS 资产</span></div>
+        <div class="lb-stat"><b>78.3K</b><span data-i="login.s3">日均事件 (EPS)</span></div>
+      </div>
+    </div>
+    <div class="lb-bot">
+      <i><span class="dot"></span><span data-i="login.c1">FortiSIEM 7.5.1</span></i>
+      <i><span class="dot"></span><span data-i="login.c2">FortiAnalyzer 7.6.5</span></i>
+      <i><span class="dot"></span><span data-i="login.c3">原生 MCP · 17 工具</span></i>
+    </div>
+  </div>
+  <div class="login-panel">
+    <div class="login-box">
+      <h2 data-i="login.t">登录</h2>
+      <p class="sub" data-i="login.ts">使用租户账号登录，登录后仅可见本租户资源</p>
+      <div class="field">
+        <label data-i="login.tenant">租户</label>
+        <select id="tenantSel">
+          <option>AquaSync Innovation（全部租户 · 管理员）</option>
+          <option>东方海运 / COSCO Shipping</option>
+          <option>演示租户 Demo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label data-i="login.user">用户名</label>
+        <input id="userIn" value="admin@asi.local" autocomplete="username">
+      </div>
+      <div class="field">
+        <label data-i="login.pw">密码</label>
+        <input id="pwIn" type="password" value="Binq2026!" autocomplete="current-password">
+      </div>
+      <button class="btn" id="loginBtn" data-i="login.btn">登录门户</button>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button data-lang="zh-CN" aria-pressed="true">简体中文</button>
+        <button data-lang="en-US" aria-pressed="false">English</button>
+      </div>
+      <div class="login-conn">
+        <div><span data-i="login.dev">设备连接</span><b class="b-ok bdg" style="font-size:11px">● <span data-i="login.ok">正常</span></b></div>
+        <div><span>FortiSIEM</span><b class="mono" style="font-size:11.5px">172.16.20.48:443</b></div>
+        <div><span>FortiAnalyzer</span><b class="mono" style="font-size:11.5px">172.16.21.12:443</b></div>
+        <div><span data-i="login.tok">访问令牌</span><b class="mono" style="font-size:11.5px">OAuth 2.0 · TTL 900s</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 应用 ══════════════ -->
+<div class="app" id="app">
+  <aside class="side" id="side">
+    <div class="side-brand">
+      <div class="side-logo">myP</div>
+      <div><b>myPortal</b><span>船舶网络安全运营门户</span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <div style="display:flex;justify-content:space-between"><span>FortiSIEM</span><b style="color:#34D399">● 正常</b></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px"><span>FortiAnalyzer</span><b style="color:#34D399">● 正常</b></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <button class="icon-btn" id="menuBtn" style="display:none" aria-label="菜单">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div><h1 id="pageTitle">船队总览面板</h1><div class="crumb" id="pageCrumb">安全态势总览 / 船队总览面板</div></div>
+      <div class="top-right">
+        <div class="tsw">
+          <button class="tsw-btn" id="tswBtn" aria-haspopup="true" aria-expanded="false">
+            <span class="av-s" id="tswAv">AS</span><span id="tswName">AquaSync Innovation</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="tsw-menu" id="tswMenu" role="menu">
+            <div class="tsw-hd">切换租户</div>
+            <div id="tswList"></div>
+            <div class="tsw-hd" style="border-top:1px solid var(--border);margin-top:5px">全局视图</div>
+            <button class="tsw-item" data-tenant="__all__">
+              <span class="av-s" style="background:var(--sev-neutral)">ALL</span>
+              <span class="ti"><b>全部租户</b><span>superadmin 跨租户聚合</span></span>
+              <span class="ck" id="ckAll">✓</span>
+            </button>
+          </div>
+        </div>
+        <button class="icon-btn" id="themeBtn" aria-label="切换主题">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <div class="avatar" title="系统管理员">SA</div>
+      </div>
+    </header>
+    <div class="content" id="main"></div>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   演示数据 —— 数据源标注在每张卡的右上角
+   标注 [实机] = 2026-11-18 对 172.16.20.48 / 172.16.21.12 实测
+   标注 [演示] = 按真实量级与业务规则扩展的演示数据
+   ══════════════════════════════════════════════════════════════ */
+const D = {
+  eps:[76347,79702,78242,78227,78459,78309,75034],       // [实机] 近 7 日事件量
+  epsLabels:["11-12","11-13","11-14","11-15","11-16","11-17","11-18"],
+  sev:{critical:3,high:11,medium:37,low:52,informational:19},   // [演示]
+  assets:428, ships:12, cbs:428,                          // [演示]
+  incidents:122, activeIncidents:37,
+  license:[                                            // [实机] FAZ /gui/sys/license
+    {code:"ADOM",name:"ADOM 支持",d:40,s:"ok",t:"2026-12-28"},
+    {code:"COMP",name:"24x7 支持",d:40,s:"ok",t:"2026-12-28"},
+    {code:"ENHN",name:"增强支持",d:40,s:"ok",t:"2026-12-28"},
+    {code:"FMWR",name:"固件维护",d:40,s:"ok",t:"2026-12-28"},
+    {code:"FOAS",name:"运营服务",d:40,s:"ok",t:"2026-12-28"},
+    {code:"FRVS",name:"版本升级",d:40,s:"ok",t:"2026-12-28"},
+    {code:"PBDS",name:"补丁服务",d:40,s:"ok",t:"2026-12-28"},
+    {code:"SOAR",name:"自动化响应",d:40,s:"ok",t:"2026-12-28"},
+    {code:"SPRT",name:"技术支持",d:40,s:"ok",t:"2026-12-28"},
+    {code:"VMLS",name:"虚拟机许可",d:40,s:"ok",t:"2026-12-28"},
+    {code:"FCEM",name:"云端邮件安全",d:-921,s:"expired",t:"2024-04-14"},
+    {code:"FCEP",name:"云端端点保护",d:-1216,s:"expired",t:"2022-01-14"}
+  ],
+  // [实机] MCP get_top_10_risky_devices_incidents
+  risky:[["172.16.0.57",51.07,"暴力破解主机登录成功","high"],
+         ["fortisiem751.binqsoft.com",36.37,"暴力破解主机登录成功","high"],
+         ["DC01.goad.lab",22.10,"设备无日志上报","medium"]],
+  // [演示]
+  riskyMore:[["172.16.0.41",19.8,"异常端口扫描","medium"],["SRV-APP-03",17.2,"Web 攻击尝试","medium"],
+             ["172.16.0.77",15.4,"弱口令检测","medium"],["FW-EDGE-02",14.1,"IPS 阻断","low"],
+             ["172.16.0.12",12.6,"日志采集延迟","low"],["CBS-NAV-01",11.9,"配置漂移","low"],
+             ["172.16.0.58",10.4,"DNS 隧道疑似","low"],["SRV-DB-02",9.8,"特权账户异常","low"],
+             ["172.16.0.91",8.2,"防火墙规则变更","low"],["OT-PUMP-07",7.5,"未授权访问尝试","low"]],
+  fleet:[["东方之星","9876543",87,12,"ok","2026-11-16"],["海丰东盛","9612345",92,8,"ok","2026-11-14"],
+         ["长江之星","9632145",94,5,"ok","2026-11-17"],["珠江之星","9643210",79,19,"warn","2026-11-11"],
+         ["太平洋号","9654321",91,11,"ok","2026-11-15"],["渤海明珠","9665432",76,23,"warn","2026-11-12"],
+         ["东海先锋","9676543",88,14,"ok","2026-11-16"],["黄海明珠","9687654",83,17,"ok","2026-11-13"],
+         ["南海雄风","9698765",90,9,"ok","2026-11-17"],["青岛海润","9709876",85,16,"ok","2026-11-15"],
+         ["厦门鹭岛","9710987",78,21,"warn","2026-11-10"],["威海方舟","9721988",93,6,"ok","2026-11-16"]],
+  top10:{security:[["暴力破解主机登录成功",38,"critical"],["设备无日志上报",24,"high"],["IPS 阻断事件",21,"high"],
+                   ["异常端口扫描",18,"medium"],["弱口令检测",15,"medium"],["特权账户异常使用",12,"medium"],
+                   ["未授权访问尝试",9,"high"],["配置漂移",8,"low"],["DNS 隧道疑似",6,"medium"],["Web 攻击尝试",5,"medium"]],
+         perf:[["DC01.goad.lab",94,"critical"],["172.16.0.57",88,"high"],["FW-EDGE-02",81,"medium"],
+                ["CBS-NAV-01",76,"medium"],["SRV-APP-03",71,"low"],["172.16.0.41",68,"low"],
+                ["SRV-DB-02",63,"low"],["172.16.0.77",59,"low"],["OT-PUMP-07",54,"low"],["172.16.0.12",51,"low"]],
+         avail:[["172.16.0.30",97,"critical"],["CBS-NAV-01",94,"high"],["SRV-APP-03",91,"medium"],
+                 ["DC01.goad.lab",89,"medium"],["172.16.0.57",86,"low"],["FW-EDGE-02",84,"low"],
+                 ["172.16.0.41",81,"low"],["SRV-DB-02",78,"low"],["OT-PUMP-07",74,"low"],["172.16.0.12",69,"low"]],
+         change:[["FW-EDGE-02 策略变更",26,"high"],["CBS-NAV-01 系统升级",21,"high"],["病毒库更新",18,"medium"],
+                  ["172.16.0.57 固件升级",14,"medium"],["远程访问开通",12,"medium"],["安全策略基线调整",9,"low"],
+                  ["账户权限变更",7,"low"],["端口策略调整",5,"low"],["日志采集源新增",4,"low"],["设备下线",3,"low"]]},
+  zones:[{n:"Zone 0 · 通用业务区",d:"OT-DMZ 边界隔离",dev:118,cbs:118,st:0},
+         {n:"Zone 1 · 船舶核心控制区",d:"推进 / 操舵 / 电力",dev:64,cbs:64,st:0},
+         {n:"Zone 2 · 船员生活区",d:"网络与娱乐",dev:142,cbs:142,st:1},
+         {n:"Zone 3 · 岸基管理区",d:"远程运维通道",dev:104,cbs:104,st:0}],
+  cbsAssets:[["CBS-PROP-01","推进系统","Zone 1",14,"verified"],["CBS-HELM-01","操舵系统","Zone 1",9,"verified"],
+              ["CBS-PWR-01","发电与配电","Zone 1",23,"verified"],["CBS-FIRE-01","火灾探测与灭火","Zone 1",11,"verified"],
+              ["CBS-BAL-01","舱底水与压载水","Zone 1",8,"verified"],["CBS-NDT-01","水密完整性检测","Zone 1",6,"pending"],
+              ["CBS-NAV-01","航行与通信","Zone 0",34,"verified"],["CBS-LNK-01","岸基链路","Zone 0",21,"verified"],
+              ["CBS-OFF-01","办公网络","Zone 2",142,"verified"],["CBS-CCTV-01","视频监控","Zone 2",47,"pending"]],
+  compliance:[{c:"3.1",n:"变更管理",p:92,s:"ok",ev:18},{c:"3.2",n:"软件更新",p:88,s:"ok",ev:21},
+              {c:"3.3",n:"防火墙管理",p:95,s:"ok",ev:14},{c:"3.4",n:"恶意软件防护",p:74,s:"warn",ev:9},
+              {c:"3.5",n:"访问控制管理",p:81,s:"ok",ev:23},{c:"3.6",n:"保密信息管理",p:69,s:"warn",ev:7},
+              {c:"3.7",n:"远程访问管理",p:86,s:"ok",ev:16},{c:"3.8",n:"移动设备管理",p:72,s:"warn",ev:11},
+              {c:"3.9",n:"安全异常检测",p:90,s:"ok",ev:26},{c:"3.10",n:"安全功能验证",p:77,s:"warn",ev:8},
+              {c:"3.11",n:"事件响应计划",p:84,s:"ok",ev:12},{c:"3.12",n:"恢复计划",p:79,s:"warn",ev:10}]
+};
+
+/* ══════════════════════════════════════════════════════════════
+   国际化 —— 语言优先级：用户选择 > 租户语言 > 门户缺省(中文)
+   ══════════════════════════════════════════════════════════════ */
+const I18N = {
+  "zh-CN":{
+    "login.h1":"一个门户，看住整支船队的安全态势","login.p":"叠加在 FortiSIEM 之上的多租户运营层。把设备、事件与 IACS UR 合规条款，按租户、按船重新组织，交给一个看板。",
+    "login.s1":"在管船舶","login.s2":"CBS 资产","login.s3":"日均事件 (EPS)","login.c1":"FortiSIEM 7.5.1","login.c2":"FortiAnalyzer 7.6.5","login.c3":"原生 MCP · 17 工具",
+    "login.t":"登录","login.ts":"使用租户账号登录，登录后仅可见本租户资源","login.tenant":"租户","login.user":"用户名","login.pw":"密码",
+    "login.btn":"登录门户","login.dev":"设备连接","login.ok":"正常","login.tok":"访问令牌",
+    "nav.overview":"安全态势总览","nav.fleet":"船队总览面板","nav.it":"IT 安全态势面板","nav.ot":"OT 安全态势面板","nav.custom":"自定义面板",
+    "nav.events":"安全事件","nav.t10s":"安全 Top10","nav.t10p":"性能 Top10","nav.t10a":"可用性 Top10","nav.t10c":"变更 Top10",
+    "nav.asset":"资产与许可","nav.list":"资产清单","nav.topo":"网络拓扑","nav.lic":"许可证管理",
+    "nav.ai":"AI 助手","nav.insp":"自动化巡检","nav.settings":"系统设置","nav.tenant":"租户管理","nav.user":"用户管理",
+    "nav.rule":"告警规则","nav.channel":"通知通道","nav.aedit":"资产编排","nav.dedit":"仪表板编排","nav.tedit":"网络拓扑编排","nav.aicfg":"AI 助手配置",
+    "nav.ur":"船舶网络安全和韧性计划","nav.urtrace":"UR 条款追溯","nav.ur12":"12 项 UR 合规模块",
+    "nav.vessel":"船舶台账 / 详情","nav.audit":"审计日志",
+    "k.ships":"在管船舶","k.assets":"CBS 资产","k.inc":"活跃事件","k.crit":"高危未处置","k.eps":"日均事件 (EPS)","k.lic":"许可证到期",
+    "d.ships":"较上季 +1 艘","d.assets":"覆盖 12 项 UR 管理维度","d.inc":"其中 11 条高危","d.crit":"需 24 小时内处置",
+    "d.eps":"近 7 日均值","d.lic":"10 项组件 2026-12-28 到期","live":"实机探测","demo":"演示数据",
+    "k.zone":"安全区域","k.cbs":"CBS 系统","k.pending":"待核验连接","k.ot":"OT 事件",
+    "d.zone":"按 CBS 划分的隔离域","d.cbs":"覆盖推进/操舵/电力等","d.pending":"拓扑中标记为 pending","d.ot":"近 30 日",
+    "k.itasset":"岸基资产","k.expose":"互联网暴露面","k.itev":"IT 事件","k.patch":"补丁覆盖率",
+    "d.itasset":"含 104 个办公终端","d.expose":"需纳入季度核查","d.itev":"其中 12 条高危","d.patch":"低于目标 95%",
+    "k.insp":"巡检项","k.inspdone":"今日已执行","k.inspfound":"发现问题","k.inspfix":"待整改",
+    "d.insp":"覆盖 12 个 UR 维度","d.inspdone":"2 项待跑","d.inspfound":"其中 2 条高危","d.inspfix":"平均闭环 2.4 天",
+    "k.tenants":"租户总数","k.cred":"已接入凭据","k.org":"Organization","k.iso":"隔离验证",
+    "d.tenants":"全部为 Service Provider 类型","d.cred":"1 个待配置","d.org":"system / service / Super","d.iso":"租户 Token 与 Super Token 结果不同",
+    "k.dev":"已用设备","k.adom":"ADOM 上限",
+    "d.dev":"FortiGate / 日志设备","d.adom":"按合同分配",
+    "k.ok":"正常组件","k.expired":"已过期","k.devuse":"设备用量",
+    "d.ok":"2026-12-28 统一到期","d.expired":"FCEM / FCEP"
+  },
+  "en-US":{
+    "login.h1":"One portal for the whole fleet's security posture","login.p":"A multi-tenant operations layer on top of FortiSIEM. Devices, incidents and IACS UR compliance, re-organised by tenant and by vessel.",
+    "login.s1":"Vessels under management","login.s2":"CBS assets","login.s3":"Daily events (EPS)","login.c1":"FortiSIEM 7.5.1","login.c2":"FortiAnalyzer 7.6.5","login.c3":"Native MCP · 17 tools",
+    "login.t":"Sign in","login.ts":"Tenant-scoped accounts see only their own resources","login.tenant":"Tenant","login.user":"Username","login.pw":"Password",
+    "login.btn":"Sign in","login.dev":"Device connectivity","login.ok":"Healthy","login.tok":"Access token",
+    "nav.overview":"Security Posture","nav.fleet":"Fleet Overview","nav.it":"IT Security Posture","nav.ot":"OT Security Posture","nav.custom":"Custom Panels",
+    "nav.events":"Security Events","nav.t10s":"Security Top 10","nav.t10p":"Performance Top 10","nav.t10a":"Availability Top 10","nav.t10c":"Change Top 10",
+    "nav.asset":"Assets & Licensing","nav.list":"Asset Inventory","nav.topo":"Network Topology","nav.lic":"Licensing",
+    "nav.ai":"AI Assistant","nav.insp":"Automated Inspection","nav.settings":"System Settings","nav.tenant":"Tenant Management","nav.user":"User Management",
+    "nav.rule":"Alert Rules","nav.channel":"Notification Channels","nav.aedit":"Asset Orchestration","nav.dedit":"Dashboard Orchestration","nav.tedit":"Topology Orchestration","nav.aicfg":"AI Assistant Config",
+    "nav.ur":"Ship Cyber Security & Resilience Plan","nav.urtrace":"UR Clause Traceability","nav.ur12":"12 UR Compliance Modules",
+    "nav.vessel":"Vessel Registry","nav.audit":"Audit Log",
+    "k.ships":"Vessels","k.assets":"CBS assets","k.inc":"Active incidents","k.crit":"High-severity open","k.eps":"Daily events (EPS)","k.lic":"Licence expiry",
+    "d.ships":"+1 vessel vs last quarter","d.assets":"Across 12 UR management dimensions","d.inc":"11 of them high severity","d.crit":"Needs handling within 24h",
+    "d.eps":"7-day average","d.lic":"10 components expire 2026-12-28","live":"live probe","demo":"demo data",
+    "k.zone":"Security zones","k.cbs":"CBS systems","k.pending":"Unverified links","k.ot":"OT incidents",
+    "d.zone":"Isolation domains by CBS","d.cbs":"Propulsion / steering / power","d.pending":"Marked pending in topology","d.ot":"Last 30 days",
+    "k.itasset":"Shore-side assets","k.expose":"Internet exposure","k.itev":"IT incidents","k.patch":"Patch coverage",
+    "d.itasset":"incl. 104 workstations","d.expose":"Quarterly review needed","d.itev":"12 high severity","d.patch":"Below 95% target",
+    "k.insp":"Inspection items","k.inspdone":"Run today","k.inspfound":"Issues found","k.inspfix":"Awaiting fix",
+    "d.insp":"Across 12 UR dimensions","d.inspdone":"2 pending","d.inspfound":"2 high severity","d.inspfix":"2.4-day mean closure",
+    "k.tenants":"Tenants","k.cred":"Configured","k.org":"Organizations","k.iso":"Isolation verified",
+    "d.tenants":"All Service Provider type","d.cred":"1 pending setup","d.org":"system / service / Super","d.iso":"Tenant vs Super token differ",
+    "k.dev":"Devices used","k.adom":"ADOM limit",
+    "d.dev":"FortiGate / log devices","d.adom":"Allocated per contract",
+    "k.ok":"Healthy components","k.expired":"Expired","k.devuse":"Device usage",
+    "d.ok":"All expire 2026-12-28","d.expired":"FCEM / FCEP"
+  }
+};
+let LANG = localStorage.getItem("mp_lang") || "zh-CN";
+const t = k => (I18N[LANG] && I18N[LANG][k]) || k;
+
+
+/* ══════════════ 租户作用域 ══════════════ */
+const TENANTS=[
+  {id:"asi",name:"AquaSync Innovation",abbr:"AS",org:"Super (domainId=1)",scope:"全部",
+   ships:12,assets:428,inc:37,crit:11,eps:78.3,lic:40,scale:1},
+  {id:"cosco",name:"东方海运 / COSCO Shipping",abbr:"CO",org:"未创建",scope:"待配置",
+   ships:4,assets:142,inc:12,crit:3,eps:24.6,lic:40,scale:.34},
+  {id:"demo",name:"演示租户 Demo",abbr:"DM",org:"未创建",scope:"待配置",
+   ships:2,assets:51,inc:4,crit:1,eps:9.1,lic:40,scale:.12}
+];
+let TENANT = TENANTS[0];
+function scopeData(){
+  // 作用域影响每一个数字 —— 这不是过滤 UI，是真的换了一组数据
+  const s=TENANT.scale;
+  return {
+    ships:TENANT.ships, assets:TENANT.assets, inc:TENANT.inc, crit:TENANT.crit,
+    eps:(TENANT.eps).toFixed(1), licDays:TENANT.lic,
+    fleet:D.fleet.slice(0,TENANT.ships).map((f,i)=>[f[0],f[1],
+      Math.max(52,f[2]-Math.round(i*2.2*s)), Math.max(2,Math.round(f[3]*s)), f[5], f[4]]),
+    epsSeries:D.eps.map(v=>Math.round(v*s)),
+    sev:Object.fromEntries(Object.keys(D.sev).map(k=>[k,Math.max(1,Math.round(D.sev[k]*s))])),
+    lic:D.license.map(l=>l.s==="expired"?l:{...l,d:Math.max(3,Math.round(l.d*(TENANT.id==="asi"?1:1)))})
+  };
+}
+function renderTenantSwitch(){
+  document.getElementById("tswList").innerHTML = TENANTS.map(t=>
+    `<button class="tsw-item ${TENANT.id===t.id?"on":""}" data-tenant="${t.id}" role="menuitem">
+      <span class="av-s">${t.abbr}</span>
+      <span class="ti"><b>${t.name}</b><span>${t.org} · ${t.scope}</span></span>
+      ${TENANT.id===t.id?'<span class="ck">✓</span>':""}
+    </button>`).join("");
+  document.getElementById("tswName").textContent = TENANT.name;
+  document.getElementById("tswAv").textContent = TENANT.abbr;
+  document.getElementById("ckAll").style.visibility = TENANT.id==="__all__"?"visible":"hidden";
+}
+
+/* ══════════════════════════════════════════════════════════════
+   导航
+   ══════════════════════════════════════════════════════════════ */
+const I = {
+  gauge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  net:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v4M12 12l-7 7M12 12l7 7"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M18 5l3 3M15 8l3 3"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.7 1.8L21.5 19.5l-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  cog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.7 1.7 0 008 19.4a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H2a2 2 0 110-4h.1A1.7 1.7 0 003.6 8a1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H8a1.7 1.7 0 001-1.5V2a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V8a1.7 1.7 0 001.5 1H22a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
+  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>',
+  ship:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 20a4 4 0 004 4h12a4 4 0 004-4V8l-4 4-4-4-4 4-4-4z"/><path d="M6 12v5M10 12v5M14 12v5M18 12v5"/></svg>',
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
+};
+const MENU = [
+  {h:"nav.overview", items:[{k:"fleet",i:I.gauge,n:"nav.fleet"},{k:"it",i:I.bolt,n:"nav.it"},{k:"ot",i:I.net,n:"nav.ot"},{k:"custom",i:I.grid,n:"nav.custom"}]},
+  {h:"nav.events", items:[{k:"top10",i:I.alert,n:"nav.t10s",tag:"4"},{k:"events",i:I.box,n:"nav.inc"}]},
+  {h:"nav.asset", items:[{k:"assets",i:I.box,n:"nav.list"},{k:"vessel",i:I.ship,n:"nav.vessel"},{k:"topo",i:I.net,n:"nav.topo"},{k:"license",i:I.key,n:"nav.lic"}]},
+  {h:"", items:[{k:"ai",i:I.spark,n:"nav.ai"}]},
+  {h:"", items:[{k:"inspect",i:I.shield,n:"nav.insp"}]},
+  {h:"nav.settings", items:[{k:"tenants",i:I.shield,n:"nav.tenant"},{k:"users",i:I.users,n:"nav.user"},
+                            {k:"rules",i:I.bell,n:"nav.rule"},{k:"channels",i:I.send,n:"nav.channel"},
+                            {k:"aedit",i:I.box,n:"nav.aedit"},{k:"dedit",i:I.grid,n:"nav.dedit"},
+                            {k:"tedit",i:I.net,n:"nav.tedit"},{k:"aicfg",i:I.spark,n:"nav.aicfg"},{k:"audit",i:I.book,n:"nav.audit"}]},
+  {h:"nav.ur", items:[{k:"urtrace",i:I.book,n:"nav.urtrace"},{k:"ur12",i:I.shield,n:"nav.ur12",tag:"12"}]}
+];
+let CUR = "fleet";
+let CURRENT_SHIP = "东方之星";
+const TITLES = {fleet:["船队总览面板","安全态势总览 / 船队总览面板"],it:["IT 安全态势面板","安全态势总览 / IT 安全态势面板"],
+  ot:["OT 安全态势面板","安全态势总览 / OT 安全态势面板"],custom:["自定义面板","安全态势总览 / 自定义面板"],
+  top10:["安全 Top10","安全事件 / 安全 Top10"],events:["事件列表","安全事件 / 事件列表"],
+  assets:["资产清单","资产与许可 / 资产清单"],topo:["网络拓扑","资产与许可 / 网络拓扑"],
+  license:["许可证管理","资产与许可 / 许可证管理"],ai:["AI 助手","AI 助手"],
+  inspect:["自动化巡检","自动化巡检"],tenants:["租户管理","系统设置 / 租户管理"],users:["用户管理","系统设置 / 用户管理"],
+  rules:["告警规则","系统设置 / 告警规则"],channels:["通知通道","系统设置 / 通知通道"],
+  vessel:["船舶详情","资产与许可 / 船舶详情"],
+  ruleedit:["告警规则配置","系统设置 / 告警规则 / 新建规则"],
+  audit:["审计日志","系统设置 / 审计日志"],
+  aedit:["资产编排","系统设置 / 资产编排"],dedit:["仪表板编排","系统设置 / 仪表板编排"],
+  tedit:["网络拓扑编排","系统设置 / 网络拓扑编排"],aicfg:["AI 助手配置","系统设置 / AI 助手配置"],
+  urtrace:["UR 条款追溯","船舶网络安全和韧性计划 / UR 条款追溯"],ur12:["12 项 UR 合规模块","船舶网络安全和韧性计划 / 12 项 UR 合规模块"]};
+
+function renderNav(){
+  document.getElementById("nav").innerHTML = MENU.map(g=>{
+    const hd = g.h ? `<div class="nav-h">${t(g.h)}</div>` : "";
+    return hd + g.items.map(it=>`<a href="#" data-k="${it.k}" class="${CUR===it.k?"on":""}">${it.i}<span>${t(it.n)}</span>${it.tag?`<span class="tag">${it.tag}</span>`:""}</a>`).join("");
+  }).join("");
+  document.querySelectorAll(".nav a").forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.k);});
+}
+function go(k){
+  CUR=k; document.getElementById("side").classList.remove("open");
+  const [ti,cr]=TITLES[k]||["myPortal",""];
+  document.getElementById("pageTitle").textContent = LANG==="zh-CN"?ti:(EN[ti]||ti);
+  document.getElementById("pageCrumb").textContent = cr;
+  renderNav();
+  document.getElementById("main").innerHTML = VIEWS[k]?VIEWS[k]():VIEWS.fleet();
+  afterRender();          // 图表与交互必须在每次渲染后重新挂接
+  window.scrollTo(0,0);
+}
+const EN={ "船队总览面板":"Fleet Overview","IT 安全态势面板":"IT Security Posture","OT 安全态势面板":"OT Security Posture",
+  "自定义面板":"Custom Panels","安全 Top10":"Security Top 10","事件列表":"Incident List","资产清单":"Asset Inventory",
+  "网络拓扑":"Network Topology","许可证管理":"Licensing","AI 助手":"AI Assistant","自动化巡检":"Automated Inspection",
+  "租户管理":"Tenant Management","用户管理":"User Management","告警规则":"Alert Rules","通知通道":"Notification Channels",
+  "资产编排":"Asset Orchestration","仪表板编排":"Dashboard Orchestration","网络拓扑编排":"Topology Orchestration",
+  "AI 助手配置":"AI Assistant Config","船舶详情":"Vessel Detail","告警规则配置":"Alert Rule Editor","审计日志":"Audit Log","UR 条款追溯":"UR Clause Traceability","12 项 UR 合规模块":"12 UR Compliance Modules"};
+
+/* ══════════════════════════════════════════════════════════════
+   图表 —— 纯 SVG，无 CDN，离线可用
+   ══════════════════════════════════════════════════════════════ */
+function lineChart(el,data,labels,color,opts={}){
+  const W=opts.w||720,H=opts.h||200,PL=46,PR=12,PT=14,PB=26;
+  const max=Math.max(...data)*1.15, min=Math.min(...data)*0.85;
+  const x=i=>PL+i*(W-PL-PR)/(data.length-1);
+  const y=v=>PT+(H-PT-PB)*(1-(v-min)/(max-min));
+  const pts=data.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const area=`${PL},${H-PB} ${pts} ${W-PR},${H-PB}`;
+  const grid=[0,.25,.5,.75,1].map(f=>{
+    const yy=PT+(H-PT-PB)*f, val=(max-(max-min)*f).toFixed(0);
+    return `<line x1="${PL}" y1="${yy.toFixed(1)}" x2="${W-PR}" y2="${yy.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+            <text x="${PL-8}" y="${(yy+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted-fg)" font-family="var(--mono)">${val}</text>`;
+  }).join("");
+  const dots=data.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.2" fill="var(--card)" stroke="${color}" stroke-width="2"
+      data-tip="${labels[i]}｜${v.toLocaleString()}"/>`).join("");
+  const xt=labels.map((l,i)=>`<text x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted-fg)" font-family="var(--mono)">${l}</text>`).join("");
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.alt||"趋势图"}">
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".26"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<polygon points="${area}" fill="url(#lg)"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${xt}</svg>`;
+  bindTips(el);
+}
+function hbarChart(el,rows,opts={}){
+  const W=opts.w||640,rowH=opts.rowH||30,PL=opts.pl||150,PR=54;
+  const H=rows.length*rowH+16;
+  const max=Math.max(...rows.map(r=>r[1]));
+  const c=opts.color||"var(--c1)";
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.alt||"排行图"}">`+
+    rows.map((r,i)=>{
+      const y=8+i*rowH, w=Math.max(2,(r[1]/max)*(W-PL-PR));
+      return `<text x="${PL-9}" y="${y+rowH/2+3.5}" text-anchor="end" font-size="11.5" fill="var(--card-fg)" font-weight="600">${r[0]}</text>
+      <rect x="${PL}" y="${y+5}" width="${w}" height="${rowH-13}" rx="3" fill="${r[3]||c}" opacity=".9"
+        data-tip="${r[0]}｜${r[1]}${opts.unit||""}"/>
+      <text x="${PL+w+7}" y="${y+rowH/2+3.5}" font-size="11" fill="var(--muted-fg)" font-family="var(--mono)" font-weight="600">${r[1]}${opts.unit||""}</text>`;
+    }).join("")+`</svg>`;
+  bindTips(el);
+}
+function donut(el,segs,opts={}){
+  const S=170,cx=85,cy=85,r=62,sw=22,C=2*Math.PI*r;
+  const tot=segs.reduce((a,s)=>a+s.v,0); let off=0;
+  const colors={critical:"var(--sev-critical)",high:"var(--sev-high)",medium:"var(--sev-medium)",low:"var(--sev-low)",informational:"var(--sev-neutral)"};
+  const arcs=segs.map(s=>{
+    const len=(s.v/tot)*C, el2=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[s.k]}" stroke-width="${sw}"
+      stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})" data-tip="${s.n}｜${s.v} 条"/>`;
+    off+=len; return el2;
+  }).join("");
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${S} ${S}" role="img" aria-label="${opts.alt||"严重度分布"}">
+    ${arcs}<circle cx="${cx}" cy="${cy}" r="${r-sw/2-1}" fill="var(--card)"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="26" font-weight="800" fill="var(--card-fg)" font-family="var(--mono)">${tot}</text>
+    <text x="${cx}" y="${cy+17}" text-anchor="middle" font-size="11" fill="var(--muted-fg)">活跃事件</text></svg>`;
+  bindTips(el);
+}
+function stackedBar(el,segs){
+  const W=680,H=34,tot=segs.reduce((a,s)=>a+s.v,0);
+  const colors={critical:"var(--sev-critical)",high:"var(--sev-high)",medium:"var(--sev-medium)",low:"var(--sev-low)",informational:"var(--sev-neutral)"};
+  let x=0;
+  const rects=segs.map(s=>{const w=(s.v/tot)*W;
+    const r=`<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${colors[s.k]}" data-tip="${s.n}｜${s.v} 条 (${(s.v/tot*100).toFixed(1)}%)"/>`;
+    x+=w; return r;}).join("");
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="严重度堆叠分布">${rects}</svg>`;
+  bindTips(el);
+}
+function bindTips(root){
+  root.querySelectorAll("[data-tip]").forEach(n=>{
+    n.addEventListener("mousemove",e=>{const tp=document.getElementById("tip");tp.innerHTML=n.dataset.tip;
+      tp.style.display="block";tp.style.left=Math.min(e.clientX+12,innerWidth-190)+"px";tp.style.top=(e.clientY-36)+"px";});
+    n.addEventListener("mouseleave",()=>{document.getElementById("tip").style.display="none";});
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   视图
+   ══════════════════════════════════════════════════════════════ */
+const sevName={critical:"严重",high:"高危",medium:"中危",low:"低危",informational:"提示"};
+const sevCls={critical:"critical",high:"high",medium:"medium",low:"low",informational:"neutral"};
+const VIEWS={};
+
+VIEWS.fleet=()=>{const SC=scopeData();return `
+<div class="grid g-6" style="margin-bottom:16px">
+  ${kpi("k.ships",SC.ships,"艘","","d.ships","","",t("demo"),"up-good")}
+  ${kpi("k.assets",SC.assets,"","","d.assets","","",t("demo"),"flat")}
+  ${kpi("k.inc",SC.inc,"条","","d.inc","warn","",t("demo"),"up-bad")}
+  ${kpi("k.crit",SC.crit,"条","","d.crit","crit","",t("demo"),"up-bad")}
+  ${kpi("k.eps",SC.eps,"K","","d.eps","info",t("live"),"flat")}
+  ${kpi("k.lic",SC.licDays,"天","","d.lic","warn",t("live"),"up-bad")}
+</div>
+<div class="grid g-21" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-h"><h3>事件量趋势（EPS）</h3><span class="sub">近 7 日</span>
+      <div class="right"><span class="bdg b-info">${t("live")}</span></div></div>
+    <div id="cEps"></div>
+    <div class="legend"><span><i style="background:var(--c1)"></i>日事件量（条）</span>
+      <span class="muted">来源：ClickHouse <code class="mono">events</code> 表 · <code class="mono">phCustId</code> 租户过滤</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>活跃事件严重度</h3><div class="right"><span class="bdg b-neutral">${t("demo")}</span></div></div>
+    <div style="display:flex;justify-content:center"><div id="cSev" style="width:170px"></div></div>
+    <div class="legend" style="justify-content:center">
+      ${Object.keys(D.sev).map(k=>`<span><i style="background:var(--sev-${sevCls[k]})"></i>${sevName[k]} ${D.sev[k]}</span>`).join("")}
+    </div>
+  </div>
+</div>
+<div class="grid g-2" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-h"><h3>Top10 高风险设备</h3><span class="sub">按风险分</span>
+      <div class="right"><span class="bdg b-info">${t("live")}</span></div></div>
+    <div id="cRisky"></div>
+    <div class="legend"><span class="muted">来源：MCP <code class="mono">get_top_10_risky_devices_incidents</code></span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>许可证到期倒计时</h3>
+      <div class="right"><span class="bdg b-info">${t("live")}</span></div></div>
+    <div class="grid g-3" style="gap:10px">
+      ${D.license.filter(l=>l.d>0).slice(0,3).map(l=>`<div class="lic"><div class="lic-h"><b>${l.code}</b><span class="bdg b-ok">正常</span></div>
+        <div class="countdown">${l.d}<small> 天后到期</small></div><p>${l.name} · ${l.t}</p></div>`).join("")}
+      ${D.license.filter(l=>l.d<=0).map(l=>`<div class="lic ex"><div class="lic-h"><b>${l.code}</b><span class="bdg b-critical">已过期</span></div>
+        <div class="countdown" style="color:var(--sev-critical)">${Math.abs(l.d)}<small> 天前</small></div><p>${l.name} · ${l.t}</p></div>`).join("")}
+    </div>
+    <div class="legend"><span class="muted">来源：FortiAnalyzer <code class="mono">/gui/sys/license</code> · 按组件分别呈现，不做总数</span></div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-h"><h3>船队合规概览</h3><span class="sub">12 艘在管船舶 · 按 IACS UR E26 12 个管理维度计算</span>
+    <div class="right"><a class="link" href="#" data-go="ur12">查看 12 项 UR 合规模块 →</a></div></div>
+  <div class="tbl-wrap"><table><thead><tr>
+    <th>船舶</th><th>IMO</th><th>合规率</th><th>活跃事件</th><th>最近变更</th><th>状态</th></tr></thead><tbody>
+    ${SC.fleet.map(f=>`<tr style="cursor:pointer" data-ship="${f[0]}"><td class="strong">${f[0]}</td><td class="mono muted">${f[1]}</td>
+      <td><div style="display:flex;align-items:center;gap:9px"><span class="mono strong" style="min-width:38px">${f[2]}%</span>
+        <span class="bar ${f[2]>=90?"ok":f[2]>=80?"":"warn"}" style="flex:1"><i style="width:${f[2]}%"></i></span></div></td>
+      <td class="num">${f[3]}</td><td class="mono muted">${f[4]}</td>
+      <td><span class="bdg b-${f[5]==="ok"?"ok":"medium"}">${f[5]==="ok"?"正常":"关注"}</span></td></tr>`).join("")}
+  </tbody></table></div>
+</div>`;};
+
+function kpi(lab,val,unit,dlt,dtxt,cls,src,tag,dir){
+  // dir: "up-good" | "up-bad" | "flat" —— 增减是好是坏由语义决定，不由颜色类名决定
+  const tone = dir==="up-bad" ? "up" : dir==="up-good" ? "down" : "muted";
+  const arrow = dir==="up-bad"
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+    : dir==="up-good"
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>'
+    : "";
+  return `<div class="kpi ${cls?"k-"+cls:""}">
+    <div class="lab">${t(lab)}</div>
+    <div class="val">${val}<small>${unit||""}</small></div>
+    <div class="dlt ${tone}">${arrow}${t(dtxt)}</div>
+    ${tag?`<div style="margin-top:7px"><span class="bdg b-neutral" style="font-size:10.5px">${tag}</span></div>`:""}</div>`;
+}
+
+VIEWS.ot=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.zone",4,"个","","d.zone","info","","","flat")}
+  ${kpi("k.cbs",428,"个","","d.cbs","","","","flat")}
+  ${kpi("k.pending",7,"条","","d.pending","warn","","","flat")}
+  ${kpi("k.ot",19,"条","","d.ot","crit","","","flat")}
+</div>
+<div class="grid g-21">
+  <div class="card">
+    <div class="card-h"><h3>安全区域拓扑</h3><span class="sub">已核验 / 待确认连接分开标注</span>
+      <div class="right"><a class="link" href="#" data-go="tedit">拓扑编排 →</a></div></div>
+    <div class="topo">
+      ${D.zones.map(z=>`<div class="zone">
+        <div class="zone-h">${z.n}<span class="tag">${z.d}</span>
+          <span style="margin-left:auto" class="bdg b-${z.st?"medium":"ok"}">${z.st?"存在待确认连接":"已核验"}</span></div>
+        <div class="devs">${Array.from({length:Math.min(6,Math.ceil(z.dev/22))},(_,i)=>
+          `<span class="dev"><span class="st" style="background:${z.st&&i===4?"var(--sev-medium)":"var(--sev-ok)"}"></span>CBS-${z.n.slice(6,8)}-${String(i+1).padStart(2,"0")}</span>`).join("")}
+          ${z.dev>132?`<span class="dev muted">+${z.dev-132}</span>`:""}</div></div>`).join("")}
+    </div>
+    <div class="legend"><span><i style="background:var(--sev-ok)"></i>已核验连接</span>
+      <span><i style="background:var(--sev-medium)"></i>待确认连接（工程复核后发布）</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>区域事件分布</h3><div class="right"><span class="bdg b-neutral">${t("demo")}</span></div></div>
+    <div id="cZone"></div>
+    <div class="foot"><b>说明</b><div>拓扑来自 UR 台账的「安全区域 + 设备 + 接口 + 通信关系」，与 FortiSIEM CMDB 的 <code class="mono">ph_device</code> 按名称/序列号关联。关联不上的记录并列展示并标注「未关联」，不静默合并。</div></div>
+  </div>
+</div>`;
+
+VIEWS.it=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.itasset",296,"个","","d.itasset","","","","flat")}
+  ${kpi("k.expose",7,"个","","d.expose","warn","","","up-bad")}
+  ${kpi("k.itev",103,"条","","d.itev","crit","","","up-bad")}
+  ${kpi("k.patch",91,"%","","d.patch","warn","","","flat")}
+</div>
+<div class="grid g-2">
+  <div class="card"><div class="card-h"><h3>IT 事件类型分布</h3></div><div id="cIt"></div></div>
+  <div class="card"><div class="card-h"><h3>IT 事件趋势</h3><span class="sub">近 14 日</span></div><div id="cItT"></div></div>
+</div>`;
+
+VIEWS.custom=()=>`
+<div class="card" style="margin-bottom:16px">
+  <div class="card-h"><h3>自定义面板 · 拖拽编排</h3><span class="sub">组件目录 26 项 · 布局随租户保存</span>
+    <div class="right"><a class="link" href="#" data-go="dedit">打开编排器 →</a></div></div>
+  <div class="grid g-3" style="gap:14px">
+    ${[["资产总数","428","tile"],["事件趋势","EPS 78.3K","timeseries"],["严重度分布","按级别","pie"],
+       ["高风险设备","Top 10","table"],["许可证到期","40 天","license"],["告警投递","近 24h","alerts"]]
+      .map(([n,s,r])=>`<div style="border:1.5px dashed var(--border);border-radius:10px;padding:18px;
+        background:var(--bg);cursor:grab" title="可拖拽重排">
+        <div style="font-size:11px;color:var(--muted-fg);font-weight:700;text-transform:uppercase;letter-spacing:.6px">${r}</div>
+        <div style="font-size:13.5px;font-weight:700;margin:6px 0 4px">${n}</div>
+        <div class="mono" style="font-size:19px;font-weight:800">${s}</div></div>`).join("")}
+  </div>
+  <div class="foot"><b>说明</b><div>布局项必须指向组件目录中真实存在的组件，否则渲染成「未知组件」。目录由一份 JSON 同时驱动后端取数与前端渲染，因此一个租户搭好的看板可以原样交给另一个租户，无需重新部署。</div></div>
+</div>`;
+
+VIEWS.top10=()=>`
+<div style="margin-bottom:16px"><div class="tabs" id="t10tabs" role="tablist">
+  ${[["security","安全 Top10"],["perf","性能 Top10"],["avail","可用性 Top10"],["change","变更 Top10"]]
+    .map(([k,n],i)=>`<button role="tab" aria-selected="${i===0}" data-k="${k}">${n}</button>`).join("")}</div></div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-h"><h3 id="t10title">安全 Top10</h3><span class="sub">按严重度分类汇总</span>
+    <div class="right"><span class="bdg b-neutral">${t("demo")}</span></div></div>
+  <div id="cT10"></div>
+</div>
+<div class="card">
+  <div class="card-h"><h3>明细</h3></div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>项目</th><th>数值</th><th>严重度</th><th>趋势</th></tr></thead>
+  <tbody id="t10rows"></tbody></table></div>
+</div>`;
+
+VIEWS.events=()=>`
+<div style="margin-bottom:16px"><div class="chips">
+  ${["Critical","High","Medium","Low","全部"].map((c,i)=>`<button class="chip" aria-pressed="${i===4}">${c}</button>`).join("")}
+</div></div>
+<div class="card"><div class="card-h"><h3>安全事件列表</h3><span class="sub">最近 122 条 · 已按租户作用域过滤</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>事件</th><th>严重度</th><th>设备</th><th>源 IP</th><th>首次发生</th><th>状态</th></tr></thead><tbody>
+  ${[[1065953,"High log receiving delay from monitored device 172.16.0.30","medium","172.16.0.30","172.16.20.48","11-18 09:57","已处置"],
+     [1065954,"Brute Force Host Login Success","high","172.16.0.57","45.11.22.7","11-18 08:12","处置中"],
+     [1065955,"Unrecognized Web Attack","medium","SRV-APP-03","103.27.14.9","11-18 03:41","待处置"],
+     [1065956,"Firewall Policy Modified","low","FW-EDGE-02","172.16.20.48","11-17 22:08","已处置"],
+     [1065957,"Weak Password Detected","medium","CBS-NAV-01","10.20.3.14","11-17 19:33","待处置"],
+     [1065958,"Device Log Reporting Delay","low","DC01.goad.lab","172.16.20.48","11-17 16:02","已处置"]]
+    .map(r=>`<tr><td class="mono muted">${r[0]}</td><td class="strong">${r[1]}</td>
+      <td><span class="bdg b-${r[2]==="high"?"high":r[2]==="medium"?"medium":"low"}">${r[2]==="high"?"高危":r[2]==="medium"?"中危":"低危"}</span></td>
+      <td class="mono">${r[3]}</td><td class="mono muted">${r[4]}</td><td class="mono muted">${r[5]}</td>
+      <td><span class="bdg b-${r[6]==="待处置"?"critical":r[6]==="处置中"?"medium":"ok"}">${r[6]}</span></td></tr>`).join("")}
+  </tbody></table></div></div>`;
+
+VIEWS.assets=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.assets",428,"个","","d.assets","","","","flat")}
+  ${kpi("k.itasset",296,"个","","d.itasset","info","","","flat")}
+  ${kpi("k.cbs",428,"个","","d.cbs","","","","flat")}
+  ${kpi("k.pending",7,"个","","d.pending","warn","","","flat")}
+</div>
+<div class="card"><div class="card-h"><h3>资产清单</h3><span class="sub">合并 CMDB 实时数据与 UR 台账</span>
+  <div class="right"><a class="link" href="#" data-go="aedit">资产编排 →</a></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>资产</th><th>类型</th><th>安全区域</th><th>关联</th><th>最近发现</th><th>来源</th></tr></thead><tbody>
+  ${[["fortisiem751.binqsoft.com","FortiSIEM 7.5.1","Zone 3","已关联","11-18 09:57","CMDB"],
+     ["DC01.goad.lab","Windows Server","Zone 0","已关联","11-18 09:57","CMDB"],
+     ["HOST-1.1.1.1","测试主机","Zone 0","已关联","11-18 09:57","CMDB"],
+     ["CBS-PROP-01","推进系统","Zone 1","已关联","11-16 14:20","UR 台账"],
+     ["CBS-NDT-01","水密完整性检测","Zone 1","已关联","11-16 14:20","UR 台账"],
+     ["OT-PUMP-07","舱底泵组控制","Zone 1","待关联","—","UR 台账"]]
+    .map(r=>`<tr><td class="strong mono">${r[0]}</td><td>${r[1]}</td><td class="mono muted">${r[2]}</td>
+      <td><span class="bdg b-${r[3]==="已关联"?"ok":"medium"}">${r[3]}</span></td>
+      <td class="mono muted">${r[4]}</td>
+      <td><span class="bdg b-${r[5]==="CMDB"?"info":"neutral"}">${r[5]}</span></td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="foot"><b>说明</b><div>合并键为 <code class="mono">natural_id</code> / 名称 / 序列号。关联不上的记录<b>并列展示并标注「待关联」，不静默合并</b>——合并错一条资产，后面所有统计都会跟着错。</div></div>
+</div>`;
+
+VIEWS.topoList=()=>`
+<div class="card"><div class="card-h"><h3>网络拓扑</h3><span class="sub">安全区域 → CBS → 接口关系</span>
+  <div class="right"><a class="link" href="#" data-go="tedit">拓扑编排 →</a></div></div>
+  <div class="topo">${D.zones.map(z=>`<div class="zone">
+    <div class="zone-h">${z.n}<span class="tag">${z.d}</span><span style="margin-left:auto" class="muted" style="font-size:11.5px">${z.dev} 个 CBS</span></div>
+    <div class="devs">${Array.from({length:8},(_,i)=>`<span class="dev"><span class="st" style="background:${z.st&&i===5?"var(--sev-medium)":"var(--sev-ok)"}"></span>${z.n.split(" · ")[0]}-${String(i+1).padStart(2,"0")}</span>`).join("")}
+      <span class="dev muted">… 共 ${z.dev}</span></div></div>`).join("")}</div>
+  <div class="legend"><span><i style="background:var(--sev-ok)"></i>已核验</span>
+    <span><i style="background:var(--sev-medium)"></i>待确认</span>
+    <span class="muted">来源：《船舶网络安全和韧性计划》安全区域台账 + 设备接口关系</span></div>
+</div>`;
+
+VIEWS.license=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.ok",10,"项","","d.ok","ok",t("live"),"","flat")}
+  ${kpi("k.expired",2,"项","","d.expired","crit",t("live"),"","up-bad")}
+  ${kpi("k.devuse","12 / 10,000","","","d.dev","info",t("live"),"","flat")}
+  ${kpi("k.adom","1 / 10","","","d.adom","","",t("live"),"flat")}
+</div>
+<div class="card"><div class="card-h"><h3>许可证组件</h3><span class="sub">按组件分别呈现，不做总数</span>
+  <div class="right"><span class="bdg b-info">${t("live")}</span></div></div>
+  <div class="grid g-4" style="gap:11px">
+    ${D.license.map(l=>`<div class="lic ${l.s==="expired"?"ex":""}">
+      <div class="lic-h"><b>${l.code}</b><span class="bdg b-${l.s==="expired"?"critical":"ok"}">${l.s==="expired"?"已过期":"正常"}</span></div>
+      <div class="countdown" style="${l.s==="expired"?"color:var(--sev-critical)":""}">${l.d>0?l.d+" 天":Math.abs(l.d)+" 天前"}</div>
+      <p>${l.name}<br><span class="mono">${l.t}</span></p></div>`).join("")}
+  </div>
+  <div class="foot"><b>为什么必须从 FortiAnalyzer 取</b><div>FortiSIEM 侧<b>没有许可证到期与用量的 API</b>——路径全部 404。所以许可证卡片与「许可证到期」告警规则的触发器都必须挂在 FAZ 上；挂在 SIEM 上的规则<b>永远不会触发</b>，而它在界面上看起来是配置正确的。</div></div>
+</div>`;
+
+VIEWS.ai=()=>`
+<div class="grid g-21">
+  <div class="card">
+    <div class="card-h"><h3>AI 助手</h3><span class="sub">自然语言 + 语音 · 回答可溯源</span>
+      <div class="right"><a class="link" href="#" data-go="aicfg">助手配置 →</a></div></div>
+    <div class="chat" id="chat">
+      <div class="msg u"><div class="av u">SA</div><div class="bub">过去 7 天哪些船有暴力破解事件？按风险分排一下</div></div>
+      <div class="msg"><div class="av a">AI</div><div class="bub">
+        <h4>过去 7 天共检出 3 起暴力破解登录事件，集中在 2 艘船。</h4>
+        <ul>
+          <li><b>东方之星</b> — 主机 <code class="mono">172.16.0.57</code>，风险分 <b>51.07</b>，规则「暴力破解主机登录成功」，严重度<b>高危</b>，源 IP <code class="mono">45.11.22.7</code>，仍在处置中。</li>
+          <li><b>海丰东盛</b> — 主机 <code class="mono">fortisiem751.binqsoft.com</code>，风险分 <b>36.37</b>，同一规则，涉及账号 <code class="mono">admin</code>。</li>
+          <li><b>长江之星</b> — 主机 <code class="mono">DC01.goad.lab</code>，风险分 <b>22.10</b>，属「设备无日志上报」中危项，非暴力破解，建议单独跟进采集链路。</li>
+        </ul>
+        <p class="muted sm">建议：前两起已触发「暴力破解主机登录成功」高危规则，可按响应预案对相关账号做临时锁定并复核来源 IP 的资产归属。</p>
+        <div class="tooltrace">
+          工具调用 · <b>query_incidents</b>(severity=high, hours=168) → <b>get_top_10_risky_devices_incidents</b>(hours=168) → <b>get_incident_by_id</b>(×2)
+          <br>租户作用域来自当前会话凭据（FortiSIEM Organization <code class="mono">Super</code>），未由提问内容决定。
+        </div>
+        <div>
+          <span class="cite">来源 ph_incident #1065954</span>
+          <span class="cite">来源 MCP 风险分</span>
+          <span class="cite">来源 UR 资产台账</span>
+        </div>
+      </div></div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="nlp-box">
+        <textarea placeholder="用自然语言提问，例如：哪艘船的许可证快到期了？"></textarea>
+        <button class="mic" id="micBtn" aria-label="语音输入">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </button>
+        <button class="btn" style="width:auto;padding:0 20px;height:44px" id="sendBtn">发送</button>
+      </div>
+      <p class="muted sm" style="margin-top:8px">模型只负责理解问题与组织语言；表、列、WHERE 形状与租户过滤全部由服务端构建。</p>
+    </div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-h"><h3>能力边界</h3></div>
+      <div class="foot" style="margin:0;background:var(--bg)"><b>模型能做的</b>
+        <div>理解问句 · 选择工具 · 填写参数 · 组织答案 · 给出引用</div></div>
+      <div class="foot" style="margin:8px 0 0;background:var(--bg);border-left:3px solid var(--sev-critical)"><b>模型不能做的</b>
+        <div>生成 SQL · 指定租户 · 决定过滤条件 · 决定能读哪张表</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>受控工具目录</h3></div>
+      ${[["query_incidents","按严重度/状态/规则/时间范围查事件"],
+         ["query_assets","查资产清单与统计"],
+         ["query_licenses","查许可证状态与到期日"],
+         ["query_event_logs","结构化事件日志检索（服务端生成 SQL）"],
+         ["query_clickhouse","ClickHouse 事件聚合"]]
+        .map(([n,d])=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+          <div class="mono" style="font-size:12.5px;color:var(--sev-info);font-weight:600">${n}</div>
+          <div class="muted sm" style="margin-top:2px">${d}</div></div>`).join("")}
+    </div>
+  </div>
+</div>`;
+
+VIEWS.inspect=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.insp",24,"项","","d.insp","","","","flat")}
+  ${kpi("k.inspdone",18,"项","","d.inspdone","ok","","","flat")}
+  ${kpi("k.inspfound",7,"条","","d.inspfound","crit","","","up-bad")}
+  ${kpi("k.inspfix",5,"条","","d.inspfix","warn","","","flat")}
+</div>
+<div class="card"><div class="card-h"><h3>巡检计划</h3><span class="sub">每次留存执行时刻、输入快照、判定依据与结论</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>巡检项</th><th>维度</th><th>频率</th><th>上次执行</th><th>结论</th></tr></thead><tbody>
+  ${[["防火墙规则最小功能基线","3.3 防火墙管理","每日",  "11-18 06:00","2 条规则超出基线"],
+     ["病毒库版本检查","3.4 恶意软件防护","每日","11-18 06:05","通过"],
+     ["账户特权清单复核","3.5 访问控制管理","每周","11-17 02:00","1 个遗留特权账户"],
+     ["远程访问审批到期核查","3.7 远程访问管理","每日","11-18 06:10","3 条临时授权待回收"],
+     ["端点防护状态采集","3.4 恶意软件防护","每日","11-18 06:12","4 台未安装客户端"],
+     ["安全功能验证执行","3.10 安全功能验证","每季","11-12 09:00","通过，2 项待整改"]]
+    .map(r=>`<tr><td class="strong">${r[0]}</td><td class="muted">${r[1]}</td><td class="mono">${r[2]}</td>
+      <td class="mono muted">${r[3]}</td><td>${r[4]==="通过"?'<span class="bdg b-ok">通过</span>':'<span class="bdg b-medium">'+r[4]+'</span>'}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+
+VIEWS.tenants=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.tenants",3,"个","","d.tenants","","","","flat")}
+  ${kpi("k.cred",2,"个","","d.cred","warn","","","flat")}
+  ${kpi("k.org",3,"个","","d.org","info","","","flat")}
+  ${kpi("k.iso","1 / 1","","","d.iso","ok","","","flat")}
+</div>
+<div class="card"><div class="card-h"><h3>租户管理</h3><span class="sub">租户 1:1 映射 FortiSIEM Organization</span>
+  <div class="right"><button class="chip" aria-pressed="false">+ 新建租户</button></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>租户</th><th>组织</th><th>凭据</th><th>语言</th><th>事件量</th><th>状态</th></tr></thead><tbody>
+  ${[["AquaSync Innovation","Super (domainId=1)","OAuth Client ID/Secret","zh-CN","1,249,210","正常","ok"],
+     ["东方海运","未创建","—","zh-CN","0","待配置","medium"],
+     ["演示租户 Demo","未创建","—","zh-CN","0","待配置","medium"]]
+    .map(r=>`<tr><td class="strong">${r[0]}</td><td class="mono muted">${r[1]}</td><td class="mono sm">${r[2]}</td>
+      <td class="mono">${r[3]}</td><td class="num">${r[4]}</td>
+      <td><span class="bdg b-${r[6]}">${r[5]}</span></td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="foot"><b>隔离模型</b><div>租户隔离由 FortiSIEM 在<b>数据层</b>强制执行——每个租户用自己的 Organization 签发的 Token，门户拿不到别的租户的数据。门户侧的 <code class="mono">cust_org_id</code> 过滤只是第二道防线。两道都要有，顺序不能反。</div></div>
+</div>`;
+
+VIEWS.users=()=>`
+<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>用户与角色</h3><span class="sub">角色 × 资源 × 动作</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>用户</th><th>角色</th><th>租户</th><th>语言</th><th>最近登录</th><th>状态</th></tr></thead><tbody>
+  ${[["admin@asi.local","superadmin","—","zh-CN","11-18 09:31","活跃","ok"],
+     ["dongfang@asi.local","tenant_admin","东方海运","zh-CN","11-17 16:20","活跃","ok"],
+     ["surveyor@dnv.example","surveyor","东方海运","zh-CN","11-15 10:04","活跃","ok"],
+     ["officer@asi.local","security_officer","AquaSync","zh-CN","11-18 08:55","活跃","ok"],
+     ["en.user@acme.test","viewer","English Org","en-US","11-16 11:22","活跃","ok"]]
+    .map(r=>`<tr><td class="mono strong">${r[0]}</td><td><span class="bdg b-info">${r[1]}</span></td><td class="muted">${r[2]}</td>
+      <td class="mono">${r[3]}</td><td class="mono muted">${r[4]}</td>
+      <td><span class="bdg b-${r[6]}">${r[5]}</span></td></tr>`).join("")}
+  </tbody></table></div></div>`;
+
+VIEWS.rules=()=>`
+<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>告警规则</h3><span class="sub">每条规则的数据源必须是真正拥有该数据的连接器</span>
+  <div class="right"><a class="link" href="#" data-go="ruleedit">+ 新建规则（配置向导）→</a></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>规则</th><th>触发条件</th><th>数据源</th><th>通道</th><th>最近触发</th><th>状态</th></tr></thead><tbody>
+  ${[["许可证 30 天内到期","license · within_days=30","FortiAnalyzer","企业微信 + 邮件","11-18 08:00","启用","ok"],
+     ["高危事件未处置 2 小时","incident · severity=high, status=0","FortiSIEM","飞书 + Teams","11-18 09:41","启用","ok"],
+     ["诱捕命中","deception · any hit","FortiDeceptor","钉钉 + 邮件","—","启用","ok"],
+     ["EPS 超阈值","event_logs · eps > 120000","ClickHouse","Teams","11-17 22:15","启用","ok"],
+     ["合规项跌破 80%","compliance · pct < 80","门户自有库","邮件","11-16 09:00","启用","ok"]]
+    .map(r=>`<tr><td class="strong">${r[0]}</td><td class="mono sm">${r[1]}</td>
+      <td><span class="bdg b-${r[2]==="FortiAnalyzer"?"info":r[2]==="FortiSIEM"?"ok":"neutral"}">${r[2]}</span></td>
+      <td class="muted sm">${r[3]}</td><td class="mono muted">${r[4]}</td>
+      <td><span class="bdg b-${r[6]}">${r[5]}</span></td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="foot"><b>一条永不触发的告警比没有这个功能更糟</b><div>它告诉运维「已经有人盯着了」，于是没人再盯。规则的数据源必须挂在真正拥有该数据的连接器上——许可证挂在 SIEM 上就永远不会触发。</div></div>
+</div>`;
+
+VIEWS.channels=()=>`
+<div class="grid g-3" style="margin-bottom:16px">
+  ${[["企业微信","群机器人 Webhook · Markdown","ok","正常","11-18 09:41"],
+     ["飞书 / Lark","larksuite/node-sdk · 交互卡片","ok","正常","11-18 09:41"],
+     ["Microsoft Teams","Workflows Webhook · Adaptive Card","ok","正常","11-18 08:12"],
+     ["钉钉","机器人 Webhook · HMAC 签名","ok","正常","11-17 22:15"],
+     ["Email","SMTP 465 / STARTTLS","ok","正常","11-18 09:41"],
+     ["SMS / 卫星电话","待接入","neutral","未配置","—"]]
+    .map(c=>`<div class="card"><div class="card-h"><h3>${c[0]}</h3>
+      <div class="right"><span class="bdg b-${c[2]}">${c[3]}</span></div></div>
+      <p class="muted sm">${c[1]}</p>
+      <p class="muted sm" style="margin-top:8px">最近投递：<span class="mono">${c[4]}</span></p></div>`).join("")}
+</div>
+<div class="card"><div class="card-h"><h3>最近投递记录</h3><span class="sub">结果由发送器回写，不是规则自己声明</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>规则</th><th>通道</th><th>时间</th><th>结果</th><th>说明</th></tr></thead><tbody>
+  ${[["高危事件未处置 2 小时","飞书 / Lark","11-18 09:41","成功","已送达 3 个群"],
+     ["许可证 30 天内到期","企业微信","11-18 08:00","成功","含 12 项组件到期日"],
+     ["高危事件未处置 2 小时","Teams","11-18 08:12","失败","HTTP 502：Workflows 端点暂时不可用"],
+     ["EPS 超阈值","Teams","11-17 22:15","成功","Adaptive Card 渲染正常"]]
+    .map(r=>`<tr><td class="strong">${r[0]}</td><td class="muted">${r[1]}</td><td class="mono muted">${r[2]}</td>
+      <td><span class="bdg b-${r[3]==="成功"?"ok":"critical"}">${r[3]}</span></td><td class="muted sm">${r[4]}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+
+const stub=(title,desc,icon,items)=>`
+<div class="card"><div class="card-h"><h3>${title}</h3><span class="sub">${desc}</span></div>
+  <div class="grid g-4" style="gap:12px">
+    ${items.map(i=>`<div style="border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)">
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:4px">${i[0]}</div>
+      <div class="muted sm">${i[1]}</div></div>`).join("")}
+  </div>
+  <div class="foot"><b>说明</b><div>${desc}。该模块与现有功能共用同一套元数据驱动机制——
+    新增一项只需要加一段注册代码，前后端零改动。</div></div></div>`;
+VIEWS.aedit=()=>stub("资产编排","定义资产字段、来源映射与展示模板",I.box,
+  [["字段与来源映射","哪些字段取自 CMDB、哪些来自 UR 台账"],["展示模板","按租户自定义列与分组"],
+   ["关联规则","natural_id / 名称 / 序列号的匹配优先级"],["导出模板","船级社检验用的清单格式"]]);
+VIEWS.dedit=()=>stub("仪表板编排","拖拽组件、设定栅格、保存布局",I.grid,
+  [["组件目录","26 个组件，后端与前端共用一份定义"],["拖拽与缩放","12 栅格 + 4 个响应式断点"],
+   ["布局序列化","按断点保存多套布局"],["租户共享","一个租户的看板可交付给另一个租户"]]);
+VIEWS.tedit=()=>stub("网络拓扑编排","定义安全区域、节点与连线的渲染模板",I.net,
+  [["安全区域模板","区域边界与标签样式"],["节点模板","按设备类型区分形状与配色"],
+   ["连线模板","已核验 / 待确认两种线型"],["发布流程","工程复核后才标记为已核验"]]);
+VIEWS.aicfg=()=>stub("AI 助手配置","LLM 端点、模型、工具目录与语音转写",I.spark,
+  [["LLM 端点","base_url + model + API Key（OpenAI 兼容）"],["工具目录","模型可选的工具及其参数白名单"],
+   ["SQL 映射","事件日志查询的表与列映射（按设备配置）"],["语音转写","浏览器优先，缺失时回退服务端 STT"]]);
+
+VIEWS.urtrace=()=>`
+<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>UR 条款追溯</h3>
+  <span class="sub">IACS UR E26（Rev.1）/ E27 / E22 · 6 组共约 60 个台账模块</span>
+  <div class="right"><a class="link" href="#" data-go="ur12">12 项合规模块 →</a></div></div>
+  <div class="grid g-3" style="gap:12px">
+  ${[["船舶与资产","船舶台账 / 安全区域 / CBS 系统资产",3],
+     ["变更与软件","变更管理 / 变更审批 / 变更风险评估 / 软件清单 / 补丁计划",5],
+     ["网络与防护","防火墙 3 / 防病毒 3 / 防护评估 1 / 恶意软件 1 / 访问控制 6 / 保密 4 / 远程 4 / 移动端 3",27],
+     ["监测与验证","安全异常告警 / 告警处置 / 检测规则库 / 监测日志 / 采集源 / 验证 5 / 问题整改 / 诊断工具",11],
+     ["响应与恢复","预案 / 事件 / 处置 / 升级 / 隔离 / 评估 / 演练 / 恢复 6 / 冗余 / 回滚 / 备份 / 记录",16],
+     ["其他","证据包 / 证据条目 / 检验记录 / 条款追溯 / 培训 / 组织 / 操作审计",7]]
+    .map(g=>`<div style="border:1px solid var(--border);border-radius:10px;padding:15px;background:var(--bg)">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+        <b style="font-size:13.5px">${g[0]}</b>
+        <span class="bdg b-info">${g[2]} 个模块</span></div>
+      <div class="muted sm">${g[1]}</div></div>`).join("")}
+  </div>
+  <div class="foot"><b>元数据驱动</b><div>一个模块注册项同时生成三样东西：Pydantic 校验 Schema、FastAPI CRUD 路由、前端表单与表格。<b>新增一个台账模块 = 加一段注册代码，前端零改动。</b></div></div>
+</div>`;
+
+VIEWS.ur12=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.insp",12,"项","","d.insp","","","","flat")}
+  ${kpi("平均达成率",83,"%","","8 项达标 / 4 项关注","warn","","")}
+  ${kpi("证据条目",185,"条","","可按模块导出","ok","","")}
+  ${kpi("待整改",23,"项","","集中在 3.4 / 3.6 / 3.8","crit","","")}
+</div>
+<div class="card"><div class="card-h"><h3>12 项 UR 合规达成率</h3>
+  <span class="sub">按各维度台账「已达成项 / 应达成项」比例计算</span></div>
+  <div class="matrix">
+  ${D.compliance.map(c=>`<div class="mcell">
+    <div class="code">${c.c}</div><h4>${c.n}</h4>
+    <div class="pct" style="color:${c.s==="ok"?"var(--sev-ok)":"var(--sev-medium)"}">${c.p}<small style="font-size:13px">%</small></div>
+    <div class="bar ${c.s==="ok"?"ok":"warn"}" style="margin:9px 0 10px"><i style="width:${c.p}%"></i></div>
+    <div class="muted sm">证据 ${c.ev} 条</div>
+    <div style="margin-top:8px"><span class="bdg b-${c.s}">${c.s==="ok"?"达标":"需关注"}</span></div>
+  </div>`).join("")}
+  </div>
+  <div class="foot"><b>检验场景</b><div>每个模块都能一键导出「检验时该提交哪份材料」——对应《计划》各模块的「检验情况」与「记录与文档」小节。台账快照 + 审计日志自动装配成证据包。</div></div>
+</div>`;
+
+
+/* ══════════════ 新增视图：船舶详情 / 拓扑大图 / 规则配置 / 审计 ══════════════ */
+const SHIP_DATA = {
+  "东方之星":{imo:"9876543",flag:"中国",type:"散货船",built:"2019-06",dwt:"76,000 DWT",cls:"CCS",
+    crew:"28",sys:"CBS-A 系统",cert:"2026-11-20",certState:"warn"},
+  "海丰东盛":{imo:"9612345",flag:"中国",type:"集装箱船",built:"2017-03",dwt:"58,000 DWT",cls:"DNV",
+    crew:"24",sys:"CBS-B 系统",cert:"2027-02-14",certState:"ok"},
+  "珠江之星":{imo:"9643210",flag:"巴拿马",type:"散货船",built:"2013-08",dwt:"63,500 DWT",cls:"ABS",
+    crew:"22",sys:"CBS-A 系统",cert:"2026-12-02",certState:"warn"}
+};
+VIEWS.vessel=()=>{
+  const f=D.fleet.find(x=>x[0]===CURRENT_SHIP)||D.fleet[0], sd=SHIP_DATA[f[0]]||{imo:f[1],flag:"中国",type:"散货船",built:"2018-05",dwt:"72,000 DWT",cls:"DNV",crew:"26",sys:"CBS-A 系统",cert:"2027-01-08",certState:"ok"};
+  return `
+<div class="vhero">
+  <div class="vbadges">
+    <span class="bdg b-${sd.certState}">${sd.certState==="ok"?"证书有效":"证书 30 天内到期"}</span>
+    <span class="bdg b-info">${sd.cls}</span>
+  </div>
+  <h2>${f[0]}</h2>
+  <div class="vs">
+    <div>IMO 编号<b>${sd.imo}</b></div>
+    <div>船旗<b>${sd.flag}</b></div>
+    <div>船型<b>${sd.type}</b></div>
+    <div>建造 / 载重<b>${sd.built} · ${sd.dwt}</b></div>
+    <div>在船人数<b>${sd.crew}</b></div>
+    <div>系统<b>${sd.sys}</b></div>
+    <div>最近检验<b>${f[4]}</b></div>
+  </div>
+</div>
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.zone",4,"个","","d.zone","info","","","flat")}
+  ${kpi("k.cbs",36,"个","","d.cbs","","","","flat")}
+  ${kpi("k.inc",f[3],"条","","d.inc","warn","","","up-bad")}
+  ${kpi("合规率",f[2],"%","","d.insp","ok","","","flat")}
+</div>
+<div class="grid g-21" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-h"><h3>CBS 系统台账</h3><span class="sub">船舶计算机化系统 · 4 个安全区域</span>
+      <div class="right"><span class="bdg b-neutral">${t("demo")}</span></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>系统编号</th><th>名称</th><th>安全区域</th><th>最近变更</th><th>核验状态</th></tr></thead><tbody>
+    ${D.cbsAssets.slice(0,8).map(c=>`<tr>
+      <td class="mono strong">${c[0]}</td><td>${c[1]}</td><td class="mono muted">${c[2]}</td>
+      <td class="mono muted">2026-11-${String(10+Math.floor(Math.random()*8)).padStart(2,"0")}</td>
+      <td><span class="bdg b-${c[4]==="verified"?"ok":"medium"}">${c[4]==="verified"?"已核验":"待核验"}</span></td></tr>`).join("")}
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>合规构成</h3><span class="sub">按 12 个 UR 管理维度</span></div>
+    <div id="cVessel"></div>
+    <div class="legend"><span class="muted">达成率 = 已达成项 / 应达成项</span></div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-h"><h3>该船近期事件</h3><span class="sub">已按船舶作用域过滤</span>
+    <div class="right"><a class="link" href="#" data-go="events">查看全部 →</a></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>事件</th><th>严重度</th><th>资产</th><th>首次发生</th><th>状态</th></tr></thead><tbody>
+  ${[[1065954,"Brute Force Host Login Success","high","CBS-NAV-01","11-18 08:12","处置中"],
+     [1065955,"Unrecognized Web Attack","medium","CBS-OFF-01","11-18 03:41","待处置"],
+     [1065956,"Firewall Policy Modified","low","FW-EDGE-01","11-17 22:08","已处置"],
+     [1065959,"Weak Password Detected","medium","CBS-CCTV-01","11-16 19:33","已处置"]]
+    .map(r=>`<tr><td class="mono muted">${r[0]}</td><td class="strong">${r[1]}</td>
+      <td><span class="bdg b-${r[2]==="high"?"high":r[2]==="medium"?"medium":"low"}">${r[2]==="high"?"高危":r[2]==="medium"?"中危":"低危"}</span></td>
+      <td class="mono">${r[3]}</td><td class="mono muted">${r[4]}</td>
+      <td><span class="bdg b-${r[5]==="待处置"?"critical":r[5]==="处置中"?"medium":"ok"}">${r[5]}</span></td></tr>`).join("")}
+  </tbody></table></div>
+</div>`;
+};
+
+/* ── 拓扑大图（带节点与连线） ── */
+const GRAPH={
+  zones:[{id:"z3",n:"Zone 3 · 岸基管理区",s:"远程运维通道",x:40,y:30,w:250,h:150},
+         {id:"z0",n:"Zone 0 · 通用业务区",s:"OT-DMZ 边界隔离",x:330,y:30,w:250,h:150},
+         {id:"z1",n:"Zone 1 · 船舶核心控制区",s:"推进 / 操舵 / 电力",x:620,y:30,w:250,h:150},
+         {id:"z2",n:"Zone 2 · 船员生活区",s:"网络与娱乐",x:330,y:210,w:250,h:150}],
+  nodes:[{id:"fw",l:"FW-EDGE-01",z:"z3",x:58,y:78,st:"ok"},
+         {id:"rem",l:"REMOTE-GW",z:"z3",x:170,y:78,st:"warn"},
+         {id:"cam",l:"CCTV-GW",z:"z3",x:58,y:130,st:"ok"},
+         {id:"nav",l:"CBS-NAV-01",z:"z0",x:348,y:78,st:"ok"},
+         {id:"lnk",l:"CBS-LNK-01",z:"z0",x:460,y:78,st:"ok"},
+         {id:"dmz",l:"OT-DMZ-01",z:"z0",x:348,y:130,st:"crit"},
+         {id:"prop",l:"CBS-PROP-01",z:"z1",x:638,y:78,st:"ok"},
+         {id:"helm",l:"CBS-HELM-01",z:"z1",x:750,y:78,st:"ok"},
+         {id:"pwr",l:"CBS-PWR-01",z:"z1",x:638,y:130,st:"warn"},
+         {id:"off",l:"CBS-OFF-01",z:"z2",x:348,y:258,st:"ok"},
+         {id:"cctv",l:"CBS-CCTV-01",z:"z2",x:460,y:258,st:"ok"}],
+  links:[{a:"fw",b:"lnk",s:"ok"},{a:"rem",b:"lnk",s:"pending"},{a:"cam",b:"cctv",s:"ok"},
+         {a:"lnk",b:"nav",s:"ok"},{a:"nav",b:"prop",s:"ok"},{a:"nav",b:"helm",s:"ok"},
+         {a:"dmz",b:"pwr",s:"hot"},{a:"dmz",b:"helm",s:"pending"},{a:"off",b:"fw",s:"ok"},
+         {a:"off",b:"cctv",s:"ok"}]
+};
+VIEWS.topo=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("安全区域",4,"个","","d.zone","info","","","flat")}
+  ${kpi("CBS 节点",11,"个","","覆盖 4 个区域","","","","flat")}
+  ${kpi("已核验连线",8,"条","","工程复核后发布","ok","","","flat")}
+  ${kpi("待确认连线",2,"条","","需现场核验","warn","","","up-bad")}
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-h"><h3>网络拓扑大图</h3><span class="sub">安全区域 → CBS 节点 → 通信关系</span>
+    <div class="right"><a class="link" href="#" data-go="tedit">拓扑编排 →</a></div></div>
+  <div class="topo-canvas"><svg viewBox="0 0 910 390" role="img" aria-label="网络拓扑图">
+    ${GRAPH.zones.map(z=>`<rect class="gzone ${z.id==="z1"?"warn":""}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="10"/>
+      <text class="gzt" x="${z.x+13}" y="${z.y+20}">${z.n}</text>
+      <text class="gzs" x="${z.x+13}" y="${z.y+35}">${z.s}</text>`).join("")}
+    ${GRAPH.links.map(l=>{const a=GRAPH.nodes.find(n=>n.id===l.a), b=GRAPH.nodes.find(n=>n.id===l.b);
+      const ax=a.x+42, ay=a.y+9, bx=b.x+42, by=b.y+9, mx=(ax+bx)/2;
+      return `<path class="glink ${l.s==="pending"?"pending":l.s==="hot"?"hot":""}"
+        d="M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}"
+        data-tip="${a.l} → ${b.l}｜${l.s==="ok"?"已核验":l.s==="pending"?"待确认":"异常路径"}"/>`;}).join("")}
+    ${GRAPH.nodes.map(n=>`<g class="gnode ${n.st==="crit"?"crit":n.st==="warn"?"warn":""}" data-tip="${n.l}｜${n.st==="ok"?"运行正常":n.st==="warn"?"待核验连接":"存在未处置事件"}">
+      <rect x="${n.x}" y="${n.y}" width="84" height="26" rx="6"/>
+      <text x="${n.x+42}" y="${n.y+17}" text-anchor="middle">${n.l}</text></g>`).join("")}
+  </svg></div>
+  <div class="glegend">
+    <span><i style="border-color:var(--sev-ok)"></i>已核验连接</span>
+    <span><i style="border-color:var(--sev-medium);border-top-style:dashed"></i>待确认连接（工程复核后发布）</span>
+    <span><i style="border-color:var(--sev-critical)"></i>异常路径</span>
+    <span class="muted">来源：《船舶网络安全和韧性计划》安全区域台账 + 设备接口关系</span>
+  </div>
+</div>
+<div class="card">
+  <div class="card-h"><h3>待确认连接清单</h3><span class="sub">船级社检验时的重点核对项</span></div>
+  <div class="tbl-wrap"><table><thead><tr><th>源节点</th><th>目标节点</th><th>跨越区域</th><th>业务理由</th><th>状态</th></tr></thead><tbody>
+  ${[["REMOTE-GW","CBS-LNK-01","Zone 3 → Zone 0","岸基远程运维通道","待现场核验"],
+     ["OT-DMZ-01","CBS-HELM-01","Zone 0 → Zone 1","操舵系统维护窗口接入","待书面审批"]]
+    .map(r=>`<tr><td class="mono strong">${r[0]}</td><td class="mono strong">${r[1]}</td><td class="mono muted">${r[2]}</td>
+      <td class="muted">${r[3]}</td><td><span class="bdg b-medium">${r[4]}</span></td></tr>`).join("")}
+  </tbody></table></div>
+</div>`;
+
+/* ── 告警规则配置 ── */
+VIEWS.ruleedit=()=>`
+<div class="rform">
+  <div>
+    <div class="fgrp">
+      <h4><span class="n">1</span>规则基本信息</h4>
+      <div class="frow one">
+        <div class="fld"><label>规则名称</label><input value="许可证 30 天内到期"></div>
+      </div>
+      <div class="frow">
+        <div class="fld"><label>严重级别</label><select><option>高危（立即通知）</option><option>中危</option><option>低危</option></select></div>
+        <div class="fld"><label>去重窗口</label><select><option>24 小时</option><option>12 小时</option><option>不重复</option></select></div>
+      </div>
+      <div class="frow one">
+        <div class="fld"><label>租户作用域</label>
+          <input value="继承当前登录租户" disabled>
+          <div class="hint">租户作用域只从凭据解析，永不从参数传入 —— 规则参数里没有租户 ID 这一项。</div></div>
+      </div>
+    </div>
+
+    <div class="fgrp">
+      <h4><span class="n">2</span>触发条件</h4>
+      <div class="frow">
+        <div class="fld"><label>触发类型</label><select id="ruleType">
+          <option value="license">许可证即将到期</option>
+          <option value="incident">安全事件</option>
+          <option value="deception">诱捕命中</option>
+          <option value="eps">EPS 超阈值</option>
+          <option value="compliance">合规项跌破阈值</option></select></div>
+        <div class="fld"><label>数据源</label><select id="ruleSrc">
+          <option value="faz">FortiAnalyzer</option>
+          <option value="siem">FortiSIEM</option>
+          <option value="fdo">FortiDeceptor</option>
+          <option value="ch">ClickHouse</option>
+          <option value="portal">门户自有库</option></select>
+          <div class="hint">数据源必须是真正拥有该数据的连接器。</div></div>
+      </div>
+      <div class="frow">
+        <div class="fld"><label>到期天数 ≤</label><input value="30" class="mono"></div>
+        <div class="fld"><label>检查频率</label><select><option>每日 08:00</option><option>每 4 小时</option><option>每小时</option></select></div>
+      </div>
+      <div class="frow one">
+        <div class="fld"><label>过滤条件</label>
+          <input value="仅未过期的组件；忽略 status = ok 以外的样式差异" disabled></div>
+      </div>
+    </div>
+
+    <div class="fgrp">
+      <h4><span class="n">3</span>通知通道</h4>
+      ${[["企业微信","markdown","last 08:00"],["飞书 / Lark","interactive card","last 08:00"],
+         ["Microsoft Teams","adaptive card","last 08:00"],["钉钉","markdown+hmac","—"],["Email","smtp","last 08:00"]]
+        .map((c,i)=>`<button class="chk ${i<2?"on":""}" data-chk><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span>${c[0]}</span><span class="cm">${c[1]} · ${c[2]}</span></button>`).join("")}
+    </div>
+
+    <div class="fgrp">
+      <h4><span class="n">4</span>通知内容</h4>
+      <div class="frow one">
+        <div class="fld"><label>消息模板</label>
+          <input value="【许可证到期】{{tenant}} 有 {{count}} 个许可证组件将在 {{days}} 天内到期：{{components}}" disabled>
+          <div class="hint">模板变量由服务端填充；租户名取自凭据，不接受外部传入。</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="card">
+      <div class="card-h"><h3>规则预览</h3></div>
+      <div class="pv-line"><span>触发类型</span><b id="pvType">license</b></div>
+      <div class="pv-line"><span>数据源</span><b id="pvSrc">faz</b></div>
+      <div class="pv-line"><span>条件</span><b>within_days ≤ 30</b></div>
+      <div class="pv-line"><span>作用域</span><b>Super</b></div>
+      <div class="pv-line"><span>检查频率</span><b>每日 08:00</b></div>
+      <div class="pv-line"><span>通知通道</span><b id="pvCh">2 个</b></div>
+      <div class="pv-line"><span>预计触发</span><b>2026-11-28</b></div>
+      <div class="pv-warn" id="pvWarn">
+        <b>数据源不匹配</b><br>
+        许可证数据不在 FortiSIEM 侧 —— 请选择 FortiAnalyzer，否则规则永远不会触发。
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-h"><h3>保存前检查</h3></div>
+      <div class="pv-line"><span>租户作用域已解析</span><b style="color:var(--sev-ok)">✓</b></div>
+      <div class="pv-line"><span>数据源可用</span><b style="color:var(--sev-ok)">✓</b></div>
+      <div class="pv-line"><span>通道凭据已配置</span><b style="color:var(--sev-ok)">✓</b></div>
+      <div class="pv-line"><span>去重键已生成</span><b style="color:var(--sev-ok)">✓</b></div>
+      <div class="pv-line"><span>首次触发预演</span><b style="color:var(--sev-medium)">待执行</b></div>
+      <div class="foot" style="margin-top:12px"><b>建议</b>
+        <div>保存前先做一次「首次触发预演」—— 用真实连接器跑一次，确认能取到数据再启用。</div></div>
+    </div>
+  </div>
+</div>`;
+
+/* ── 审计日志 ── */
+VIEWS.audit=()=>`
+<div class="grid g-4" style="margin-bottom:16px">
+  ${kpi("k.insp",1842,"条","","d.insp","info","","","flat")}
+  ${kpi("写操作",214,"条","","d.inc","warn","","","flat")}
+  ${kpi("敏感读取",38,"条","","d.expired","crit","","","up-bad")}
+  ${kpi("留存期",180,"天","","d.ot","ok","","","flat")}
+</div>
+<div class="card"><div class="card-h"><h3>操作审计</h3>
+  <span class="sub">只追加 · 无更新与删除接口 · 敏感读取同样记录</span>
+  <div class="right"><span class="bdg b-info">${t("demo")}</span></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>对象</th><th>详情</th><th>来源 IP</th></tr></thead><tbody>
+  ${[["11-18 09:41:22","admin@asi.local","incident.update_severity","incident #1065954","severity: high → critical","172.16.20.48","write"],
+     ["11-18 09:32:07","dongfang@asi.local","credential.view","FortiSIEM 凭据","已掩码 · 未回显明文","10.20.8.14","read"],
+     ["11-18 08:55:41","officer@asi.local","incident.comment","incident #1065955","追加处置备注 42 字","172.16.20.48","write"],
+     ["11-18 08:00:03","system","license.alert","rule: 许可证 30 天内到期","向 2 个通道投递 · 成功","127.0.0.1","write"],
+     ["11-17 22:14:58","surveyor@dnv.example","evidence.export","证据包 CBS-A","导出 12 份 PDF","203.0.113.9","read"],
+     ["11-17 19:03:12","admin@asi.local","tenant.update","租户 AquaSync","locale: zh-CN → en-US","172.16.20.48","write"],
+     ["11-17 16:22:39","dongfang@asi.local","asset.update","CBS-NAV-01","核验状态: pending → verified","10.20.8.14","write"],
+     ["11-17 11:47:55","unknown@203.0.113.44","auth.login_failed","—","口令错误 · 第 1 次","203.0.113.44","del"]]
+    .map(r=>`<tr><td class="mono muted">${r[0]}</td><td class="mono sm">${r[1]}</td>
+      <td><span class="act ${r[6]}">${r[2]}</span></td><td class="mono sm">${r[3]}</td>
+      <td class="sm muted">${r[4]}</td><td class="mono muted">${r[5]}</td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="foot"><b>审计为什么不能只记写操作</b><div>凭据查看、证据包导出这类"
+    +"敏感读取同样要留痕 —— 否则事后无法回答「谁看过什么」。"
+    +"凭据本身永不进审计记录：写的是「谁改了哪个字段」，不是「值是什么」。</div></div>
+</div>`;
+
+/* ══════════════════════════════════════════════════════════════
+   渲染后处理 —— 图表与交互
+   ══════════════════════════════════════════════════════════════ */
+function afterRender(){
+  const q=id=>document.getElementById(id);
+  if(q("cEps")) lineChart(q("cEps"),scopeData().epsSeries,D.epsLabels,"var(--c1)",{alt:"近 7 日事件量趋势"});
+  if(q("cSev")){const sd=scopeData().sev;donut(q("cSev"),Object.keys(sd).map(k=>({k,n:sevName[k],v:sd[k]})));}
+  if(q("cRisky")) hbarChart(q("cRisky"),[...D.risky,...D.riskyMore].slice(0,10).map(r=>[r[0],r[1],r[1],`var(--sev-${r[3]==="critical"?"critical":r[3]==="high"?"high":"medium"})`]),{pl:170,rowH:29,unit:""});
+  if(q("cZone")) hbarChart(q("cZone"),D.zones.map(z=>[z.n.split(" · ")[1],z.dev,z.dev]),{pl:150,rowH:38,alt:"区域事件分布"});
+  if(q("cIt")) hbarChart(q("cIt"),[["IPS 阻断",34],["异常端口扫描",21],["弱口令",18],["Web 攻击",12],["权限异常",9],["配置漂移",9]].map(r=>[r[0],r[1],r[1],"var(--c2)"]),{pl:130,rowH:32});
+  if(q("cItT")) lineChart(q("cItT"),[61,58,66,72,69,75,80,78,74,81,88,84,91,103],["11-05","","","","","","","","","","","","","11-18"],"var(--c2)",{alt:"IT 事件趋势"});
+  // Top10 tabs
+  const tb=q("t10tabs");
+  if(tb){
+    const names={security:"安全 Top10",perf:"性能 Top10",avail:"可用性 Top10",change:"变更 Top10"};
+    const render=k=>{
+      const rows=D.top10[k];
+      tb.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.dataset.k===k));
+      q("t10title").textContent=names[k];
+      hbarChart(q("cT10"),rows.map(r=>[r[0],r[1],r[1],`var(--sev-${r[2]==="critical"?"critical":r[2]==="high"?"high":r[2]==="medium"?"medium":"low"})`]),{pl:180,rowH:31});
+      q("t10rows").innerHTML=rows.map((r,i)=>`<tr><td class="mono muted">${i+1}</td><td class="strong">${r[0]}</td>
+        <td class="num">${r[1]}</td><td><span class="bdg b-${r[2]==="critical"?"critical":r[2]==="high"?"high":r[2]==="medium"?"medium":"low"}">${sevName[r[2]]}</span></td>
+        <td><span class="bar ${r[2]==="critical"?"crit":r[2]==="high"?"warn":""}" style="width:80px;display:inline-block;vertical-align:middle"><i style="width:${Math.min(100,r[1]*2.4)}%"></i></span></td></tr>`).join("");
+    };
+    tb.querySelectorAll("button").forEach(b=>b.onclick=()=>render(b.dataset.k));
+    render("security");
+  }
+  // 语音按钮
+  const mb=q("micBtn");
+  if(mb) mb.onclick=()=>{
+    mb.classList.toggle("rec");
+    mb.setAttribute("aria-label",mb.classList.contains("rec")?"停止录音":"语音输入");
+    if(mb.classList.contains("rec")){
+      setTimeout(()=>{
+        mb.classList.remove("rec");
+        const ta=document.querySelector(".nlp-box textarea");
+        if(ta) ta.value="哪些船的防火墙规则超出最小功能基线？";
+      },1600);
+    }
+  };
+  // 船队表行 -> 船舶详情
+  document.querySelectorAll("[data-ship]").forEach(tr=>tr.onclick=()=>{
+    const f=D.fleet.find(x=>x[0]===tr.dataset.ship); if(f){ CURRENT_SHIP=f[0]; go("vessel"); }
+  });
+  // 告警规则配置：触发类型联动数据源，检测不匹配
+  const rt=document.getElementById("ruleType"), rs=document.getElementById("ruleSrc");
+  if(rt&&rs){
+    const need={license:"faz",incident:"siem",deception:"fdo",eps:"ch",compliance:"portal"};
+    const sync=()=>{
+      document.getElementById("pvType").textContent=rt.value;
+      document.getElementById("pvSrc").textContent=rs.value;
+      const w=document.getElementById("pvWarn");
+      if(need[rt.value]===rs.value){ w.style.display="none"; }
+      else { w.style.display="block";
+        w.innerHTML="<b>数据源不匹配</b><br>"+{
+          license:"许可证数据不在 FortiSIEM 侧 —— 请选择 FortiAnalyzer，否则规则永远不会触发。",
+          incident:"事件数据来自 FortiSIEM（REST + MCP），不要指向 FortiAnalyzer。",
+          deception:"诱捕命中数据在 FortiDeceptor。",
+          eps:"EPS 与事件日志在 ClickHouse（events 表）。",
+          compliance:"合规达成率是门户自有库计算出来的，不在任何一个设备上。"
+        }[rt.value]; }
+    };
+    rt.onchange=sync; rs.onchange=sync; sync();
+  }
+  // 通道勾选
+  document.querySelectorAll("[data-chk]").forEach(c=>c.onclick=()=>{
+    c.classList.toggle("on");
+    const n=document.querySelectorAll("[data-chk].on").length;
+    const pv=document.getElementById("pvCh"); if(pv) pv.textContent=n+" 个";
+  });
+  const pvCh=document.getElementById("pvCh");
+  if(pvCh) pvCh.textContent=document.querySelectorAll("[data-chk].on").length+" 个";
+  // 页面内跳转
+  document.querySelectorAll("[data-go]").forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.go);});
+}
+
+/* ══════════════════════════════════════════════════════════════
+   启动
+   ══════════════════════════════════════════════════════════════ */
+document.getElementById("loginBtn").onclick=()=>{
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").classList.add("on");
+  go("fleet");
+};
+document.querySelectorAll(".lang-switch button").forEach(b=>b.onclick=()=>{
+  LANG=b.dataset.lang; localStorage.setItem("mp_lang",LANG);
+  document.documentElement.lang=LANG;
+  document.querySelectorAll(".lang-switch button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.lang===LANG));
+  applyI18N();
+  if(document.getElementById("app").classList.contains("on")){go(CUR);}
+});
+function applyI18N(){
+  document.querySelectorAll("[data-i]").forEach(e=>{e.textContent=t(e.dataset.i);});
+  renderNav();
+}
+document.getElementById("themeBtn").onclick=()=>{
+  const r=document.documentElement;
+  r.dataset.theme = r.dataset.theme==="light"?"dark":"light";
+  if(document.getElementById("app").classList.contains("on")) afterRender();   // 仅重绘图表，视图本身不重建
+};
+document.getElementById("menuBtn").onclick=()=>document.getElementById("side").classList.toggle("open");
+let rzT; window.addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>{
+  if(document.getElementById("app").classList.contains("on")) afterRender();},140);});
+// 移动端菜单按钮显示
+const mq=matchMedia("(max-width:900px)");
+const syncMq=()=>{document.getElementById("menuBtn").style.display=mq.matches?"grid":"none";};
+mq.addEventListener("change",syncMq); syncMq();
+
+/* ── 租户切换器 ── */
+const tswBtn=document.getElementById("tswBtn"), tswMenu=document.getElementById("tswMenu");
+tswBtn.onclick=e=>{e.stopPropagation();const on=tswMenu.classList.toggle("on");
+  tswBtn.setAttribute("aria-expanded",on?"true":"false");};
+document.addEventListener("click",e=>{if(!e.target.closest(".tsw")){tswMenu.classList.remove("on");
+  tswBtn.setAttribute("aria-expanded","false");}});
+tswMenu.addEventListener("click",e=>{
+  const it=e.target.closest("[data-tenant]"); if(!it) return;
+  const id=it.dataset.tenant;
+  if(id==="__all__"){ TENANT={...TENANTS[0],name:"全部租户",abbr:"ALL",scope:"跨租户聚合"}; }
+  else TENANT=TENANTS.find(t=>t.id===id);
+  renderTenantSwitch(); tswMenu.classList.remove("open");
+  tswMenu.classList.remove("on"); tswBtn.setAttribute("aria-expanded","false");
+  go(CUR);   // 重新渲染 —— 作用域变了，数字必须跟着变
+});
+renderTenantSwitch();
+
+applyI18N();
+</script>
+</body>
+</html>

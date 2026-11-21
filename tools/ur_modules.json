@@ -1,0 +1,10237 @@
+{
+ "groups": [
+  {
+   "id": "asset",
+   "n": {
+    "zh": "船舶与资产",
+    "en": "Vessel & Assets"
+   },
+   "d": {
+    "zh": "船舶台账、安全区域与 CBS 系统资产",
+    "en": "Vessel register, security zones and CBS system assets"
+   }
+  },
+  {
+   "id": "change",
+   "n": {
+    "zh": "变更与软件",
+    "en": "Change & Software"
+   },
+   "d": {
+    "zh": "变更记录、审批、风险评估、软件清单与补丁计划",
+    "en": "Change records, approval, risk assessment, software inventory and patch planning"
+   }
+  },
+  {
+   "id": "network",
+   "n": {
+    "zh": "网络与防护",
+    "en": "Network & Protection"
+   },
+   "d": {
+    "zh": "防火墙、防病毒、防护评估、恶意软件、访问控制、保密、远程与移动设备",
+    "en": "Firewall, antivirus, protection assessment, malware, access control, classified information, remote access and mobile devices"
+   }
+  },
+  {
+   "id": "monitor",
+   "n": {
+    "zh": "监测与验证",
+    "en": "Monitoring & Validation"
+   },
+   "d": {
+    "zh": "安全异常检测、告警处置、检测规则库、监测日志、采集源、验证与整改",
+    "en": "Anomaly detection, alert handling, detection rule library, monitoring logs, log sources, validation and remediation"
+   }
+  },
+  {
+   "id": "response",
+   "n": {
+    "zh": "响应与恢复",
+    "en": "Response & Recovery"
+   },
+   "d": {
+    "zh": "预案、事件处置、升级、隔离、评估、演练、恢复、冗余与备份",
+    "en": "Plans, incident handling, escalation, isolation, assessment, drills, recovery, redundancy and backup"
+   }
+  },
+  {
+   "id": "other",
+   "n": {
+    "zh": "其他",
+    "en": "Other"
+   },
+   "d": {
+    "zh": "证据包、检验记录、条款追溯、培训、组织与操作审计",
+    "en": "Evidence packages, survey records, clause traceability, training, organisation and audit"
+   }
+  }
+ ],
+ "modules": [
+  {
+   "id": "vessel-reg",
+   "g": "asset",
+   "n": {
+    "zh": "船舶台账",
+    "en": "Vessel Register"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "记录在管船舶的基本信息、CBS 数量与管理边界，是所有台账的根。",
+    "en": "Records the vessels under management, their CBS count and management boundary — the root every other register hangs off."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "vessel",
+     "船舶",
+     "Vessel"
+    ],
+    [
+     "imo",
+     "IMO 号",
+     "IMO No."
+    ],
+    [
+     "cbs",
+     "CBS 数量",
+     "CBS count"
+    ],
+    [
+     "cls",
+     "船级",
+     "Class"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "VR-001",
+      "en": "VR-001"
+     },
+     {
+      "zh": "东方之星",
+      "en": "Eastern Star"
+     },
+     {
+      "zh": "9485617",
+      "en": "9485617"
+     },
+     {
+      "zh": "14",
+      "en": "14"
+     },
+     {
+      "zh": "CCS",
+      "en": "CCS"
+     },
+     {
+      "zh": "张伟",
+      "en": "Zhang Wei"
+     },
+     {
+      "zh": "在管",
+      "en": "Under Management"
+     }
+    ],
+    [
+     {
+      "zh": "VR-002",
+      "en": "VR-002"
+     },
+     {
+      "zh": "海丰东盛",
+      "en": "Haifeng Dongsheng"
+     },
+     {
+      "zh": "9612043",
+      "en": "9612043"
+     },
+     {
+      "zh": "11",
+      "en": "11"
+     },
+     {
+      "zh": "CCS",
+      "en": "CCS"
+     },
+     {
+      "zh": "张伟",
+      "en": "Zhang Wei"
+     },
+     {
+      "zh": "在管",
+      "en": "Under Management"
+     }
+    ],
+    [
+     {
+      "zh": "VR-003",
+      "en": "VR-003"
+     },
+     {
+      "zh": "长江之星",
+      "en": "Yangtze Star"
+     },
+     {
+      "zh": "9355771",
+      "en": "9355771"
+     },
+     {
+      "zh": "13",
+      "en": "13"
+     },
+     {
+      "zh": "DNV",
+      "en": "DNV"
+     },
+     {
+      "zh": "李静",
+      "en": "Li Jing"
+     },
+     {
+      "zh": "在管",
+      "en": "Under Management"
+     }
+    ],
+    [
+     {
+      "zh": "VR-004",
+      "en": "VR-004"
+     },
+     {
+      "zh": "珠江之星",
+      "en": "Pearl Star"
+     },
+     {
+      "zh": "9520118",
+      "en": "9520118"
+     },
+     {
+      "zh": "9",
+      "en": "9"
+     },
+     {
+      "zh": "LR",
+      "en": "LR"
+     },
+     {
+      "zh": "李静",
+      "en": "Li Jing"
+     },
+     {
+      "zh": "在管",
+      "en": "Under Management"
+     }
+    ],
+    [
+     {
+      "zh": "VR-005",
+      "en": "VR-005"
+     },
+     {
+      "zh": "渤海明珠",
+      "en": "Bohai Pearl"
+     },
+     {
+      "zh": "9402266",
+      "en": "9402266"
+     },
+     {
+      "zh": "12",
+      "en": "12"
+     },
+     {
+      "zh": "CCS",
+      "en": "CCS"
+     },
+     {
+      "zh": "王磊",
+      "en": "Wang Lei"
+     },
+     {
+      "zh": "在管",
+      "en": "Under Management"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "船舶登记证书、CBS 清册、在管协议",
+    "en": "Certificate of registry, CBS inventory, management agreement"
+   },
+   "sub": ""
+  },
+  {
+   "id": "zone-reg",
+   "g": "asset",
+   "n": {
+    "zh": "安全区域台账",
+    "en": "Security Zone Register"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "记录安全区域的划分、边界设备与区域间允许的访问关系，是防火墙规则的来源。",
+    "en": "Records the security zone layout, its boundary devices and the permitted inter-zone relations — the source the firewall rules derive from."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "zone",
+     "安全区域",
+     "Security Zone"
+    ],
+    [
+     "scope",
+     "范围",
+     "Scope"
+    ],
+    [
+     "boundary",
+     "边界设备",
+     "Boundary device"
+    ],
+    [
+     "policy",
+     "跨区策略",
+     "Cross-zone policy"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "ZR-001",
+      "en": "ZR-001"
+     },
+     {
+      "zh": "Zone 1 · 船舶核心控制区",
+      "en": "Zone 1 · Vessel Core Control"
+     },
+     {
+      "zh": "推进 / 操舵 / 电力",
+      "en": "Propulsion / Steering / Power"
+     },
+     {
+      "zh": "FortiGate 201G (OT 边界)",
+      "en": "FortiGate 201G (OT boundary)"
+     },
+     {
+      "zh": "默认拒绝 + 白名单",
+      "en": "Default deny + allowlist"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "ZR-002",
+      "en": "ZR-002"
+     },
+     {
+      "zh": "Zone 0 · 通用业务区",
+      "en": "Zone 0 · General Business Area"
+     },
+     {
+      "zh": "导航 / 通信 / 船岸链路",
+      "en": "Navigation / Comms / Ship-Shore Link"
+     },
+     {
+      "zh": "FortiGate 201G",
+      "en": "FortiGate 201G"
+     },
+     {
+      "zh": "默认拒绝 + 白名单",
+      "en": "Default deny + allowlist"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "ZR-003",
+      "en": "ZR-003"
+     },
+     {
+      "zh": "Zone 2 · 船员生活区",
+      "en": "Zone 2 · Crew Living Area"
+     },
+     {
+      "zh": "网络与娱乐",
+      "en": "Network & Entertainment"
+     },
+     {
+      "zh": "FortiGate 60F",
+      "en": "FortiGate 60F"
+     },
+     {
+      "zh": "允许上网，隔离 CBS",
+      "en": "Internet allowed, CBS isolated"
+     },
+     {
+      "zh": "待确认",
+      "en": "Pending Confirmation"
+     }
+    ],
+    [
+     {
+      "zh": "ZR-004",
+      "en": "ZR-004"
+     },
+     {
+      "zh": "Zone 3 · 岸基管理区",
+      "en": "Zone 3 · Shore-side Management"
+     },
+     {
+      "zh": "ERP / 办公 / 运维终端",
+      "en": "ERP / Office / Operations Terminals"
+     },
+     {
+      "zh": "FortiGate 201G (IT 边界)",
+      "en": "FortiGate 201G (IT boundary)"
+     },
+     {
+      "zh": "默认拒绝 + 白名单",
+      "en": "Default deny + allowlist"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "ZR-005",
+      "en": "ZR-005"
+     },
+     {
+      "zh": "船舶 DMZ",
+      "en": "Ship DMZ"
+     },
+     {
+      "zh": "远程接入 / 补丁中转",
+      "en": "Remote Access / Patch Relay"
+     },
+     {
+      "zh": "FortiWeb + FortiPAM",
+      "en": "FortiWeb + FortiPAM"
+     },
+     {
+      "zh": "唯一跨 IT/OT 的过渡层",
+      "en": "The only layer crossing the IT/OT boundary"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "网络拓扑图（组件 / 连接 / 端口 / IP）、区域隔离说明",
+    "en": "Network diagram (components, connections, ports, IP) and zone isolation notes"
+   },
+   "sub": ""
+  },
+  {
+   "id": "cbs-asset",
+   "g": "asset",
+   "n": {
+    "zh": "CBS 系统资产",
+    "en": "CBS System Assets"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "登记每一条船载计算机系统及其安全等级、厂商与支持状态。",
+    "en": "Registers each shipboard computerised system with its class, vendor and support status."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "vessel",
+     "船舶",
+     "Vessel"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "level",
+     "CBS 等级",
+     "CBS class"
+    ],
+    [
+     "vendor",
+     "厂商",
+     "Vendor"
+    ],
+    [
+     "patch",
+     "固件维护",
+     "Firmware maint."
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CA-001",
+      "en": "CA-001"
+     },
+     {
+      "zh": "东方之星",
+      "en": "Eastern Star"
+     },
+     {
+      "zh": "推进系统",
+      "en": "Propulsion System"
+     },
+     {
+      "zh": "II 类",
+      "en": "Class II"
+     },
+     {
+      "zh": "ABB",
+      "en": "ABB"
+     },
+     {
+      "zh": "在保",
+      "en": "Covered"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "CA-002",
+      "en": "CA-002"
+     },
+     {
+      "zh": "东方之星",
+      "en": "Eastern Star"
+     },
+     {
+      "zh": "操舵系统",
+      "en": "Steering System"
+     },
+     {
+      "zh": "III 类",
+      "en": "Class III"
+     },
+     {
+      "zh": "Kongsberg",
+      "en": "Kongsberg"
+     },
+     {
+      "zh": "在保",
+      "en": "Covered"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "CA-003",
+      "en": "CA-003"
+     },
+     {
+      "zh": "东方之星",
+      "en": "Eastern Star"
+     },
+     {
+      "zh": "发电与配电",
+      "en": "Generation & Distribution"
+     },
+     {
+      "zh": "II 类",
+      "en": "Class II"
+     },
+     {
+      "zh": "Schneider",
+      "en": "Schneider"
+     },
+     {
+      "zh": "在保",
+      "en": "Covered"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ],
+    [
+     {
+      "zh": "CA-004",
+      "en": "CA-004"
+     },
+     {
+      "zh": "海丰东盛",
+      "en": "Haifeng Dongsheng"
+     },
+     {
+      "zh": "火灾探测与灭火",
+      "en": "Fire Detection & Suppression"
+     },
+     {
+      "zh": "III 类",
+      "en": "Class III"
+     },
+     {
+      "zh": "Tyco",
+      "en": "Tyco"
+     },
+     {
+      "zh": "在保",
+      "en": "Covered"
+     },
+     {
+      "zh": "待核验",
+      "en": "Pending Verification"
+     }
+    ],
+    [
+     {
+      "zh": "CA-005",
+      "en": "CA-005"
+     },
+     {
+      "zh": "长江之星",
+      "en": "Yangtze Star"
+     },
+     {
+      "zh": "水密完整性检测",
+      "en": "Watertight Integrity Detection"
+     },
+     {
+      "zh": "III 类",
+      "en": "Class III"
+     },
+     {
+      "zh": "Vonar",
+      "en": "Vonar"
+     },
+     {
+      "zh": "在保",
+      "en": "Covered"
+     },
+     {
+      "zh": "已核验",
+      "en": "Verified"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 11,
+   "req": {
+    "zh": "CBS 清单、软件清单、厂商支持函",
+    "en": "CBS list, software inventory, vendor support letters"
+   },
+   "sub": ""
+  },
+  {
+   "id": "change-mgmt",
+   "g": "change",
+   "n": {
+    "zh": "变更记录台账",
+    "en": "Change Record"
+   },
+   "cl": "3.1",
+   "p": {
+    "zh": "登记每一次对 CBS 的变更，含时间、影响范围与回滚方式。",
+    "en": "Registers every change made to a CBS with its timing, blast radius and rollback path."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "目标系统",
+     "Target system"
+    ],
+    [
+     "type",
+     "类型",
+     "Type"
+    ],
+    [
+     "who",
+     "执行人",
+     "Performed by"
+    ],
+    [
+     "window",
+     "窗口",
+     "Window"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CM-2026-0418",
+      "en": "CM-2026-0418"
+     },
+     {
+      "zh": "CBS-NAV-01",
+      "en": "CBS-NAV-01"
+     },
+     {
+      "zh": "安全补丁",
+      "en": "Security Patch"
+     },
+     {
+      "zh": "系统管理员",
+      "en": "System Administrator"
+     },
+     {
+      "zh": "靠港窗口",
+      "en": "Port-call Window"
+     },
+     {
+      "zh": "2026-11-14",
+      "en": "2026-11-14"
+     },
+     {
+      "zh": "已实施",
+      "en": "Implemented"
+     }
+    ],
+    [
+     {
+      "zh": "CM-2026-0412",
+      "en": "CM-2026-0412"
+     },
+     {
+      "zh": "CBS-PROP-01",
+      "en": "CBS-PROP-01"
+     },
+     {
+      "zh": "组态修改",
+      "en": "Configuration Change"
+     },
+     {
+      "zh": "厂商工程师",
+      "en": "Vendor Engineer"
+     },
+     {
+      "zh": "计划停机",
+      "en": "Planned Shutdown"
+     },
+     {
+      "zh": "2026-11-08",
+      "en": "2026-11-08"
+     },
+     {
+      "zh": "已实施",
+      "en": "Implemented"
+     }
+    ],
+    [
+     {
+      "zh": "CM-2026-0405",
+      "en": "CM-2026-0405"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "系统加固",
+      "en": "System Hardening"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "夜间窗口",
+      "en": "Nightly Window"
+     },
+     {
+      "zh": "2026-10-29",
+      "en": "2026-10-29"
+     },
+     {
+      "zh": "已实施",
+      "en": "Implemented"
+     }
+    ],
+    [
+     {
+      "zh": "CM-2026-0399",
+      "en": "CM-2026-0399"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "终端批量更新",
+      "en": "Endpoint Batch Update"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "分批发布",
+      "en": "Staged Rollout"
+     },
+     {
+      "zh": "2026-10-22",
+      "en": "2026-10-22"
+     },
+     {
+      "zh": "已实施",
+      "en": "Implemented"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 18,
+   "req": {
+    "zh": "变更记录（含执行时刻、输入快照、判定依据与结论）",
+    "en": "Change records (with execution time, input snapshot, decision basis and conclusion)"
+   },
+   "sub": ""
+  },
+  {
+   "id": "change-approval",
+   "g": "change",
+   "n": {
+    "zh": "变更审批记录",
+    "en": "Change Approval"
+   },
+   "cl": "3.1",
+   "p": {
+    "zh": "记录变更的审批链：申请、技术评估、批准与放行。",
+    "en": "Records the approval chain for a change: request, technical assessment, approval and release."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "change",
+     "关联变更",
+     "Related change"
+    ],
+    [
+     "req",
+     "申请人",
+     "Requested by"
+    ],
+    [
+     "tech",
+     "技术评估",
+     "Technical review"
+    ],
+    [
+     "appr",
+     "批准人",
+     "Approved by"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CA-2026-0221",
+      "en": "CA-2026-0221"
+     },
+     {
+      "zh": "CM-2026-0418",
+      "en": "CM-2026-0418"
+     },
+     {
+      "zh": "系统管理员",
+      "en": "System Administrator"
+     },
+     {
+      "zh": "岸基安全负责人",
+      "en": "Shore-side Security Lead"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "2026-11-12",
+      "en": "2026-11-12"
+     },
+     {
+      "zh": "已批准",
+      "en": "Approved"
+     }
+    ],
+    [
+     {
+      "zh": "CA-2026-0218",
+      "en": "CA-2026-0218"
+     },
+     {
+      "zh": "CM-2026-0412",
+      "en": "CM-2026-0412"
+     },
+     {
+      "zh": "厂商工程师",
+      "en": "Vendor Engineer"
+     },
+     {
+      "zh": "船舶轮机长",
+      "en": "Ship's Chief Engineer"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "2026-11-05",
+      "en": "2026-11-05"
+     },
+     {
+      "zh": "已批准",
+      "en": "Approved"
+     }
+    ],
+    [
+     {
+      "zh": "CA-2026-0209",
+      "en": "CA-2026-0209"
+     },
+     {
+      "zh": "CM-2026-0405",
+      "en": "CM-2026-0405"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "2026-10-27",
+      "en": "2026-10-27"
+     },
+     {
+      "zh": "已批准",
+      "en": "Approved"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 12,
+   "req": {
+    "zh": "变更审批单、邮件审批记录",
+    "en": "Change approval forms and email approval records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "change-risk",
+   "g": "change",
+   "n": {
+    "zh": "变更风险评估",
+    "en": "Change Risk Assessment"
+   },
+   "cl": "3.1",
+   "p": {
+    "zh": "评估变更引入新风险的可能性，含对实时性与可用性的影响。",
+    "en": "Assesses the risk a change may introduce, including its effect on real-time behaviour and availability."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "change",
+     "关联变更",
+     "Related change"
+    ],
+    [
+     "risk",
+     "风险等级",
+     "Risk level"
+    ],
+    [
+     "rt",
+     "实时性影响",
+     "Real-time impact"
+    ],
+    [
+     "mit",
+     "缓解措施",
+     "Mitigation"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CR-2026-0114",
+      "en": "CR-2026-0114"
+     },
+     {
+      "zh": "CM-2026-0418",
+      "en": "CM-2026-0418"
+     },
+     {
+      "zh": "低",
+      "en": "Low"
+     },
+     {
+      "zh": "无（II 类，允许窗口内打补丁）",
+      "en": "None (Class II, patching allowed within a window)"
+     },
+     {
+      "zh": "分批发布 + 回滚预案",
+      "en": "Staged rollout + rollback plan"
+     },
+     {
+      "zh": "已评估",
+      "en": "Assessed"
+     }
+    ],
+    [
+     {
+      "zh": "CR-2026-0109",
+      "en": "CR-2026-0109"
+     },
+     {
+      "zh": "CM-2026-0412",
+      "en": "CM-2026-0412"
+     },
+     {
+      "zh": "高",
+      "en": "High"
+     },
+     {
+      "zh": "有（推进控制逻辑变更）",
+      "en": "Yes (propulsion control logic change)"
+     },
+     {
+      "zh": "计划停机 + 厂商在场 + 手动备份",
+      "en": "Planned shutdown + vendor on site + manual backup"
+     },
+     {
+      "zh": "已评估",
+      "en": "Assessed"
+     }
+    ],
+    [
+     {
+      "zh": "CR-2026-0102",
+      "en": "CR-2026-0102"
+     },
+     {
+      "zh": "CM-2026-0405",
+      "en": "CM-2026-0405"
+     },
+     {
+      "zh": "中",
+      "en": "Medium"
+     },
+     {
+      "zh": "无（岸基系统）",
+      "en": "None (shore-side system)"
+     },
+     {
+      "zh": "先在测试网验证",
+      "en": "Validate on the test network first"
+     },
+     {
+      "zh": "已评估",
+      "en": "Assessed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "变更风险评估表、回滚方案",
+    "en": "Change risk assessment forms and rollback plans"
+   },
+   "sub": ""
+  },
+  {
+   "id": "sw-inventory",
+   "g": "change",
+   "n": {
+    "zh": "软件清单",
+    "en": "Software Inventory"
+   },
+   "cl": "3.2",
+   "p": {
+    "zh": "登记每个 CBS 上运行的软件、版本与支持状态。",
+    "en": "Registers the software running on each CBS with its version and support status."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "sw",
+     "软件",
+     "Software"
+    ],
+    [
+     "ver",
+     "版本",
+     "Version"
+    ],
+    [
+     "eol",
+     "支持状态",
+     "Support status"
+    ],
+    [
+     "vendor",
+     "厂商",
+     "Vendor"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "SI-0041",
+      "en": "SI-0041"
+     },
+     {
+      "zh": "CBS-NAV-01",
+      "en": "CBS-NAV-01"
+     },
+     {
+      "zh": "Log4j",
+      "en": "Log4j"
+     },
+     {
+      "zh": "2.14.1",
+      "en": "2.14.1"
+     },
+     {
+      "zh": "已停止支持",
+      "en": "Support Ended"
+     },
+     {
+      "zh": "Apache",
+      "en": "Apache"
+     }
+    ],
+    [
+     {
+      "zh": "SI-0040",
+      "en": "SI-0040"
+     },
+     {
+      "zh": "CBS-PWR-01",
+      "en": "CBS-PWR-01"
+     },
+     {
+      "zh": "Modbus TCP 协议栈",
+      "en": "Modbus TCP Stack"
+     },
+     {
+      "zh": "3.2",
+      "en": "3.2"
+     },
+     {
+      "zh": "在支持",
+      "en": "Supported"
+     },
+     {
+      "zh": "厂商定制",
+      "en": "Vendor Customised"
+     }
+    ],
+    [
+     {
+      "zh": "SI-0038",
+      "en": "SI-0038"
+     },
+     {
+      "zh": "CBS-HELM-01",
+      "en": "CBS-HELM-01"
+     },
+     {
+      "zh": "OpenSSH",
+      "en": "OpenSSH"
+     },
+     {
+      "zh": "8.4p1",
+      "en": "8.4p1"
+     },
+     {
+      "zh": "在支持",
+      "en": "Supported"
+     },
+     {
+      "zh": "OpenBSD",
+      "en": "OpenBSD"
+     }
+    ],
+    [
+     {
+      "zh": "SI-0036",
+      "en": "SI-0036"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "Windows Server",
+      "en": "Windows Server"
+     },
+     {
+      "zh": "2019",
+      "en": "2019"
+     },
+     {
+      "zh": "在支持",
+      "en": "Supported"
+     },
+     {
+      "zh": "Microsoft",
+      "en": "Microsoft"
+     }
+    ],
+    [
+     {
+      "zh": "SI-0031",
+      "en": "SI-0031"
+     },
+     {
+      "zh": "CBS-LNK-01",
+      "en": "CBS-LNK-01"
+     },
+     {
+      "zh": "Confluence",
+      "en": "Confluence"
+     },
+     {
+      "zh": "7.13",
+      "en": "7.13"
+     },
+     {
+      "zh": "已停止支持",
+      "en": "Support Ended"
+     },
+     {
+      "zh": "Atlassian",
+      "en": "Atlassian"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 21,
+   "req": {
+    "zh": "软件清单（含版本与支持状态）",
+    "en": "Software inventory with versions and support status"
+   },
+   "sub": ""
+  },
+  {
+   "id": "patch-plan",
+   "g": "change",
+   "n": {
+    "zh": "补丁计划",
+    "en": "Patch Plan"
+   },
+   "cl": "3.2",
+   "p": {
+    "zh": "规划补丁的发布顺序、验证方式与分批回滚策略。",
+    "en": "Plans patch sequencing, validation method and staged rollback."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "sw",
+     "目标软件",
+     "Target software"
+    ],
+    [
+     "batch",
+     "批次",
+     "Batch"
+    ],
+    [
+     "val",
+     "验证方式",
+     "Validation"
+    ],
+    [
+     "rollback",
+     "回滚",
+     "Rollback"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "PP-2026-011",
+      "en": "PP-2026-011"
+     },
+     {
+      "zh": "CBS-NAV-01",
+      "en": "CBS-NAV-01"
+     },
+     {
+      "zh": "Log4j",
+      "en": "Log4j"
+     },
+     {
+      "zh": "第 1 批（2 台）",
+      "en": "Batch 1 (2 units)"
+     },
+     {
+      "zh": "功能测试 + 24h 观察",
+      "en": "Functional test + 24h observation"
+     },
+     {
+      "zh": "版本回退 15 分钟",
+      "en": "Version rollback in 15 minutes"
+     },
+     {
+      "zh": "待执行",
+      "en": "Pending"
+     }
+    ],
+    [
+     {
+      "zh": "PP-2026-010",
+      "en": "PP-2026-010"
+     },
+     {
+      "zh": "CBS-HELM-01",
+      "en": "CBS-HELM-01"
+     },
+     {
+      "zh": "OpenSSH",
+      "en": "OpenSSH"
+     },
+     {
+      "zh": "第 2 批",
+      "en": "Batch 2"
+     },
+     {
+      "zh": "连通性测试",
+      "en": "Connectivity test"
+     },
+     {
+      "zh": "镜像还原",
+      "en": "Image restore"
+     },
+     {
+      "zh": "待执行",
+      "en": "Pending"
+     }
+    ],
+    [
+     {
+      "zh": "PP-2026-008",
+      "en": "PP-2026-008"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "Windows Server",
+      "en": "Windows Server"
+     },
+     {
+      "zh": "第 1 批（1 台）",
+      "en": "Batch 1 (1 unit)"
+     },
+     {
+      "zh": "域功能验证",
+      "en": "Domain Function Validation"
+     },
+     {
+      "zh": "系统映像回退",
+      "en": "System image rollback"
+     },
+     {
+      "zh": "已执行",
+      "en": "Executed"
+     }
+    ],
+    [
+     {
+      "zh": "PP-2026-004",
+      "en": "PP-2026-004"
+     },
+     {
+      "zh": "CBS-CCTV-01",
+      "en": "CBS-CCTV-01"
+     },
+     {
+      "zh": "FortiOS",
+      "en": "FortiOS"
+     },
+     {
+      "zh": "第 1 批（3 台）",
+      "en": "Batch 1 (3 units)"
+     },
+     {
+      "zh": "录像回放验证",
+      "en": "Recording playback verification"
+     },
+     {
+      "zh": "配置备份还原",
+      "en": "Config backup restore"
+     },
+     {
+      "zh": "已执行",
+      "en": "Executed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 16,
+   "req": {
+    "zh": "补丁计划、分批更新流程、恢复测试记录",
+    "en": "Patch plan, staged rollout procedure and recovery test records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-baseline",
+   "g": "network",
+   "n": {
+    "zh": "防火墙规则基线",
+    "en": "Firewall Rule Baseline"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "定义安全区域之间允许的最小通信集合，规则集以此为准。",
+    "en": "Defines the minimum permitted communication set between zones — the reference the rule set is measured against."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "zone",
+     "源区域",
+     "Source zone"
+    ],
+    [
+     "tzone",
+     "目的区域",
+     "Destination zone"
+    ],
+    [
+     "svc",
+     "允许服务",
+     "Permitted service"
+    ],
+    [
+     "just",
+     "用途说明",
+     "Purpose"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FB-001",
+      "en": "FB-001"
+     },
+     {
+      "zh": "Zone 1",
+      "en": "Zone 1"
+     },
+     {
+      "zh": "Zone 0",
+      "en": "Zone 0"
+     },
+     {
+      "zh": "Modbus TCP / 502",
+      "en": "Modbus TCP / 502"
+     },
+     {
+      "zh": "SCADA 读取电力遥测",
+      "en": "SCADA reading electrical telemetry"
+     },
+     {
+      "zh": "在基线内",
+      "en": "Within Baseline"
+     }
+    ],
+    [
+     {
+      "zh": "FB-002",
+      "en": "FB-002"
+     },
+     {
+      "zh": "Zone 0",
+      "en": "Zone 0"
+     },
+     {
+      "zh": "船舶 DMZ",
+      "en": "Ship DMZ"
+     },
+     {
+      "zh": "HTTPS / 443",
+      "en": "HTTPS / 443"
+     },
+     {
+      "zh": "船岸数据交换",
+      "en": "Ship-shore data exchange"
+     },
+     {
+      "zh": "在基线内",
+      "en": "Within Baseline"
+     }
+    ],
+    [
+     {
+      "zh": "FB-003",
+      "en": "FB-003"
+     },
+     {
+      "zh": "Zone 2",
+      "en": "Zone 2"
+     },
+     {
+      "zh": "Internet",
+      "en": "Internet"
+     },
+     {
+      "zh": "HTTPS / 443",
+      "en": "HTTPS / 443"
+     },
+     {
+      "zh": "船员上网",
+      "en": "Crew internet access"
+     },
+     {
+      "zh": "在基线内",
+      "en": "Within Baseline"
+     }
+    ],
+    [
+     {
+      "zh": "FB-004",
+      "en": "FB-004"
+     },
+     {
+      "zh": "Zone 1",
+      "en": "Zone 1"
+     },
+     {
+      "zh": "Internet",
+      "en": "Internet"
+     },
+     {
+      "zh": "—",
+      "en": "—"
+     },
+     {
+      "zh": "不允许",
+      "en": "Not permitted"
+     },
+     {
+      "zh": "已移除（超出基线）",
+      "en": "Removed (Was Out of Baseline)"
+     }
+    ],
+    [
+     {
+      "zh": "FB-005",
+      "en": "FB-005"
+     },
+     {
+      "zh": "Zone 3",
+      "en": "Zone 3"
+     },
+     {
+      "zh": "Zone 1",
+      "en": "Zone 1"
+     },
+     {
+      "zh": "SSH / 22",
+      "en": "SSH / 22"
+     },
+     {
+      "zh": "应急维护（需临时授权）",
+      "en": "Emergency maintenance (temporary authorisation required)"
+     },
+     {
+      "zh": "待复核",
+      "en": "Pending Review"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 14,
+   "req": {
+    "zh": "防火墙规则基线、区域间访问矩阵",
+    "en": "Firewall rule baseline and inter-zone access matrix"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-change",
+   "g": "network",
+   "n": {
+    "zh": "防火墙变更记录",
+    "en": "Firewall Change Log"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "记录每一次规则增删，含变更人、时间与有效期。",
+    "en": "Records every rule addition or removal with who, when and how long it was valid."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "rule",
+     "规则",
+     "Rule"
+    ],
+    [
+     "act",
+     "动作",
+     "Action"
+    ],
+    [
+     "by",
+     "变更人",
+     "Changed by"
+    ],
+    [
+     "exp",
+     "有效期",
+     "Expiry"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FC-2026-0226",
+      "en": "FC-2026-0226"
+     },
+     {
+      "zh": "FB-011",
+      "en": "FB-011"
+     },
+     {
+      "zh": "新增临时放行",
+      "en": "Temporary allow added"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "2026-12-15",
+      "en": "2026-12-15"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     }
+    ],
+    [
+     {
+      "zh": "FC-2026-0219",
+      "en": "FC-2026-0219"
+     },
+     {
+      "zh": "FB-004",
+      "en": "FB-004"
+     },
+     {
+      "zh": "删除越界放行",
+      "en": "Out-of-baseline allow removed"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "永久",
+      "en": "Permanent"
+     },
+     {
+      "zh": "2026-11-12",
+      "en": "2026-11-12"
+     }
+    ],
+    [
+     {
+      "zh": "FC-2026-0203",
+      "en": "FC-2026-0203"
+     },
+     {
+      "zh": "FB-008",
+      "en": "FB-008"
+     },
+     {
+      "zh": "新增白名单",
+      "en": "Allowlist entry added"
+     },
+     {
+      "zh": "系统管理员",
+      "en": "System Administrator"
+     },
+     {
+      "zh": "永久",
+      "en": "Permanent"
+     },
+     {
+      "zh": "2026-10-30",
+      "en": "2026-10-30"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 11,
+   "req": {
+    "zh": "防火墙变更记录、配置备份",
+    "en": "Firewall change log and configuration backups"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-review",
+   "g": "network",
+   "n": {
+    "zh": "防火墙规则定期复核",
+    "en": "Firewall Rule Review"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "按周期复核全部规则，识别长期未使用或超出基线的条目。",
+    "en": "Reviews all rules on a cycle to find long-unused or out-of-baseline entries."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "复核范围",
+     "Scope"
+    ],
+    [
+     "total",
+     "规则总数",
+     "Total rules"
+    ],
+    [
+     "out",
+     "超出基线",
+     "Out of baseline"
+    ],
+    [
+     "unused",
+     "长期未用",
+     "Unused"
+    ],
+    [
+     "date",
+     "复核日期",
+     "Review date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FR-2026-Q4",
+      "en": "FR-2026-Q4"
+     },
+     {
+      "zh": "Zone 0 / Zone 1",
+      "en": "Zone 0 / Zone 1"
+     },
+     {
+      "zh": "412",
+      "en": "412"
+     },
+     {
+      "zh": "7",
+      "en": "7"
+     },
+     {
+      "zh": "19",
+      "en": "19"
+     },
+     {
+      "zh": "2026-10-20",
+      "en": "2026-10-20"
+     }
+    ],
+    [
+     {
+      "zh": "FR-2026-Q3",
+      "en": "FR-2026-Q3"
+     },
+     {
+      "zh": "Zone 1 / Zone 2",
+      "en": "Zone 1 / Zone 2"
+     },
+     {
+      "zh": "398",
+      "en": "398"
+     },
+     {
+      "zh": "4",
+      "en": "4"
+     },
+     {
+      "zh": "12",
+      "en": "12"
+     },
+     {
+      "zh": "2026-07-18",
+      "en": "2026-07-18"
+     }
+    ],
+    [
+     {
+      "zh": "FR-2026-Q2",
+      "en": "FR-2026-Q2"
+     },
+     {
+      "zh": "Zone 3 / 船舶 DMZ",
+      "en": "Zone 3 / Ship DMZ"
+     },
+     {
+      "zh": "376",
+      "en": "376"
+     },
+     {
+      "zh": "9",
+      "en": "9"
+     },
+     {
+      "zh": "23",
+      "en": "23"
+     },
+     {
+      "zh": "2026-04-16",
+      "en": "2026-04-16"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "规则复核报告、偏差清单",
+    "en": "Rule review reports and deviation lists"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-exception",
+   "g": "network",
+   "n": {
+    "zh": "防火墙例外申请",
+    "en": "Firewall Exception Request"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "记录临时例外的申请理由、批准与到期回收。",
+    "en": "Records the justification, approval and eventual withdrawal of temporary exceptions."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "req",
+     "申请理由",
+     "Justification"
+    ],
+    [
+     "scope",
+     "涉及范围",
+     "Scope"
+    ],
+    [
+     "appr",
+     "批准人",
+     "Approved by"
+    ],
+    [
+     "exp",
+     "到期日",
+     "Expiry"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FE-2026-0044",
+      "en": "FE-2026-0044"
+     },
+     {
+      "zh": "厂商远程诊断推进系统故障",
+      "en": "Vendor remote diagnosis of a propulsion fault"
+     },
+     {
+      "zh": "CBS-PROP-01 管理口",
+      "en": "CBS-PROP-01 Management Port"
+     },
+     {
+      "zh": "轮机长",
+      "en": "Chief Engineer"
+     },
+     {
+      "zh": "2026-11-30",
+      "en": "2026-11-30"
+     },
+     {
+      "zh": "生效中",
+      "en": "Active"
+     }
+    ],
+    [
+     {
+      "zh": "FE-2026-0039",
+      "en": "FE-2026-0039"
+     },
+     {
+      "zh": "临时开放 DNS 解析用于新业务系统",
+      "en": "Temporary DNS resolution opened for a new business system"
+     },
+     {
+      "zh": "DC01 → 8.8.8.8",
+      "en": "DC01 → 8.8.8.8"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "2026-10-05",
+      "en": "2026-10-05"
+     },
+     {
+      "zh": "已回收",
+      "en": "Reclaimed"
+     }
+    ],
+    [
+     {
+      "zh": "FE-2026-0031",
+      "en": "FE-2026-0031"
+     },
+     {
+      "zh": "岸基临时访问船岸链路做割接",
+      "en": "Temporary shore-side access to the ship-shore link for cutover"
+     },
+     {
+      "zh": "CBS-LNK-01 SSH",
+      "en": "CBS-LNK-01 SSH"
+     },
+     {
+      "zh": "网络主管",
+      "en": "Network Supervisor"
+     },
+     {
+      "zh": "2026-09-20",
+      "en": "2026-09-20"
+     },
+     {
+      "zh": "已回收",
+      "en": "Reclaimed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 7,
+   "req": {
+    "zh": "例外申请表、回收确认记录",
+    "en": "Exception request forms and withdrawal confirmations"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-account",
+   "g": "network",
+   "n": {
+    "zh": "防火墙管理账户",
+    "en": "Firewall Admin Accounts"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "登记设备管理账户及其权限范围与 MFA 状态。",
+    "en": "Registers device administrative accounts with their privilege scope and MFA state."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "dev",
+     "设备",
+     "Device"
+    ],
+    [
+     "user",
+     "账户",
+     "Account"
+    ],
+    [
+     "role",
+     "权限",
+     "Privilege"
+    ],
+    [
+     "mfa",
+     "MFA",
+     "MFA"
+    ],
+    [
+     "via",
+     "访问路径",
+     "Access path"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FA-018",
+      "en": "FA-018"
+     },
+     {
+      "zh": "FW-EDGE-01",
+      "en": "FW-EDGE-01"
+     },
+     {
+      "zh": "netadmin",
+      "en": "netadmin"
+     },
+     {
+      "zh": "超级管理员",
+      "en": "Super Administrator"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "FortiPAM",
+      "en": "FortiPAM"
+     }
+    ],
+    [
+     {
+      "zh": "FA-017",
+      "en": "FA-017"
+     },
+     {
+      "zh": "FW-EDGE-02",
+      "en": "FW-EDGE-02"
+     },
+     {
+      "zh": "ops_ot",
+      "en": "ops_ot"
+     },
+     {
+      "zh": "只读 + 策略",
+      "en": "Read-only + policy"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "FortiPAM",
+      "en": "FortiPAM"
+     }
+    ],
+    [
+     {
+      "zh": "FA-016",
+      "en": "FA-016"
+     },
+     {
+      "zh": "OT-DMZ-WAF-01",
+      "en": "OT-DMZ-WAF-01"
+     },
+     {
+      "zh": "waf_admin",
+      "en": "waf_admin"
+     },
+     {
+      "zh": "WAF 管理员",
+      "en": "WAF Administrator"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "堡垒机",
+      "en": "Bastion Host"
+     }
+    ],
+    [
+     {
+      "zh": "FA-012",
+      "en": "FA-012"
+     },
+     {
+      "zh": "CBS-CCTV-01",
+      "en": "CBS-CCTV-01"
+     },
+     {
+      "zh": "cam_admin",
+      "en": "cam_admin"
+     },
+     {
+      "zh": "摄像机接入",
+      "en": "Camera Access"
+     },
+     {
+      "zh": "未启用",
+      "en": "Not Enabled"
+     },
+     {
+      "zh": "本地",
+      "en": "Local"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 8,
+   "req": {
+    "zh": "账户清单、权限矩阵、MFA 配置截图",
+    "en": "Account list, privilege matrix and MFA configuration evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "fw-log",
+   "g": "network",
+   "n": {
+    "zh": "防火墙日志留存",
+    "en": "Firewall Log Retention"
+   },
+   "cl": "3.3",
+   "p": {
+    "zh": "记录日志采集点、留存期限与检索能力。",
+    "en": "Records log collection points, retention periods and search capability."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "dev",
+     "设备",
+     "Device"
+    ],
+    [
+     "src",
+     "采集源",
+     "Collection source"
+    ],
+    [
+     "ret",
+     "留存期",
+     "Retention"
+    ],
+    [
+     "to",
+     "汇聚到",
+     "Forwarded to"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FL-004",
+      "en": "FL-004"
+     },
+     {
+      "zh": "FW-EDGE-01",
+      "en": "FW-EDGE-01"
+     },
+     {
+      "zh": "FortiAnalyzer",
+      "en": "FortiAnalyzer"
+     },
+     {
+      "zh": "180 天",
+      "en": "180 days"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "FL-003",
+      "en": "FL-003"
+     },
+     {
+      "zh": "FW-EDGE-02",
+      "en": "FW-EDGE-02"
+     },
+     {
+      "zh": "FortiAnalyzer",
+      "en": "FortiAnalyzer"
+     },
+     {
+      "zh": "180 天",
+      "en": "180 days"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "FL-002",
+      "en": "FL-002"
+     },
+     {
+      "zh": "OT-DMZ-WAF-01",
+      "en": "OT-DMZ-WAF-01"
+     },
+     {
+      "zh": "FortiAnalyzer",
+      "en": "FortiAnalyzer"
+     },
+     {
+      "zh": "180 天",
+      "en": "180 days"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "FL-001",
+      "en": "FL-001"
+     },
+     {
+      "zh": "CBS-CCTV-01",
+      "en": "CBS-CCTV-01"
+     },
+     {
+      "zh": "本地文件",
+      "en": "Local File"
+     },
+     {
+      "zh": "30 天",
+      "en": "30 days"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "缺口",
+      "en": "Gap"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 6,
+   "req": {
+    "zh": "日志采集源清单、留存策略、SIEM 采集配置",
+    "en": "Log source inventory, retention policy and SIEM collection configuration"
+   },
+   "sub": ""
+  },
+  {
+   "id": "av-deploy",
+   "g": "network",
+   "n": {
+    "zh": "防病毒客户端部署",
+    "en": "Antivirus Deployment"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "记录端点防护客户端的部署范围与覆盖率缺口。",
+    "en": "Records endpoint protection deployment coverage and the gaps."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "部署范围",
+     "Scope"
+    ],
+    [
+     "total",
+     "终端总数",
+     "Endpoints"
+    ],
+    [
+     "cov",
+     "已覆盖",
+     "Covered"
+    ],
+    [
+     "gap",
+     "未覆盖",
+     "Not covered"
+    ],
+    [
+     "why",
+     "原因",
+     "Reason"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AD-2026-011",
+      "en": "AD-2026-011"
+     },
+     {
+      "zh": "岸基办公终端",
+      "en": "Shore-side Office Endpoints"
+     },
+     {
+      "zh": "128",
+      "en": "128"
+     },
+     {
+      "zh": "124",
+      "en": "124"
+     },
+     {
+      "zh": "4",
+      "en": "4"
+     },
+     {
+      "zh": "老旧设备，厂商不再支持 EDR",
+      "en": "Legacy device — the vendor no longer supports EDR"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-010",
+      "en": "AD-2026-010"
+     },
+     {
+      "zh": "运维终端",
+      "en": "Operations Terminals"
+     },
+     {
+      "zh": "26",
+      "en": "26"
+     },
+     {
+      "zh": "26",
+      "en": "26"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "—",
+      "en": "—"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-009",
+      "en": "AD-2026-009"
+     },
+     {
+      "zh": "船岸链路网关",
+      "en": "Ship-shore Link Gateway"
+     },
+     {
+      "zh": "8",
+      "en": "8"
+     },
+     {
+      "zh": "8",
+      "en": "8"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "—",
+      "en": "—"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-008",
+      "en": "AD-2026-008"
+     },
+     {
+      "zh": "CBS 终端",
+      "en": "CBS Terminals"
+     },
+     {
+      "zh": "142",
+      "en": "142"
+     },
+     {
+      "zh": "98",
+      "en": "98"
+     },
+     {
+      "zh": "44",
+      "en": "44"
+     },
+     {
+      "zh": "按 CBS 等级豁免（见 3.4 说明）",
+      "en": "Exempted by CBS class (see 3.4)"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 12,
+   "req": {
+    "zh": "端点防护部署报告、豁免清单及理由",
+    "en": "Endpoint protection deployment report, exemption list with justifications"
+   },
+   "sub": ""
+  },
+  {
+   "id": "av-signature",
+   "g": "network",
+   "n": {
+    "zh": "防病毒特征库更新",
+    "en": "Antivirus Signature Update"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "跟踪特征库版本与更新及时性。",
+    "en": "Tracks signature versions and how current they are."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "prod",
+     "产品",
+     "Product"
+    ],
+    [
+     "ver",
+     "当前版本",
+     "Current version"
+    ],
+    [
+     "age",
+     "滞后天数",
+     "Days behind"
+    ],
+    [
+     "auto",
+     "自动更新",
+     "Auto update"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AS-2026-018",
+      "en": "AS-2026-018"
+     },
+     {
+      "zh": "FortiClient EDR",
+      "en": "FortiClient EDR"
+     },
+     {
+      "zh": "7.2.4 (2026-11-14)",
+      "en": "7.2.4 (2026-11-14)"
+     },
+     {
+      "zh": "1",
+      "en": "1"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "AS-2026-017",
+      "en": "AS-2026-017"
+     },
+     {
+      "zh": "FortiGate AV",
+      "en": "FortiGate AV"
+     },
+     {
+      "zh": "7.4.3 (2026-11-12)",
+      "en": "7.4.3 (2026-11-12)"
+     },
+     {
+      "zh": "3",
+      "en": "3"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "AS-2026-014",
+      "en": "AS-2026-014"
+     },
+     {
+      "zh": "CVR-01 病毒库",
+      "en": "CVR-01 Virus Definitions"
+     },
+     {
+      "zh": "2026-11-08",
+      "en": "2026-11-08"
+     },
+     {
+      "zh": "7",
+      "en": "7"
+     },
+     {
+      "zh": "已启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "特征库版本记录、订阅状态证明",
+    "en": "Signature version records and subscription status evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "av-exclusion",
+   "g": "network",
+   "n": {
+    "zh": "防病毒排除项",
+    "en": "Antivirus Exclusions"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "登记扫描排除项及其批准依据 —— 排除项是攻击者最爱的藏身处。",
+    "en": "Registers scan exclusions and their approval basis — exclusions are where attackers hide."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "host",
+     "主机",
+     "Host"
+    ],
+    [
+     "path",
+     "排除路径",
+     "Excluded path"
+    ],
+    [
+     "just",
+     "理由",
+     "Justification"
+    ],
+    [
+     "appr",
+     "批准人",
+     "Approved by"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AX-2026-008",
+      "en": "AX-2026-008"
+     },
+     {
+      "zh": "CBS-PWR-01",
+      "en": "CBS-PWR-01"
+     },
+     {
+      "zh": "D:\\runtime\\",
+      "en": "D:\\runtime\\"
+     },
+     {
+      "zh": "实时任务目录，扫描会导致控制周期抖动",
+      "en": "Real-time task directory — scanning causes control-cycle jitter"
+     },
+     {
+      "zh": "轮机长",
+      "en": "Chief Engineer"
+     },
+     {
+      "zh": "2026-09-14",
+      "en": "2026-09-14"
+     }
+    ],
+    [
+     {
+      "zh": "AX-2026-007",
+      "en": "AX-2026-007"
+     },
+     {
+      "zh": "CBS-HELM-01",
+      "en": "CBS-HELM-01"
+     },
+     {
+      "zh": "C:\\Program Files\\",
+      "en": "C:\\Program Files\\"
+     },
+     {
+      "zh": "组态软件安装目录",
+      "en": "Configuration software install directory"
+     },
+     {
+      "zh": "厂商工程师",
+      "en": "Vendor Engineer"
+     },
+     {
+      "zh": "2026-08-22",
+      "en": "2026-08-22"
+     }
+    ],
+    [
+     {
+      "zh": "AX-2026-004",
+      "en": "AX-2026-004"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "C:\\Print\\",
+      "en": "C:\\Print\\"
+     },
+     {
+      "zh": "打印队列，PS 漏洞利用路径",
+      "en": "Print queue — a PrintNightmare exploitation path"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "2026-07-30",
+      "en": "2026-07-30"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "排除项清单及批准记录、补偿性措施说明",
+    "en": "Exclusion list with approvals and compensating-control notes"
+   },
+   "sub": ""
+  },
+  {
+   "id": "av-coverage",
+   "g": "network",
+   "n": {
+    "zh": "防病毒覆盖核查",
+    "en": "Antivirus Coverage Check"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "定期核查实际防护覆盖率，而不是相信安装清单。",
+    "en": "Periodically verifies actual protection coverage rather than trusting the install list."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "核查范围",
+     "Scope"
+    ],
+    [
+     "claimed",
+     "声称覆盖",
+     "Claimed"
+    ],
+    [
+     "actual",
+     "实测覆盖",
+     "Measured"
+    ],
+    [
+     "diff",
+     "差异",
+     "Gap"
+    ],
+    [
+     "date",
+     "核查日期",
+     "Check date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AC-2026-Q4",
+      "en": "AC-2026-Q4"
+     },
+     {
+      "zh": "岸基办公终端",
+      "en": "Shore-side Office Endpoints"
+     },
+     {
+      "zh": "97%",
+      "en": "97%"
+     },
+     {
+      "zh": "94%",
+      "en": "94%"
+     },
+     {
+      "zh": "3%",
+      "en": "3%"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     }
+    ],
+    [
+     {
+      "zh": "AC-2026-Q4",
+      "en": "AC-2026-Q4"
+     },
+     {
+      "zh": "运维终端",
+      "en": "Operations Terminals"
+     },
+     {
+      "zh": "100%",
+      "en": "100%"
+     },
+     {
+      "zh": "100%",
+      "en": "100%"
+     },
+     {
+      "zh": "0%",
+      "en": "0%"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     }
+    ],
+    [
+     {
+      "zh": "AC-2026-Q3",
+      "en": "AC-2026-Q3"
+     },
+     {
+      "zh": "岸基办公终端",
+      "en": "Shore-side Office Endpoints"
+     },
+     {
+      "zh": "100%",
+      "en": "100%"
+     },
+     {
+      "zh": "91%",
+      "en": "91%"
+     },
+     {
+      "zh": "9%",
+      "en": "9%"
+     },
+     {
+      "zh": "2026-07-15",
+      "en": "2026-07-15"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "覆盖率核查报告、差异清单",
+    "en": "Coverage verification reports and discrepancy lists"
+   },
+   "sub": ""
+  },
+  {
+   "id": "prot-assess",
+   "g": "network",
+   "n": {
+    "zh": "保护措施评估",
+    "en": "Protection Assessment"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "按条款逐项评估保护措施是否成立，而不是只看设备是否安装。",
+    "en": "Assesses per clause whether a protection actually holds, not merely whether the device is installed."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "cl",
+     "条款",
+     "Clause"
+    ],
+    [
+     "ctrl",
+     "控制目标",
+     "Control objective"
+    ],
+    [
+     "meth",
+     "评估方法",
+     "Method"
+    ],
+    [
+     "res",
+     "结论",
+     "Conclusion"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "PA-2026-014",
+      "en": "PA-2026-014"
+     },
+     {
+      "zh": "3.4",
+      "en": "3.4"
+     },
+     {
+      "zh": "恶意软件不得驻留 CBS",
+      "en": "Malware must not persist on a CBS"
+     },
+     {
+      "zh": "样本验证 + 特征库核查",
+      "en": "Sample verification + signature check"
+     },
+     {
+      "zh": "部分成立",
+      "en": "Partially Holds"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ],
+    [
+     {
+      "zh": "PA-2026-013",
+      "en": "PA-2026-013"
+     },
+     {
+      "zh": "3.3",
+      "en": "3.3"
+     },
+     {
+      "zh": "区域间默认拒绝",
+      "en": "Default deny between zones"
+     },
+     {
+      "zh": "规则基线比对",
+      "en": "Compare against the rule baseline"
+     },
+     {
+      "zh": "成立",
+      "en": "Holds"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     }
+    ],
+    [
+     {
+      "zh": "PA-2026-012",
+      "en": "PA-2026-012"
+     },
+     {
+      "zh": "3.5",
+      "en": "3.5"
+     },
+     {
+      "zh": "最小权限",
+      "en": "Least privilege"
+     },
+     {
+      "zh": "账户权限矩阵复核",
+      "en": "Account privilege matrix review"
+     },
+     {
+      "zh": "成立",
+      "en": "Holds"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     }
+    ],
+    [
+     {
+      "zh": "PA-2026-011",
+      "en": "PA-2026-011"
+     },
+     {
+      "zh": "3.7",
+      "en": "3.7"
+     },
+     {
+      "zh": "远程访问受控",
+      "en": "Remote access is controlled"
+     },
+     {
+      "zh": "会话录制抽查",
+      "en": "Spot-check of session recordings"
+     },
+     {
+      "zh": "部分成立",
+      "en": "Partially Holds"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 11,
+   "req": {
+    "zh": "保护措施评估报告、逐条证据索引",
+    "en": "Protection assessment reports with per-clause evidence index"
+   },
+   "sub": ""
+  },
+  {
+   "id": "prot-gap",
+   "g": "network",
+   "n": {
+    "zh": "保护差距跟踪",
+    "en": "Protection Gap Tracking"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "跟踪已识别但未关闭的差距，直到有明确的关闭依据。",
+    "en": "Tracks identified but unclosed gaps until each has a documented closure basis."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "gap",
+     "差距描述",
+     "Gap description"
+    ],
+    [
+     "sev",
+     "严重度",
+     "Severity"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "due",
+     "目标关闭",
+     "Target close"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "PG-2026-021",
+      "en": "PG-2026-021"
+     },
+     {
+      "zh": "CBS-PWR-01 无补丁（固件维护未采购）",
+      "en": "CBS-PWR-01 has no patch (firmware maintenance not procured)"
+     },
+     {
+      "zh": "严重",
+      "en": "Critical"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "待定",
+      "en": "Undetermined"
+     },
+     {
+      "zh": "开放",
+      "en": "Open"
+     }
+    ],
+    [
+     {
+      "zh": "PG-2026-018",
+      "en": "PG-2026-018"
+     },
+     {
+      "zh": "CBS-CCTV-01 日志未汇聚至 SIEM",
+      "en": "CBS-CCTV-01 logs not forwarded to SIEM"
+     },
+     {
+      "zh": "高",
+      "en": "High"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "2026-12-08",
+      "en": "2026-12-08"
+     },
+     {
+      "zh": "整改中",
+      "en": "Remediation in Progress"
+     }
+    ],
+    [
+     {
+      "zh": "PG-2026-014",
+      "en": "PG-2026-014"
+     },
+     {
+      "zh": "4 台岸基终端未装 EDR",
+      "en": "4 shore-side endpoints without EDR"
+     },
+     {
+      "zh": "中",
+      "en": "Medium"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "2026-12-01",
+      "en": "2026-12-01"
+     },
+     {
+      "zh": "整改中",
+      "en": "Remediation in Progress"
+     }
+    ],
+    [
+     {
+      "zh": "PG-2026-009",
+      "en": "PG-2026-009"
+     },
+     {
+      "zh": "1 个遗留特权账户未回收",
+      "en": "1 stale privileged account not reclaimed"
+     },
+     {
+      "zh": "中",
+      "en": "Medium"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "2026-11-30",
+      "en": "2026-11-30"
+     },
+     {
+      "zh": "整改中",
+      "en": "Remediation in Progress"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 7,
+   "req": {
+    "zh": "差距台账、关闭依据",
+    "en": "Gap register with closure evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mal-incident",
+   "g": "network",
+   "n": {
+    "zh": "恶意软件事件",
+    "en": "Malware Incident"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "登记恶意软件相关的安全事件与处置结果。",
+    "en": "Registers malware-related security incidents and their handling outcomes."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "host",
+     "受影响主机",
+     "Affected host"
+    ],
+    [
+     "type",
+     "类型",
+     "Type"
+    ],
+    [
+     "det",
+     "发现方式",
+     "Detection"
+    ],
+    [
+     "act",
+     "处置动作",
+     "Action"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MI-2026-016",
+      "en": "MI-2026-016"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "宏文档投递",
+      "en": "Macro document delivery"
+     },
+     {
+      "zh": "EDR 行为阻断",
+      "en": "EDR behaviour block"
+     },
+     {
+      "zh": "隔离 + 全网扫描 + 凭据重置",
+      "en": "Isolate + network-wide scan + credential reset"
+     },
+     {
+      "zh": "2026-11-09",
+      "en": "2026-11-09"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ],
+    [
+     {
+      "zh": "MI-2026-013",
+      "en": "MI-2026-013"
+     },
+     {
+      "zh": "Zone 2 终端",
+      "en": "Zone 2 Endpoints"
+     },
+     {
+      "zh": "勒索预装",
+      "en": "Ransomware pre-installation"
+     },
+     {
+      "zh": "EDR 行为阻断",
+      "en": "EDR behaviour block"
+     },
+     {
+      "zh": "隔离 + 溯源",
+      "en": "Isolate + trace"
+     },
+     {
+      "zh": "2026-10-25",
+      "en": "2026-10-25"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ],
+    [
+     {
+      "zh": "MI-2026-009",
+      "en": "MI-2026-009"
+     },
+     {
+      "zh": "CBS-LNK-01",
+      "en": "CBS-LNK-01"
+     },
+     {
+      "zh": "Web Shell",
+      "en": "Web Shell"
+     },
+     {
+      "zh": "WAF 拦截",
+      "en": "WAF blocked"
+     },
+     {
+      "zh": "阻断 + 文件清除 + 全面加固",
+      "en": "Block + remove the file + harden"
+     },
+     {
+      "zh": "2026-09-30",
+      "en": "2026-09-30"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 13,
+   "req": {
+    "zh": "恶意软件事件记录、隔离与清除证据",
+    "en": "Malware incident records with isolation and eradication evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mal-analysis",
+   "g": "network",
+   "n": {
+    "zh": "恶意软件分析",
+    "en": "Malware Analysis"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "记录样本分析结论与同源排查范围。",
+    "en": "Records sample analysis conclusions and the scope of the related-artefact sweep."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sample",
+     "样本",
+     "Sample"
+    ],
+    [
+     "fam",
+     "家族",
+     "Family"
+    ],
+    [
+     "hash",
+     "哈希",
+     "Hash"
+    ],
+    [
+     "scope",
+     "同源排查范围",
+     "Related sweep scope"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MA-2026-011",
+      "en": "MA-2026-011"
+     },
+     {
+      "zh": "Wiper_A.docm",
+      "en": "Wiper_A.docm"
+     },
+     {
+      "zh": "Emotet 变种",
+      "en": "Emotet Variant"
+     },
+     {
+      "zh": "a1f3…9c2",
+      "en": "a1f3…9c2"
+     },
+     {
+      "zh": "Zone 2 全部 142 台终端",
+      "en": "All 142 Zone 2 endpoints"
+     },
+     {
+      "zh": "未发现同源",
+      "en": "No related artefacts found"
+     }
+    ],
+    [
+     {
+      "zh": "MA-2026-008",
+      "en": "MA-2026-008"
+     },
+     {
+      "zh": "invoice.pdf.js",
+      "en": "invoice.pdf.js"
+     },
+     {
+      "zh": "Qakbot",
+      "en": "Qakbot"
+     },
+     {
+      "zh": "77bd…41e",
+      "en": "77bd…41e"
+     },
+     {
+      "zh": "船岸邮件附件全量",
+      "en": "All ship-shore email attachments"
+     },
+     {
+      "zh": "发现 2 例同源",
+      "en": "2 related artefacts found"
+     }
+    ],
+    [
+     {
+      "zh": "MA-2026-005",
+      "en": "MA-2026-005"
+     },
+     {
+      "zh": "update.sh",
+      "en": "update.sh"
+     },
+     {
+      "zh": "Mirai 变种",
+      "en": "Mirai Variant"
+     },
+     {
+      "zh": "3c8d…f01",
+      "en": "3c8d…f01"
+     },
+     {
+      "zh": "CBS 设备扫描",
+      "en": "CBS device sweep"
+     },
+     {
+      "zh": "未发现",
+      "en": "Not found"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "分析报告、同源排查范围与结果",
+    "en": "Analysis reports, related-artefact sweep scope and results"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mal-prevent",
+   "g": "network",
+   "n": {
+    "zh": "预防措施验证",
+    "en": "Preventive Measure Verification"
+   },
+   "cl": "3.4",
+   "p": {
+    "zh": "验证预防类控制是否真的生效 —— 装了不等于挡住了。",
+    "en": "Verifies that preventive controls actually hold — installed is not the same as effective."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "ctrl",
+     "控制",
+     "Control"
+    ],
+    [
+     "test",
+     "验证方法",
+     "Verification method"
+    ],
+    [
+     "att",
+     "尝试次数",
+     "Attempts"
+    ],
+    [
+     "block",
+     "拦截",
+     "Blocked"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MP-2026-015",
+      "en": "MP-2026-015"
+     },
+     {
+      "zh": "Zone 1 互联网直连",
+      "en": "Zone 1 direct internet connection"
+     },
+     {
+      "zh": "尝试 502 端口外联",
+      "en": "Attempted outbound connections on port 502"
+     },
+     {
+      "zh": "12",
+      "en": "12"
+     },
+     {
+      "zh": "12",
+      "en": "12"
+     },
+     {
+      "zh": "全部拦截",
+      "en": "All blocked"
+     }
+    ],
+    [
+     {
+      "zh": "MP-2026-014",
+      "en": "MP-2026-014"
+     },
+     {
+      "zh": "USB 介质接入 CBS",
+      "en": "USB media connected to a CBS"
+     },
+     {
+      "zh": "插入带样本 U 盘",
+      "en": "Inserted a USB carrying samples"
+     },
+     {
+      "zh": "6",
+      "en": "6"
+     },
+     {
+      "zh": "6",
+      "en": "6"
+     },
+     {
+      "zh": "全部拦截",
+      "en": "All blocked"
+     }
+    ],
+    [
+     {
+      "zh": "MP-2026-013",
+      "en": "MP-2026-013"
+     },
+     {
+      "zh": "弱口令登录域控",
+      "en": "Weak password used against the domain controller"
+     },
+     {
+      "zh": "字典口令尝试",
+      "en": "Dictionary password attempts"
+     },
+     {
+      "zh": "40",
+      "en": "40"
+     },
+     {
+      "zh": "40",
+      "en": "40"
+     },
+     {
+      "zh": "全部拦截",
+      "en": "All blocked"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "控制有效性验证记录",
+    "en": "Control effectiveness verification records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "acct-reg",
+   "g": "network",
+   "n": {
+    "zh": "账户台账",
+    "en": "Account Register"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "登记所有系统账户，含所有者、权限与创建依据。",
+    "en": "Registers all system accounts with owner, privilege and the basis on which they exist."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "user",
+     "账户",
+     "Account"
+    ],
+    [
+     "owner",
+     "所有者",
+     "Owner"
+    ],
+    [
+     "priv",
+     "权限",
+     "Privilege"
+    ],
+    [
+     "basis",
+     "创建依据",
+     "Basis"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AR-0311",
+      "en": "AR-0311"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "admin",
+      "en": "admin"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "超级管理员",
+      "en": "Super Administrator"
+     },
+     {
+      "zh": "应急 break-glass",
+      "en": "Emergency break-glass"
+     }
+    ],
+    [
+     {
+      "zh": "AR-0308",
+      "en": "AR-0308"
+     },
+     {
+      "zh": "CBS-PWR-01",
+      "en": "CBS-PWR-01"
+     },
+     {
+      "zh": "vendor_eng",
+      "en": "vendor_eng"
+     },
+     {
+      "zh": "厂商",
+      "en": "Vendor"
+     },
+     {
+      "zh": "维护账户",
+      "en": "Maintenance Account"
+     },
+     {
+      "zh": "厂商支持合同",
+      "en": "Vendor support contract"
+     }
+    ],
+    [
+     {
+      "zh": "AR-0302",
+      "en": "AR-0302"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "svc_backup",
+      "en": "svc_backup"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "备份服务",
+      "en": "Backup Service"
+     },
+     {
+      "zh": "自动化作业",
+      "en": "Automated job"
+     }
+    ],
+    [
+     {
+      "zh": "AR-0297",
+      "en": "AR-0297"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "admin",
+      "en": "admin"
+     },
+     {
+      "zh": "系统管理员",
+      "en": "System Administrator"
+     },
+     {
+      "zh": "本地管理员",
+      "en": "Local Administrator"
+     },
+     {
+      "zh": "日常运维",
+      "en": "Day-to-day Operations"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 16,
+   "req": {
+    "zh": "账户清单、所有者确认",
+    "en": "Account list with owner confirmations"
+   },
+   "sub": ""
+  },
+  {
+   "id": "acct-priv",
+   "g": "network",
+   "n": {
+    "zh": "特权账户管理",
+    "en": "Privileged Account Management"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "记录特权账户的收敛情况 —— 特权必须经 FortiPAM，不得散落。",
+    "en": "Records privileged account consolidation — privilege belongs in FortiPAM, not scattered."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "local",
+     "本地特权账户",
+     "Local privileged"
+    ],
+    [
+     "pam",
+     "经 FortiPAM",
+     "Via FortiPAM"
+    ],
+    [
+     "stale",
+     "遗留",
+     "Stale"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AP-014",
+      "en": "AP-014"
+     },
+     {
+      "zh": "CBS-PWR-01",
+      "en": "CBS-PWR-01"
+     },
+     {
+      "zh": "2",
+      "en": "2"
+     },
+     {
+      "zh": "6",
+      "en": "6"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "已收敛",
+      "en": "Consolidated"
+     }
+    ],
+    [
+     {
+      "zh": "AP-013",
+      "en": "AP-013"
+     },
+     {
+      "zh": "CBS-HELM-01",
+      "en": "CBS-HELM-01"
+     },
+     {
+      "zh": "3",
+      "en": "3"
+     },
+     {
+      "zh": "4",
+      "en": "4"
+     },
+     {
+      "zh": "1",
+      "en": "1"
+     },
+     {
+      "zh": "待收敛",
+      "en": "Pending Consolidation"
+     }
+    ],
+    [
+     {
+      "zh": "AP-012",
+      "en": "AP-012"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "1",
+      "en": "1"
+     },
+     {
+      "zh": "9",
+      "en": "9"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "已收敛",
+      "en": "Consolidated"
+     }
+    ],
+    [
+     {
+      "zh": "AP-011",
+      "en": "AP-011"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "11",
+      "en": "11"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "0",
+      "en": "0"
+     },
+     {
+      "zh": "待收敛",
+      "en": "Pending Consolidation"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 10,
+   "req": {
+    "zh": "特权账户清单、FortiPAM 托管证明",
+    "en": "Privileged account list with FortiPAM custody evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "acct-review",
+   "g": "network",
+   "n": {
+    "zh": "账户定期复核",
+    "en": "Account Periodic Review"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "按周期复核账户，确认所有者与权限仍然成立。",
+    "en": "Reviews accounts on a cycle to confirm the owner and privilege still hold."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "复核范围",
+     "Scope"
+    ],
+    [
+     "total",
+     "账户总数",
+     "Total"
+    ],
+    [
+     "del",
+     "已注销",
+     "Revoked"
+    ],
+    [
+     "rec",
+     "权限回收",
+     "Privilege reclaimed"
+    ],
+    [
+     "date",
+     "复核日期",
+     "Review date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AR-2026-Q4",
+      "en": "AR-2026-Q4"
+     },
+     {
+      "zh": "全部 CBS 与岸基",
+      "en": "All CBS and shore-side"
+     },
+     {
+      "zh": "486",
+      "en": "486"
+     },
+     {
+      "zh": "31",
+      "en": "31"
+     },
+     {
+      "zh": "24",
+      "en": "24"
+     },
+     {
+      "zh": "2026-10-25",
+      "en": "2026-10-25"
+     }
+    ],
+    [
+     {
+      "zh": "AR-2026-Q3",
+      "en": "AR-2026-Q3"
+     },
+     {
+      "zh": "全部 CBS 与岸基",
+      "en": "All CBS and shore-side"
+     },
+     {
+      "zh": "455",
+      "en": "455"
+     },
+     {
+      "zh": "18",
+      "en": "18"
+     },
+     {
+      "zh": "11",
+      "en": "11"
+     },
+     {
+      "zh": "2026-07-22",
+      "en": "2026-07-22"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "账户复核报告、注销记录",
+    "en": "Account review reports and revocation records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "auth-config",
+   "g": "network",
+   "n": {
+    "zh": "认证配置",
+    "en": "Authentication Configuration"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "记录认证方式与策略，含 SSO、密码策略与 MFA 覆盖。",
+    "en": "Records authentication methods and policy, including SSO, password policy and MFA coverage."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "method",
+     "认证方式",
+     "Method"
+    ],
+    [
+     "mfa",
+     "MFA",
+     "MFA"
+    ],
+    [
+     "policy",
+     "口令策略",
+     "Password policy"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AU-026",
+      "en": "AU-026"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "LDAP + FortiAuthenticator",
+      "en": "LDAP + FortiAuthenticator"
+     },
+     {
+      "zh": "全员启用",
+      "en": "Enforced for all"
+     },
+     {
+      "zh": "12 位 / 90 天",
+      "en": "12 characters / 90 days"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "AU-025",
+      "en": "AU-025"
+     },
+     {
+      "zh": "FW-EDGE-01",
+      "en": "FW-EDGE-01"
+     },
+     {
+      "zh": "本地 + FortiPAM",
+      "en": "Local + FortiPAM"
+     },
+     {
+      "zh": "管理员启用",
+      "en": "Enforced for administrators"
+     },
+     {
+      "zh": "12 位 / 90 天",
+      "en": "12 characters / 90 days"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "AU-024",
+      "en": "AU-024"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "本地账户",
+      "en": "Local Account"
+     },
+     {
+      "zh": "未启用",
+      "en": "Not Enabled"
+     },
+     {
+      "zh": "8 位 / 不定期",
+      "en": "8 characters / no expiry"
+     },
+     {
+      "zh": "不符合",
+      "en": "Non-compliant"
+     }
+    ],
+    [
+     {
+      "zh": "AU-022",
+      "en": "AU-022"
+     },
+     {
+      "zh": "CBS-CCTV-01",
+      "en": "CBS-CCTV-01"
+     },
+     {
+      "zh": "本地账户",
+      "en": "Local Account"
+     },
+     {
+      "zh": "未启用",
+      "en": "Not Enabled"
+     },
+     {
+      "zh": "出厂默认",
+      "en": "Factory default"
+     },
+     {
+      "zh": "不符合",
+      "en": "Non-compliant"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 9,
+   "req": {
+    "zh": "认证配置导出、MFA 启用证明、口令策略说明",
+    "en": "Authentication configuration export, MFA enablement evidence, password policy"
+   },
+   "sub": ""
+  },
+  {
+   "id": "guest-access",
+   "g": "network",
+   "n": {
+    "zh": "访客与临时访问",
+    "en": "Guest & Temporary Access"
+   },
+   "cl": "3.5",
+   "p": {
+    "zh": "记录访客接入与临时授权的范围、陪同与回收。",
+    "en": "Records guest access and temporary grants: scope, supervision and reclamation."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "who",
+     "人员",
+     "Person"
+    ],
+    [
+     "host",
+     "访问目标",
+     "Target"
+    ],
+    [
+     "scope",
+     "范围",
+     "Scope"
+    ],
+    [
+     "sup",
+     "陪同",
+     "Supervised"
+    ],
+    [
+     "exp",
+     "到期",
+     "Expiry"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "GA-2026-014",
+      "en": "GA-2026-014"
+     },
+     {
+      "zh": "设备厂商工程师",
+      "en": "Vendor Engineer"
+     },
+     {
+      "zh": "CBS-PROP-01",
+      "en": "CBS-PROP-01"
+     },
+     {
+      "zh": "仅查看",
+      "en": "View only"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "2026-11-30",
+      "en": "2026-11-30"
+     },
+     {
+      "zh": "生效中",
+      "en": "Active"
+     }
+    ],
+    [
+     {
+      "zh": "GA-2026-011",
+      "en": "GA-2026-011"
+     },
+     {
+      "zh": "岸基审计员",
+      "en": "Shore-side Auditor"
+     },
+     {
+      "zh": "只读控制台",
+      "en": "Read-only console"
+     },
+     {
+      "zh": "只读",
+      "en": "Read-only"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     },
+     {
+      "zh": "2026-11-20",
+      "en": "2026-11-20"
+     },
+     {
+      "zh": "已回收",
+      "en": "Reclaimed"
+     }
+    ],
+    [
+     {
+      "zh": "GA-2026-008",
+      "en": "GA-2026-008"
+     },
+     {
+      "zh": "船级社验船员",
+      "en": "Surveyor"
+     },
+     {
+      "zh": "Zone 3 管理区",
+      "en": "Zone 3 Management Area"
+     },
+     {
+      "zh": "只读",
+      "en": "Read-only"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "2026-10-12",
+      "en": "2026-10-12"
+     },
+     {
+      "zh": "已回收",
+      "en": "Reclaimed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "临时访问授权、回收确认、陪同记录",
+    "en": "Temporary access grants, withdrawal confirmations and supervision records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "class-reg",
+   "g": "network",
+   "n": {
+    "zh": "保密信息清单",
+    "en": "Classified Information Register"
+   },
+   "cl": "3.6",
+   "p": {
+    "zh": "登记受保护的信息资产及其密级、处理与存储位置。",
+    "en": "Registers protected information assets with their classification, handling and storage location."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "asset",
+     "信息资产",
+     "Information asset"
+    ],
+    [
+     "cls",
+     "密级",
+     "Classification"
+    ],
+    [
+     "where",
+     "存储位置",
+     "Stored where"
+    ],
+    [
+     "enc",
+     "加密",
+     "Encryption"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CR-006",
+      "en": "CR-006"
+     },
+     {
+      "zh": "IP 地址与网段表",
+      "en": "IP address and subnet table"
+     },
+     {
+      "zh": "保密",
+      "en": "Classified"
+     },
+     {
+      "zh": "资产台账",
+      "en": "Asset Register"
+     },
+     {
+      "zh": "传输加密",
+      "en": "Encryption in transit"
+     },
+     {
+      "zh": "张伟",
+      "en": "Zhang Wei"
+     }
+    ],
+    [
+     {
+      "zh": "CR-005",
+      "en": "CR-005"
+     },
+     {
+      "zh": "系统凭据与密钥",
+      "en": "System credentials and keys"
+     },
+     {
+      "zh": "保密",
+      "en": "Classified"
+     },
+     {
+      "zh": "FortiPAM",
+      "en": "FortiPAM"
+     },
+     {
+      "zh": "静态加密 + 不回显",
+      "en": "Encryption at rest + never echoed"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     }
+    ],
+    [
+     {
+      "zh": "CR-004",
+      "en": "CR-004"
+     },
+     {
+      "zh": "航行日志",
+      "en": "Voyage logs"
+     },
+     {
+      "zh": "保密",
+      "en": "Classified"
+     },
+     {
+      "zh": "CBS-NAV-01",
+      "en": "CBS-NAV-01"
+     },
+     {
+      "zh": "磁盘加密",
+      "en": "Disk encryption"
+     },
+     {
+      "zh": "李静",
+      "en": "Li Jing"
+     }
+    ],
+    [
+     {
+      "zh": "CR-003",
+      "en": "CR-003"
+     },
+     {
+      "zh": "船员个人信息",
+      "en": "Crew personal information"
+     },
+     {
+      "zh": "受限",
+      "en": "Restricted"
+     },
+     {
+      "zh": "Zone 2 终端",
+      "en": "Zone 2 Endpoints"
+     },
+     {
+      "zh": "磁盘加密",
+      "en": "Disk encryption"
+     },
+     {
+      "zh": "人事部",
+      "en": "HR Department"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 7,
+   "req": {
+    "zh": "保密信息清单、访问权限矩阵",
+    "en": "Classified information register and access control matrix"
+   },
+   "sub": ""
+  },
+  {
+   "id": "class-label",
+   "g": "network",
+   "n": {
+    "zh": "保密标识与处理",
+    "en": "Classification Labelling"
+   },
+   "cl": "3.6",
+   "p": {
+    "zh": "记录标识规则的制定与在文档、系统中的落地。",
+    "en": "Records the labelling rules and where they are applied in documents and systems."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "rule",
+     "标识规则",
+     "Labelling rule"
+    ],
+    [
+     "where",
+     "应用位置",
+     "Applied where"
+    ],
+    [
+     "method",
+     "技术手段",
+     "Technical means"
+    ],
+    [
+     "date",
+     "生效日期",
+     "Effective"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CL-2026-006",
+      "en": "CL-2026-006"
+     },
+     {
+      "zh": "文档页眉密级标识",
+      "en": "Classification marking in the document header"
+     },
+     {
+      "zh": "所有对外交付文档",
+      "en": "All externally delivered documents"
+     },
+     {
+      "zh": "模板强制",
+      "en": "Enforced by template"
+     },
+     {
+      "zh": "2026-06-01",
+      "en": "2026-06-01"
+     }
+    ],
+    [
+     {
+      "zh": "CL-2026-005",
+      "en": "CL-2026-005"
+     },
+     {
+      "zh": "台账字段密级",
+      "en": "Register field classification"
+     },
+     {
+      "zh": "资产 / 拓扑 / 账户台账",
+      "en": "Asset / Topology / Account registers"
+     },
+     {
+      "zh": "字段级标记",
+      "en": "Field-level marking"
+     },
+     {
+      "zh": "2026-06-01",
+      "en": "2026-06-01"
+     }
+    ],
+    [
+     {
+      "zh": "CL-2026-004",
+      "en": "CL-2026-004"
+     },
+     {
+      "zh": "导出件水印",
+      "en": "Watermark on exports"
+     },
+     {
+      "zh": "证据包 / 清单导出",
+      "en": "Evidence package / list exports"
+     },
+     {
+      "zh": "PDF 水印",
+      "en": "PDF watermark"
+     },
+     {
+      "zh": "2026-07-15",
+      "en": "2026-07-15"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 5,
+   "req": {
+    "zh": "标识规则文档、模板截图",
+    "en": "Labelling rule document and template evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "class-access",
+   "g": "network",
+   "n": {
+    "zh": "保密信息访问控制",
+    "en": "Classified Information Access"
+   },
+   "cl": "3.6",
+   "p": {
+    "zh": "记录保密信息的授权访问与审计。",
+    "en": "Records authorised access to classified information and its audit trail."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "asset",
+     "信息资产",
+     "Information asset"
+    ],
+    [
+     "who",
+     "授权对象",
+     "Authorised party"
+    ],
+    [
+     "perm",
+     "权限",
+     "Permission"
+    ],
+    [
+     "audit",
+     "审计",
+     "Audited"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CA-2026-022",
+      "en": "CA-2026-022"
+     },
+     {
+      "zh": "IP 地址与网段表",
+      "en": "IP address and subnet table"
+     },
+     {
+      "zh": "岸基网络主管",
+      "en": "Shore-side Network Supervisor"
+     },
+     {
+      "zh": "只读 + 导出需审批",
+      "en": "Read-only + export needs approval"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "2026-01-10",
+      "en": "2026-01-10"
+     }
+    ],
+    [
+     {
+      "zh": "CA-2026-021",
+      "en": "CA-2026-021"
+     },
+     {
+      "zh": "系统凭据与密钥",
+      "en": "System credentials and keys"
+     },
+     {
+      "zh": "安全负责人（经 FortiPAM）",
+      "en": "Security Lead (via FortiPAM)"
+     },
+     {
+      "zh": "代理访问",
+      "en": "Proxied access"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "2026-01-10",
+      "en": "2026-01-10"
+     }
+    ],
+    [
+     {
+      "zh": "CA-2026-018",
+      "en": "CA-2026-018"
+     },
+     {
+      "zh": "航行日志",
+      "en": "Voyage logs"
+     },
+     {
+      "zh": "轮机长 / 船长",
+      "en": "Chief Engineer / Master"
+     },
+     {
+      "zh": "只读",
+      "en": "Read-only"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "2026-01-10",
+      "en": "2026-01-10"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "授权清单、访问审计记录",
+    "en": "Authorisation list and access audit records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "remote-reg",
+   "g": "network",
+   "n": {
+    "zh": "远程访问登记",
+    "en": "Remote Access Register"
+   },
+   "cl": "3.7",
+   "p": {
+    "zh": "登记所有远程访问通道及其用途。",
+    "en": "Registers every remote access path and what it is for."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "path",
+     "访问通道",
+     "Access path"
+    ],
+    [
+     "from",
+     "来源",
+     "Origin"
+    ],
+    [
+     "purpose",
+     "用途",
+     "Purpose"
+    ],
+    [
+     "zone",
+     "可达区域",
+     "Reachable zone"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RM-2026-011",
+      "en": "RM-2026-011"
+     },
+     {
+      "zh": "岸基 VPN → FortiPAM",
+      "en": "Shore-side VPN → FortiPAM"
+     },
+     {
+      "zh": "岸基运维终端",
+      "en": "Shore-side Operations Terminal"
+     },
+     {
+      "zh": "应急与厂商支持",
+      "en": "Emergency and vendor support"
+     },
+     {
+      "zh": "Zone 3 / DMZ",
+      "en": "Zone 3 / DMZ"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RM-2026-010",
+      "en": "RM-2026-010"
+     },
+     {
+      "zh": "船岸链路 → 岸基运维中心",
+      "en": "Ship-shore Link → Shore-side Operations Centre"
+     },
+     {
+      "zh": "船东 IT 部门",
+      "en": "Shipowner IT Department"
+     },
+     {
+      "zh": "日常运维",
+      "en": "Day-to-day Operations"
+     },
+     {
+      "zh": "Zone 3",
+      "en": "Zone 3"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RM-2026-009",
+      "en": "RM-2026-009"
+     },
+     {
+      "zh": "厂商远程接入代理",
+      "en": "Vendor Remote Access Agent"
+     },
+     {
+      "zh": "厂商",
+      "en": "Vendor"
+     },
+     {
+      "zh": "故障诊断",
+      "en": "Fault diagnosis"
+     },
+     {
+      "zh": "仅指定 CBS",
+      "en": "Named CBS only"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RM-2026-006",
+      "en": "RM-2026-006"
+     },
+     {
+      "zh": "卫星宽带直连",
+      "en": "Direct satellite broadband"
+     },
+     {
+      "zh": "船东 IT 部门",
+      "en": "Shipowner IT Department"
+     },
+     {
+      "zh": "已停用",
+      "en": "Disabled"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "已撤销",
+      "en": "Revoked"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 12,
+   "req": {
+    "zh": "远程访问通道清单、审批记录",
+    "en": "Remote access path inventory with approvals"
+   },
+   "sub": ""
+  },
+  {
+   "id": "remote-mfa",
+   "g": "network",
+   "n": {
+    "zh": "远程访问认证",
+    "en": "Remote Access Authentication"
+   },
+   "cl": "3.7",
+   "p": {
+    "zh": "记录远程访问的认证强度与强制策略。",
+    "en": "Records the strength and enforcement of remote access authentication."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "path",
+     "访问通道",
+     "Access path"
+    ],
+    [
+     "mfa",
+     "MFA",
+     "MFA"
+    ],
+    [
+     "rec",
+     "会话录制",
+     "Session recording"
+    ],
+    [
+     "idle",
+     "空闲超时",
+     "Idle timeout"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RM-A-011",
+      "en": "RM-A-011"
+     },
+     {
+      "zh": "岸基 VPN → FortiPAM",
+      "en": "Shore-side VPN → FortiPAM"
+     },
+     {
+      "zh": "强制（FortiAuthenticator）",
+      "en": "Mandatory (FortiAuthenticator)"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "15 分钟",
+      "en": "15 minutes"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "RM-A-009",
+      "en": "RM-A-009"
+     },
+     {
+      "zh": "厂商远程接入代理",
+      "en": "Vendor Remote Access Agent"
+     },
+     {
+      "zh": "强制 + 审批流",
+      "en": "Mandatory + approval flow"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     },
+     {
+      "zh": "30 分钟",
+      "en": "30 minutes"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "RM-A-004",
+      "en": "RM-A-004"
+     },
+     {
+      "zh": "船东自有 FTP 上传",
+      "en": "Shipowner-owned FTP upload"
+     },
+     {
+      "zh": "口令",
+      "en": "Password"
+     },
+     {
+      "zh": "未启用",
+      "en": "Not Enabled"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "不符合",
+      "en": "Non-compliant"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 9,
+   "req": {
+    "zh": "认证策略配置、会话录制抽查记录",
+    "en": "Authentication policy configuration and session recording samples"
+   },
+   "sub": ""
+  },
+  {
+   "id": "remote-record",
+   "g": "network",
+   "n": {
+    "zh": "远程访问日志",
+    "en": "Remote Access Log"
+   },
+   "cl": "3.7",
+   "p": {
+    "zh": "记录每次远程会话的时间、目标与操作。",
+    "en": "Records every remote session with its timing, target and actions."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "who",
+     "操作人",
+     "Operator"
+    ],
+    [
+     "target",
+     "目标",
+     "Target"
+    ],
+    [
+     "cmd",
+     "关键操作",
+     "Key action"
+    ],
+    [
+     "dur",
+     "时长",
+     "Duration"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RL-2026-088",
+      "en": "RL-2026-088"
+     },
+     {
+      "zh": "厂商工程师 A",
+      "en": "Vendor Engineer A"
+     },
+     {
+      "zh": "CBS-PROP-01",
+      "en": "CBS-PROP-01"
+     },
+     {
+      "zh": "查看组态 / 下载诊断日志",
+      "en": "Viewed configuration / downloaded diagnostic logs"
+     },
+     {
+      "zh": "42 分钟",
+      "en": "42 minutes"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     },
+     {
+      "zh": "已录制",
+      "en": "Recorded"
+     }
+    ],
+    [
+     {
+      "zh": "RL-2026-084",
+      "en": "RL-2026-084"
+     },
+     {
+      "zh": "岸基运维",
+      "en": "Shore-side Operations"
+     },
+     {
+      "zh": "CBS-OFF-01",
+      "en": "CBS-OFF-01"
+     },
+     {
+      "zh": "批量安装补丁",
+      "en": "Bulk patch install"
+     },
+     {
+      "zh": "18 分钟",
+      "en": "18 minutes"
+     },
+     {
+      "zh": "2026-11-14",
+      "en": "2026-11-14"
+     },
+     {
+      "zh": "已录制",
+      "en": "Recorded"
+     }
+    ],
+    [
+     {
+      "zh": "RL-2026-079",
+      "en": "RL-2026-079"
+     },
+     {
+      "zh": "厂商工程师 B",
+      "en": "Vendor Engineer B"
+     },
+     {
+      "zh": "CBS-LNK-01",
+      "en": "CBS-LNK-01"
+     },
+     {
+      "zh": "重启应用服务",
+      "en": "Restarted an application service"
+     },
+     {
+      "zh": "8 分钟",
+      "en": "8 minutes"
+     },
+     {
+      "zh": "2026-11-09",
+      "en": "2026-11-09"
+     },
+     {
+      "zh": "已录制",
+      "en": "Recorded"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 16,
+   "req": {
+    "zh": "会话录像索引、关键操作日志",
+    "en": "Session recording index and key action logs"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mobile-reg",
+   "g": "network",
+   "n": {
+    "zh": "移动设备台账",
+    "en": "Mobile Device Register"
+   },
+   "cl": "3.8",
+   "p": {
+    "zh": "登记接入 CBS 网络的移动与便携设备及其授权状态。",
+    "en": "Registers mobile and portable devices connecting to CBS networks and their authorisation state."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "dev",
+     "设备",
+     "Device"
+    ],
+    [
+     "type",
+     "类型",
+     "Type"
+    ],
+    [
+     "owner",
+     "使用人",
+     "Owner"
+    ],
+    [
+     "auth",
+     "接入授权",
+     "Authorised"
+    ],
+    [
+     "zone",
+     "接入区域",
+     "Zone"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MD-2026-014",
+      "en": "MD-2026-014"
+     },
+     {
+      "zh": "工程师平板 T-07",
+      "en": "Engineer Tablet T-07"
+     },
+     {
+      "zh": "平板",
+      "en": "Tablet"
+     },
+     {
+      "zh": "厂商工程师",
+      "en": "Vendor Engineer"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "Zone 3",
+      "en": "Zone 3"
+     }
+    ],
+    [
+     {
+      "zh": "MD-2026-011",
+      "en": "MD-2026-011"
+     },
+     {
+      "zh": "运维笔记本 L-03",
+      "en": "Operations Laptop L-03"
+     },
+     {
+      "zh": "笔记本",
+      "en": "Laptop"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     },
+     {
+      "zh": "Zone 3",
+      "en": "Zone 3"
+     }
+    ],
+    [
+     {
+      "zh": "MD-2026-007",
+      "en": "MD-2026-007"
+     },
+     {
+      "zh": "访客笔记本 V-02",
+      "en": "Guest Laptop V-02"
+     },
+     {
+      "zh": "笔记本",
+      "en": "Laptop"
+     },
+     {
+      "zh": "设备厂商访客",
+      "en": "Vendor Visitor"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     },
+     {
+      "zh": "Zone 2",
+      "en": "Zone 2"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "移动设备台账、接入授权记录",
+    "en": "Mobile device register and access authorisation records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mobile-media",
+   "g": "network",
+   "n": {
+    "zh": "可移动介质管理",
+    "en": "Removable Media Management"
+   },
+   "cl": "3.8",
+   "p": {
+    "zh": "记录可移动介质的登记、审批与介质管控措施。",
+    "en": "Records removable media registration, approval and the physical controls applied."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "media",
+     "介质",
+     "Media"
+    ],
+    [
+     "type",
+     "类型",
+     "Type"
+    ],
+    [
+     "purpose",
+     "用途",
+     "Purpose"
+    ],
+    [
+     "ctrl",
+     "管控措施",
+     "Control"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MM-2026-012",
+      "en": "MM-2026-012"
+     },
+     {
+      "zh": "USB-2026-041",
+      "en": "USB-2026-041"
+     },
+     {
+      "zh": "加密 U 盘",
+      "en": "Encrypted USB"
+     },
+     {
+      "zh": "厂商诊断",
+      "en": "Vendor diagnostics"
+     },
+     {
+      "zh": "加密 + 单机绑定 + 登记编号",
+      "en": "Encrypted + bound to one host + registered serial"
+     },
+     {
+      "zh": "在用",
+      "en": "In Use"
+     }
+    ],
+    [
+     {
+      "zh": "MM-2026-009",
+      "en": "MM-2026-009"
+     },
+     {
+      "zh": "USB-2026-028",
+      "en": "USB-2026-028"
+     },
+     {
+      "zh": "普通 U 盘",
+      "en": "Standard USB"
+     },
+     {
+      "zh": "数据交换",
+      "en": "Data exchange"
+     },
+     {
+      "zh": "已封存（改为受控传输）",
+      "en": "Sealed (switched to controlled transfer)"
+     },
+     {
+      "zh": "停用",
+      "en": "Disabled"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 6,
+   "req": {
+    "zh": "介质登记台账、封存与销毁记录",
+    "en": "Media register with sealing and destruction records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "mobile-policy",
+   "g": "network",
+   "n": {
+    "zh": "移动设备策略",
+    "en": "Mobile Device Policy"
+   },
+   "cl": "3.8",
+   "p": {
+    "zh": "记录移动设备的使用策略与例外审批。",
+    "en": "Records the mobile device policy and any approved exceptions."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "适用范围",
+     "Scope"
+    ],
+    [
+     "rule",
+     "策略要点",
+     "Policy point"
+    ],
+    [
+     "tech",
+     "技术强制",
+     "Technically enforced"
+    ],
+    [
+     "date",
+     "生效日期",
+     "Effective"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "MP-2026-005",
+      "en": "MP-2026-005"
+     },
+     {
+      "zh": "接入 CBS 网络的移动设备",
+      "en": "Mobile devices connecting to CBS networks"
+     },
+     {
+      "zh": "须登记 + 设备指纹绑定",
+      "en": "Must be registered + device fingerprint bound"
+     },
+     {
+      "zh": "部分（Zone 3 已强制）",
+      "en": "Partial (enforced in Zone 3)"
+     },
+     {
+      "zh": "2026-06-01",
+      "en": "2026-06-01"
+     }
+    ],
+    [
+     {
+      "zh": "MP-2026-004",
+      "en": "MP-2026-004"
+     },
+     {
+      "zh": "文件不得直接转存至 CBS",
+      "en": "Files must not be transferred directly to a CBS"
+     },
+     {
+      "zh": "禁止可移动介质写入",
+      "en": "Writing to removable media prohibited"
+     },
+     {
+      "zh": "是（介质封存）",
+      "en": "Yes (media sealed)"
+     },
+     {
+      "zh": "2026-06-01",
+      "en": "2026-06-01"
+     }
+    ],
+    [
+     {
+      "zh": "MP-2026-003",
+      "en": "MP-2026-003"
+     },
+     {
+      "zh": "移动设备必须启用 EDR",
+      "en": "EDR required on mobile devices"
+     },
+     {
+      "zh": "全量覆盖",
+      "en": "Full coverage"
+     },
+     {
+      "zh": "否（4 台老旧设备例外）",
+      "en": "No (4 legacy devices excepted)"
+     },
+     {
+      "zh": "2026-06-01",
+      "en": "2026-06-01"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 7,
+   "req": {
+    "zh": "策略文件、技术强制配置证据、例外审批",
+    "en": "Policy document, technically enforced configuration evidence, exception approvals"
+   },
+   "sub": ""
+  },
+  {
+   "id": "anomaly-detect",
+   "g": "monitor",
+   "n": {
+    "zh": "安全异常检测规则",
+    "en": "Anomaly Detection Rules"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "记录用于发现偏离基线的检测规则及其阈值依据。",
+    "en": "Records the detection rules that spot deviation from baseline, and the basis for their thresholds."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "rule",
+     "规则",
+     "Rule"
+    ],
+    [
+     "signal",
+     "检测信号",
+     "Signal"
+    ],
+    [
+     "thr",
+     "阈值",
+     "Threshold"
+    ],
+    [
+     "basis",
+     "阈值依据",
+     "Threshold basis"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AD-2026-018",
+      "en": "AD-2026-018"
+     },
+     {
+      "zh": "暴力破解主机登录成功",
+      "en": "Brute Force Host Login Success"
+     },
+     {
+      "zh": "认证失败速率",
+      "en": "Authentication failure rate"
+     },
+     {
+      "zh": "> 10 次 / 5 分钟",
+      "en": "> 10 attempts / 5 minutes"
+     },
+     {
+      "zh": "同源 IP 历史 P95",
+      "en": "Historical P95 for the source IP"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-015",
+      "en": "AD-2026-015"
+     },
+     {
+      "zh": "设备无日志上报",
+      "en": "Device Not Reporting Logs"
+     },
+     {
+      "zh": "日志心跳缺失",
+      "en": "Log heartbeat missing"
+     },
+     {
+      "zh": "> 6 小时",
+      "en": "> 6 hours"
+     },
+     {
+      "zh": "采集基线",
+      "en": "Collection baseline"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-011",
+      "en": "AD-2026-011"
+     },
+     {
+      "zh": "异常端口扫描",
+      "en": "Port Scan Detected"
+     },
+     {
+      "zh": "连接尝试数",
+      "en": "Connection attempt count"
+     },
+     {
+      "zh": "> 50 / 分钟",
+      "en": "> 50 / minute"
+     },
+     {
+      "zh": "资产角色",
+      "en": "Asset role"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "AD-2026-008",
+      "en": "AD-2026-008"
+     },
+     {
+      "zh": "DNS 隧道疑似",
+      "en": "Suspected DNS Tunnel"
+     },
+     {
+      "zh": "域名熵值 + 请求量",
+      "en": "Domain entropy + request volume"
+     },
+     {
+      "zh": "熵 > 3.8",
+      "en": "entropy > 3.8"
+     },
+     {
+      "zh": "协议异常基线",
+      "en": "Protocol anomaly baseline"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 26,
+   "req": {
+    "zh": "检测规则库、阈值依据说明、启用记录",
+    "en": "Detection rule library, threshold justifications and activation records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "alert-handling",
+   "g": "monitor",
+   "n": {
+    "zh": "告警处置记录",
+    "en": "Alert Handling Record"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "记录告警从产生到关闭的每一步与责任人。",
+    "en": "Records every step from alert to closure and who took it."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "alert",
+     "关联告警",
+     "Alert"
+    ],
+    [
+     "sev",
+     "严重度",
+     "Severity"
+    ],
+    [
+     "owner",
+     "处置人",
+     "Handler"
+    ],
+    [
+     "sla",
+     "SLA",
+     "SLA"
+    ],
+    [
+     "act",
+     "处置动作",
+     "Action"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "AH-2026-0911",
+      "en": "AH-2026-0911"
+     },
+     {
+      "zh": "暴力破解主机登录成功",
+      "en": "Brute Force Host Login Success"
+     },
+     {
+      "zh": "高危",
+      "en": "High"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "2 小时",
+      "en": "2 hours"
+     },
+     {
+      "zh": "临时锁定账号 + 复核源 IP",
+      "en": "Temporarily lock the account and verify the source IP"
+     },
+     {
+      "zh": "处置中",
+      "en": "In Progress"
+     }
+    ],
+    [
+     {
+      "zh": "AH-2026-0904",
+      "en": "AH-2026-0904"
+     },
+     {
+      "zh": "设备无日志上报",
+      "en": "Device Not Reporting Logs"
+     },
+     {
+      "zh": "中危",
+      "en": "Medium"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "8 小时",
+      "en": "8 hours"
+     },
+     {
+      "zh": "补采日志 + 检查采集链路",
+      "en": "Backfill logs and inspect the collection path"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ],
+    [
+     {
+      "zh": "AH-2026-0898",
+      "en": "AH-2026-0898"
+     },
+     {
+      "zh": "DNS 隧道疑似",
+      "en": "Suspected DNS Tunnel"
+     },
+     {
+      "zh": "高危",
+      "en": "High"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "2 小时",
+      "en": "2 hours"
+     },
+     {
+      "zh": "阻断域名 + 终端排查",
+      "en": "Block the domain and investigate the endpoint"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 19,
+   "req": {
+    "zh": "告警处置工单、闭环记录",
+    "en": "Alert handling tickets and closure records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "rule-lib",
+   "g": "monitor",
+   "n": {
+    "zh": "检测规则库",
+    "en": "Detection Rule Library"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "登记规则的来源、类型与责任人，避免出现「无人认领的规则」。",
+    "en": "Registers each rule's source, type and owner so no rule is unowned."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "name",
+     "规则名",
+     "Rule name"
+    ],
+    [
+     "type",
+     "类型",
+     "Type"
+    ],
+    [
+     "src",
+     "数据源",
+     "Data source"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RL-0118",
+      "en": "RL-0118"
+     },
+     {
+      "zh": "暴力破解主机登录成功",
+      "en": "Brute Force Host Login Success"
+     },
+     {
+      "zh": "认证",
+      "en": "Authentication"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RL-0112",
+      "en": "RL-0112"
+     },
+     {
+      "zh": "设备无日志上报",
+      "en": "Device Not Reporting Logs"
+     },
+     {
+      "zh": "可用性",
+      "en": "Availability"
+     },
+     {
+      "zh": "FortiAnalyzer",
+      "en": "FortiAnalyzer"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RL-0109",
+      "en": "RL-0109"
+     },
+     {
+      "zh": "IPS 阻断事件",
+      "en": "IPS Block"
+     },
+     {
+      "zh": "网络",
+      "en": "Network"
+     },
+     {
+      "zh": "FortiGate",
+      "en": "FortiGate"
+     },
+     {
+      "zh": "网络组",
+      "en": "Network Team"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ],
+    [
+     {
+      "zh": "RL-0104",
+      "en": "RL-0104"
+     },
+     {
+      "zh": "特权账户异常使用",
+      "en": "Privileged Account Anomaly"
+     },
+     {
+      "zh": "身份",
+      "en": "Identity"
+     },
+     {
+      "zh": "AD / FortiPAM",
+      "en": "AD / FortiPAM"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "启用",
+      "en": "Enabled"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 22,
+   "req": {
+    "zh": "规则库导出、责任人确认",
+    "en": "Rule library export with owner confirmations"
+   },
+   "sub": ""
+  },
+  {
+   "id": "monitor-log",
+   "g": "monitor",
+   "n": {
+    "zh": "监测日志",
+    "en": "Monitoring Log"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "记录监测活动本身 —— 何时由谁查看了什么。",
+    "en": "Records the monitoring activity itself: when, by whom, viewing what."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "who",
+     "监测人",
+     "Monitor"
+    ],
+    [
+     "what",
+     "对象",
+     "Subject"
+    ],
+    [
+     "why",
+     "目的",
+     "Purpose"
+    ],
+    [
+     "find",
+     "是否有发现",
+     "Findings"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "ML-2026-0441",
+      "en": "ML-2026-0441"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "CBS-PWR-01 全部流量",
+      "en": "All CBS-PWR-01 Traffic"
+     },
+     {
+      "zh": "例行巡检",
+      "en": "Routine inspection"
+     },
+     {
+      "zh": "无异常",
+      "en": "No anomalies"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     }
+    ],
+    [
+     {
+      "zh": "ML-2026-0438",
+      "en": "ML-2026-0438"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "Zone 2 横向流量",
+      "en": "Zone 2 lateral traffic"
+     },
+     {
+      "zh": "工单触发排查",
+      "en": "Investigation triggered by a ticket"
+     },
+     {
+      "zh": "1 例扫描",
+      "en": "1 scan detected"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     }
+    ],
+    [
+     {
+      "zh": "ML-2026-0430",
+      "en": "ML-2026-0430"
+     },
+     {
+      "zh": "轮机长",
+      "en": "Chief Engineer"
+     },
+     {
+      "zh": "CBS-HELM-01 会话录像",
+      "en": "CBS-HELM-01 Session Recording"
+     },
+     {
+      "zh": "事件复盘",
+      "en": "Incident review"
+     },
+     {
+      "zh": "1 次未授权尝试",
+      "en": "1 unauthorised attempt"
+     },
+     {
+      "zh": "2026-11-12",
+      "en": "2026-11-12"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 11,
+   "req": {
+    "zh": "监测日志、定期巡检报告",
+    "en": "Monitoring logs and periodic inspection reports"
+   },
+   "sub": ""
+  },
+  {
+   "id": "log-source",
+   "g": "monitor",
+   "n": {
+    "zh": "日志采集源清单",
+    "en": "Log Source Inventory"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "登记每个采集点、采集内容与失败告警。",
+    "en": "Registers every collection point, what it collects and how failures are alarmed."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "src",
+     "采集源",
+     "Collection source"
+    ],
+    [
+     "dev",
+     "设备",
+     "Device"
+    ],
+    [
+     "what",
+     "采集内容",
+     "Collected"
+    ],
+    [
+     "fail",
+     "失败告警",
+     "Failure alarm"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "LS-2026-041",
+      "en": "LS-2026-041"
+     },
+     {
+      "zh": "FortiGate 事件日志",
+      "en": "FortiGate Event Log"
+     },
+     {
+      "zh": "FW-EDGE-01 / 02",
+      "en": "FW-EDGE-01 / 02"
+     },
+     {
+      "zh": "流量 / IPS / 认证",
+      "en": "Traffic / IPS / Authentication"
+     },
+     {
+      "zh": "有（心跳缺失）",
+      "en": "Yes (heartbeat missing)"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "LS-2026-038",
+      "en": "LS-2026-038"
+     },
+     {
+      "zh": "Windows 事件日志",
+      "en": "Windows Event Log"
+     },
+     {
+      "zh": "DC01.goad.lab",
+      "en": "DC01.goad.lab"
+     },
+     {
+      "zh": "系统 / 登录 / 策略",
+      "en": "System / Logon / Policy"
+     },
+     {
+      "zh": "有",
+      "en": "Yes"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "LS-2026-034",
+      "en": "LS-2026-034"
+     },
+     {
+      "zh": "交换机网络事件",
+      "en": "Switch Network Events"
+     },
+     {
+      "zh": "CBS 核心交换机",
+      "en": "CBS Core Switch"
+     },
+     {
+      "zh": "链路 / MAC / 端口",
+      "en": "Link / MAC / Port"
+     },
+     {
+      "zh": "有",
+      "en": "Yes"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "LS-2026-031",
+      "en": "LS-2026-031"
+     },
+     {
+      "zh": "SCADA 应用日志",
+      "en": "SCADA Application Log"
+     },
+     {
+      "zh": "CBS-NAV-01",
+      "en": "CBS-NAV-01"
+     },
+     {
+      "zh": "运行 / 报警",
+      "en": "Runtime / Alarms"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "缺口",
+      "en": "Gap"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 13,
+   "req": {
+    "zh": "采集源清单、采集配置导出",
+    "en": "Collection source inventory and configuration exports"
+   },
+   "sub": ""
+  },
+  {
+   "id": "func-verify",
+   "g": "monitor",
+   "n": {
+    "zh": "安全功能验证",
+    "en": "Security Function Validation"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "验证安全功能是否按设计工作 —— 这是船级社最常追问的一项。",
+    "en": "Verifies that security functions work as designed — a surveyor favourite."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "func",
+     "安全功能",
+     "Security function"
+    ],
+    [
+     "method",
+     "验证方法",
+     "Method"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ],
+    [
+     "date",
+     "验证日期",
+     "Date"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "FV-2026-033",
+      "en": "FV-2026-033"
+     },
+     {
+      "zh": "区域间默认拒绝",
+      "en": "Default deny between zones"
+     },
+     {
+      "zh": "从 Zone 3 主动连 Zone 1，断言被拒",
+      "en": "Connect from Zone 3 to Zone 1, assert refused"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     },
+     {
+      "zh": "有效",
+      "en": "Valid"
+     }
+    ],
+    [
+     {
+      "zh": "FV-2026-032",
+      "en": "FV-2026-032"
+     },
+     {
+      "zh": "远程访问审批流",
+      "en": "Remote access approval flow"
+     },
+     {
+      "zh": "发起未审批会话，断言被阻断",
+      "en": "Start an unapproved session, assert blocked"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     },
+     {
+      "zh": "有效",
+      "en": "Valid"
+     }
+    ],
+    [
+     {
+      "zh": "FV-2026-031",
+      "en": "FV-2026-031"
+     },
+     {
+      "zh": "IDS 被动部署不影响性能",
+      "en": "IDS passive deployment does not affect performance"
+     },
+     {
+      "zh": "对照测试：开启前后控制周期",
+      "en": "Paired test: control cycle before vs after"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     },
+     {
+      "zh": "有效",
+      "en": "Valid"
+     }
+    ],
+    [
+     {
+      "zh": "FV-2026-024",
+      "en": "FV-2026-024"
+     },
+     {
+      "zh": "备份可恢复",
+      "en": "Backup is restorable"
+     },
+     {
+      "zh": "从备份恢复至测试环境并比对",
+      "en": "Restore from backup into a test environment and compare"
+     },
+     {
+      "zh": "未完成",
+      "en": "Not Completed"
+     },
+     {
+      "zh": "2026-07-15",
+      "en": "2026-07-15"
+     },
+     {
+      "zh": "过期",
+      "en": "Expired"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 8,
+   "req": {
+    "zh": "验证记录、测试脚本与断言、结果截图",
+    "en": "Validation records, test scripts with assertions, result evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "func-test",
+   "g": "monitor",
+   "n": {
+    "zh": "验证测试记录",
+    "en": "Validation Test Record"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "保留每次验证的输入快照与输出，供复核与重演。",
+    "en": "Retains the input snapshot and output of each validation for review and replay."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "run",
+     "执行批次",
+     "Run"
+    ],
+    [
+     "env",
+     "环境",
+     "Environment"
+    ],
+    [
+     "input",
+     "输入快照",
+     "Input snapshot"
+    ],
+    [
+     "out",
+     "输出",
+     "Output"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "VT-2026-041",
+      "en": "VT-2026-041"
+     },
+     {
+      "zh": "回归验证 · 规则基线",
+      "en": "Regression · Rule Baseline"
+     },
+     {
+      "zh": "测试网",
+      "en": "Test Network"
+     },
+     {
+      "zh": "config_hash:8f2a…",
+      "en": "config_hash:8f2a…"
+     },
+     {
+      "zh": "37 条断言全绿",
+      "en": "37 assertions all green"
+     },
+     {
+      "zh": "2026-10-18",
+      "en": "2026-10-18"
+     }
+    ],
+    [
+     {
+      "zh": "VT-2026-038",
+      "en": "VT-2026-038"
+     },
+     {
+      "zh": "渗透演练",
+      "en": "Penetration Exercise"
+     },
+     {
+      "zh": "预生产",
+      "en": "Pre-production"
+     },
+     {
+      "zh": "scope:5 CBS",
+      "en": "scope:5 CBS"
+     },
+     {
+      "zh": "2 项中危已修复",
+      "en": "2 medium findings fixed"
+     },
+     {
+      "zh": "2026-09-20",
+      "en": "2026-09-20"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "测试脚本、输入快照、输出归档",
+    "en": "Test scripts, input snapshots and archived output"
+   },
+   "sub": ""
+  },
+  {
+   "id": "issue-track",
+   "g": "monitor",
+   "n": {
+    "zh": "问题整改跟踪",
+    "en": "Issue Remediation Tracking"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "跟踪验证中发现的问题，直到有验证过的关闭依据。",
+    "en": "Tracks issues found in validation until each has a verified closure basis."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "issue",
+     "问题描述",
+     "Issue"
+    ],
+    [
+     "src",
+     "发现来源",
+     "Found by"
+    ],
+    [
+     "sev",
+     "严重度",
+     "Severity"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "close",
+     "关闭验证",
+     "Closure verified"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "IT-2026-028",
+      "en": "IT-2026-028"
+     },
+     {
+      "zh": "4 台岸基终端未装 EDR",
+      "en": "4 shore-side endpoints without EDR"
+     },
+     {
+      "zh": "覆盖核查",
+      "en": "Coverage Check"
+     },
+     {
+      "zh": "中",
+      "en": "Medium"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     }
+    ],
+    [
+     {
+      "zh": "IT-2026-025",
+      "en": "IT-2026-025"
+     },
+     {
+      "zh": "CBS-CCTV-01 日志未汇聚",
+      "en": "CBS-CCTV-01 logs not forwarded"
+     },
+     {
+      "zh": "监测巡检",
+      "en": "Monitoring Patrol"
+     },
+     {
+      "zh": "高",
+      "en": "High"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     }
+    ],
+    [
+     {
+      "zh": "IT-2026-019",
+      "en": "IT-2026-019"
+     },
+     {
+      "zh": "备份恢复未验证",
+      "en": "Backup restore not verified"
+     },
+     {
+      "zh": "功能验证",
+      "en": "Functional Validation"
+     },
+     {
+      "zh": "高",
+      "en": "High"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     }
+    ],
+    [
+     {
+      "zh": "IT-2026-011",
+      "en": "IT-2026-011"
+     },
+     {
+      "zh": "遗留特权账户未回收",
+      "en": "Stale privileged account not reclaimed"
+     },
+     {
+      "zh": "账户复核",
+      "en": "Account Review"
+     },
+     {
+      "zh": "中",
+      "en": "Medium"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 10,
+   "req": {
+    "zh": "问题台账、整改记录、关闭验证证据",
+    "en": "Issue register, remediation records, closure verification evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "diag-tool",
+   "g": "monitor",
+   "n": {
+    "zh": "诊断工具清单",
+    "en": "Diagnostic Tool Inventory"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "登记随船提供的诊断工具及其审批状态。",
+    "en": "Registers the diagnostic tools shipped aboard and their approval state."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "tool",
+     "工具",
+     "Tool"
+    ],
+    [
+     "purpose",
+     "用途",
+     "Purpose"
+    ],
+    [
+     "appr",
+     "审批",
+     "Approval"
+    ],
+    [
+     "net",
+     "是否需联网",
+     "Needs network"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "DG-2026-008",
+      "en": "DG-2026-008"
+     },
+     {
+      "zh": "厂商诊断套件",
+      "en": "Vendor Diagnostic Suite"
+     },
+     {
+      "zh": "CBS 故障定位",
+      "en": "CBS Fault Localisation"
+     },
+     {
+      "zh": "厂商已批",
+      "en": "Vendor approved"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     }
+    ],
+    [
+     {
+      "zh": "DG-2026-005",
+      "en": "DG-2026-005"
+     },
+     {
+      "zh": "协议抓包器",
+      "en": "Protocol Analyser"
+     },
+     {
+      "zh": "Modbus / NMEA 抓包",
+      "en": "Modbus / NMEA capture"
+     },
+     {
+      "zh": "船东已批",
+      "en": "Shipowner approved"
+     },
+     {
+      "zh": "否",
+      "en": "No"
+     }
+    ],
+    [
+     {
+      "zh": "DG-2026-002",
+      "en": "DG-2026-002"
+     },
+     {
+      "zh": "EDR 诊断控制台",
+      "en": "EDR Diagnostic Console"
+     },
+     {
+      "zh": "终端防护排查",
+      "en": "Endpoint protection investigation"
+     },
+     {
+      "zh": "船东已批",
+      "en": "Shipowner approved"
+     },
+     {
+      "zh": "是",
+      "en": "Yes"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 5,
+   "req": {
+    "zh": "工具清单、审批记录、随船发放记录",
+    "en": "Tool inventory, approval records and shipping records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "log-retention",
+   "g": "monitor",
+   "n": {
+    "zh": "日志留存策略",
+    "en": "Log Retention Policy"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "定义各类日志的留存期与到期处置方式。",
+    "en": "Defines retention periods per log type and how expired data is disposed of."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "type",
+     "日志类型",
+     "Log type"
+    ],
+    [
+     "ret",
+     "留存期",
+     "Retention"
+    ],
+    [
+     "where",
+     "存储",
+     "Stored where"
+    ],
+    [
+     "disp",
+     "到期处置",
+     "Disposal"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "LR-2026-006",
+      "en": "LR-2026-006"
+     },
+     {
+      "zh": "防火墙流量日志",
+      "en": "Firewall Traffic Logs"
+     },
+     {
+      "zh": "180 天",
+      "en": "180 days"
+     },
+     {
+      "zh": "FortiAnalyzer → 冷归档",
+      "en": "FortiAnalyzer → cold archive"
+     },
+     {
+      "zh": "自动归档后删除",
+      "en": "Archive on expiry, then delete"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "LR-2026-005",
+      "en": "LR-2026-005"
+     },
+     {
+      "zh": "认证与登录日志",
+      "en": "Authentication and Logon Logs"
+     },
+     {
+      "zh": "365 天",
+      "en": "365 days"
+     },
+     {
+      "zh": "FortiSIEM",
+      "en": "FortiSIEM"
+     },
+     {
+      "zh": "自动删除",
+      "en": "Auto-delete"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "LR-2026-004",
+      "en": "LR-2026-004"
+     },
+     {
+      "zh": "会话录像",
+      "en": "Session Recordings"
+     },
+     {
+      "zh": "180 天",
+      "en": "180 days"
+     },
+     {
+      "zh": "本地 NAS",
+      "en": "Local NAS"
+     },
+     {
+      "zh": "人工清理",
+      "en": "Manual clean-up"
+     },
+     {
+      "zh": "缺口",
+      "en": "Gap"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "留存策略文件、归档与删除记录",
+    "en": "Retention policy document with archival and deletion records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "daily-check",
+   "g": "monitor",
+   "n": {
+    "zh": "日常安全检查",
+    "en": "Daily Security Check"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "记录每日例行检查的项目与结果。",
+    "en": "Records the items and outcomes of the daily routine check."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "item",
+     "检查项",
+     "Check item"
+    ],
+    [
+     "freq",
+     "频率",
+     "Frequency"
+    ],
+    [
+     "last",
+     "上次执行",
+     "Last run"
+    ],
+    [
+     "res",
+     "结论",
+     "Result"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "DC-2026-0412",
+      "en": "DC-2026-0412"
+     },
+     {
+      "zh": "防火墙规则最小功能基线",
+      "en": "Firewall Rule Minimum-function Baseline"
+     },
+     {
+      "zh": "每日",
+      "en": "Daily"
+     },
+     {
+      "zh": "2026-11-17",
+      "en": "2026-11-17"
+     },
+     {
+      "zh": "2 条规则超出基线",
+      "en": "2 rules beyond baseline"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ],
+    [
+     {
+      "zh": "DC-2026-0411",
+      "en": "DC-2026-0411"
+     },
+     {
+      "zh": "病毒库版本检查",
+      "en": "Virus Definition Version Check"
+     },
+     {
+      "zh": "每日",
+      "en": "Daily"
+     },
+     {
+      "zh": "2026-11-17",
+      "en": "2026-11-17"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "DC-2026-0408",
+      "en": "DC-2026-0408"
+     },
+     {
+      "zh": "账户特权清单复核",
+      "en": "Privileged Account List Review"
+     },
+     {
+      "zh": "每周",
+      "en": "Weekly"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     },
+     {
+      "zh": "1 个遗留特权账户",
+      "en": "1 stale privileged account"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ],
+    [
+     {
+      "zh": "DC-2026-0404",
+      "en": "DC-2026-0404"
+     },
+     {
+      "zh": "远程访问审批到期核查",
+      "en": "Remote Access Approval Expiry Check"
+     },
+     {
+      "zh": "每周",
+      "en": "Weekly"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     },
+     {
+      "zh": "3 条临时授权待回收",
+      "en": "3 temporary grants to reclaim"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 12,
+   "req": {
+    "zh": "检查记录（执行时刻、输入快照、判定依据与结论）",
+    "en": "Check records (execution time, input snapshot, decision basis and conclusion)"
+   },
+   "sub": ""
+  },
+  {
+   "id": "ir-plan",
+   "g": "response",
+   "n": {
+    "zh": "事件响应计划",
+    "en": "Incident Response Plan"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "定义事件分级、响应角色与升级路径。",
+    "en": "Defines incident classification, response roles and the escalation path."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "level",
+     "事件等级",
+     "Level"
+    ],
+    [
+     "role",
+     "责任角色",
+     "Role"
+    ],
+    [
+     "sla",
+     "响应时限",
+     "Response SLA"
+    ],
+    [
+     "esc",
+     "升级路径",
+     "Escalation"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "IP-2026-004",
+      "en": "IP-2026-004"
+     },
+     {
+      "zh": "P1 严重",
+      "en": "P1 Critical"
+     },
+     {
+      "zh": "安全负责人 + 船东代表",
+      "en": "Security Lead + Shipowner Representative"
+     },
+     {
+      "zh": "15 分钟",
+      "en": "15 minutes"
+     },
+     {
+      "zh": "船东代表 → 管理层",
+      "en": "Shipowner Representative → Management"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "IP-2026-003",
+      "en": "IP-2026-003"
+     },
+     {
+      "zh": "P2 高",
+      "en": "P2 High"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "1 小时",
+      "en": "1 hour"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "IP-2026-002",
+      "en": "IP-2026-002"
+     },
+     {
+      "zh": "P3 中",
+      "en": "P3 Medium"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "8 小时",
+      "en": "8 hours"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "IP-2026-001",
+      "en": "IP-2026-001"
+     },
+     {
+      "zh": "P4 低",
+      "en": "P4 Low"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "1 工作日",
+      "en": "1 working day"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 12,
+   "req": {
+    "zh": "事件响应计划、角色职责表",
+    "en": "Incident response plan with role and responsibility matrix"
+   },
+   "sub": ""
+  },
+  {
+   "id": "ir-contact",
+   "g": "response",
+   "n": {
+    "zh": "应急联络与升级路径",
+    "en": "Emergency Contacts & Escalation"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "维护 7×24 可达的联络人，含岸基与船上两侧。",
+    "en": "Maintains 7×24 reachable contacts on both the ship and shore sides."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "role",
+     "角色",
+     "Role"
+    ],
+    [
+     "name",
+     "联系人",
+     "Contact"
+    ],
+    [
+     "side",
+     "所在",
+     "Location"
+    ],
+    [
+     "hours",
+     "可达性",
+     "Reachability"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "EC-2026-011",
+      "en": "EC-2026-011"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "陈默",
+      "en": "Chen Mo"
+     },
+     {
+      "zh": "岸基",
+      "en": "Shore-side"
+     },
+     {
+      "zh": "7×24",
+      "en": "7×24"
+     }
+    ],
+    [
+     {
+      "zh": "EC-2026-010",
+      "en": "EC-2026-010"
+     },
+     {
+      "zh": "船舶轮机长",
+      "en": "Ship's Chief Engineer"
+     },
+     {
+      "zh": "王海",
+      "en": "Wang Hai"
+     },
+     {
+      "zh": "船上",
+      "en": "Ship-side"
+     },
+     {
+      "zh": "7×24",
+      "en": "7×24"
+     }
+    ],
+    [
+     {
+      "zh": "EC-2026-009",
+      "en": "EC-2026-009"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "赵敏",
+      "en": "Zhao Min"
+     },
+     {
+      "zh": "岸基",
+      "en": "Shore-side"
+     },
+     {
+      "zh": "工作时间 + 值班",
+      "en": "Business hours + on-call"
+     }
+    ],
+    [
+     {
+      "zh": "EC-2026-008",
+      "en": "EC-2026-008"
+     },
+     {
+      "zh": "Fortinet TAC",
+      "en": "Fortinet TAC"
+     },
+     {
+      "zh": "工单",
+      "en": "Support ticket"
+     },
+     {
+      "zh": "厂商",
+      "en": "Vendor"
+     },
+     {
+      "zh": "7×24",
+      "en": "7×24"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "应急联络表、升级路径图、值守安排",
+    "en": "Emergency contact list, escalation path diagram and on-call roster"
+   },
+   "sub": ""
+  },
+  {
+   "id": "ir-playbook",
+   "g": "response",
+   "n": {
+    "zh": "处置手册",
+    "en": "Handling Playbook"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "针对常见场景的逐步处置动作。",
+    "en": "Step-by-step actions for the recurring scenarios."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scene",
+     "场景",
+     "Scenario"
+    ],
+    [
+     "step",
+     "关键步骤",
+     "Key steps"
+    ],
+    [
+     "need",
+     "前置条件",
+     "Prerequisites"
+    ],
+    [
+     "link",
+     "关联预案",
+     "Linked plan"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "PB-2026-014",
+      "en": "PB-2026-014"
+     },
+     {
+      "zh": "CBS 疑似失陷",
+      "en": "Suspected CBS Compromise"
+     },
+     {
+      "zh": "隔离主机 → 保全镜像 → 基线比对 → 厂商介入",
+      "en": "Isolate the host → preserve the image → compare to baseline → vendor involvement"
+     },
+     {
+      "zh": "已验证的隔离流程",
+      "en": "Validated isolation procedure"
+     },
+     {
+      "zh": "IP-2026-003",
+      "en": "IP-2026-003"
+     }
+    ],
+    [
+     {
+      "zh": "PB-2026-011",
+      "en": "PB-2026-011"
+     },
+     {
+      "zh": "勒索软件",
+      "en": "Ransomware"
+     },
+     {
+      "zh": "断网 → EDR 全网扫描 → 凭据全量重置 → 恢复",
+      "en": "Disconnect → EDR network scan → full credential reset → recover"
+     },
+     {
+      "zh": "离线备份可用",
+      "en": "Offline backup available"
+     },
+     {
+      "zh": "IP-2026-002",
+      "en": "IP-2026-002"
+     }
+    ],
+    [
+     {
+      "zh": "PB-2026-008",
+      "en": "PB-2026-008"
+     },
+     {
+      "zh": "DNP3 异常流量",
+      "en": "Anomalous DNP3 Traffic"
+     },
+     {
+      "zh": "边界封禁 → 日志取证 → 复核功能码白名单",
+      "en": "Boundary block → log forensics → review the function-code allowlist"
+     },
+     {
+      "zh": "规则基线在位",
+      "en": "Rule baseline in place"
+     },
+     {
+      "zh": "IP-2026-004",
+      "en": "IP-2026-004"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 10,
+   "req": {
+    "zh": "处置手册、演练记录",
+    "en": "Handling playbooks and drill records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "ir-drill",
+   "g": "response",
+   "n": {
+    "zh": "应急演练记录",
+    "en": "Emergency Drill Record"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "记录演练场景、参与人与暴露的问题。",
+    "en": "Records drill scenarios, participants and the problems they surfaced."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "drill",
+     "演练名称",
+     "Drill"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "part",
+     "参与方",
+     "Participants"
+    ],
+    [
+     "find",
+     "发现问题",
+     "Issues found"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "DR-2026-006",
+      "en": "DR-2026-006"
+     },
+     {
+      "zh": "表板更换与失去冗余",
+      "en": "Panel Replacement with Loss of Redundancy"
+     },
+     {
+      "zh": "2026-09-18",
+      "en": "2026-09-18"
+     },
+     {
+      "zh": "船东 / 轮机长 / 运维",
+      "en": "Shipowner / Chief Engineer / Operations"
+     },
+     {
+      "zh": "3 项",
+      "en": "3 items"
+     },
+     {
+      "zh": "已完成",
+      "en": "Completed"
+     }
+    ],
+    [
+     {
+      "zh": "DR-2026-005",
+      "en": "DR-2026-005"
+     },
+     {
+      "zh": "OT 网络边界失效",
+      "en": "OT Network Boundary Failure"
+     },
+     {
+      "zh": "2026-06-20",
+      "en": "2026-06-20"
+     },
+     {
+      "zh": "船东 / 运维 / Fortinet",
+      "en": "Shipowner / Operations / Fortinet"
+     },
+     {
+      "zh": "5 项",
+      "en": "5 items"
+     },
+     {
+      "zh": "已完成",
+      "en": "Completed"
+     }
+    ],
+    [
+     {
+      "zh": "DR-2026-003",
+      "en": "DR-2026-003"
+     },
+     {
+      "zh": "船岸链路中断",
+      "en": "Ship-shore Link Interruption"
+     },
+     {
+      "zh": "2026-03-14",
+      "en": "2026-03-14"
+     },
+     {
+      "zh": "船东 / 运维",
+      "en": "Shipowner / Operations"
+     },
+     {
+      "zh": "2 项",
+      "en": "2 items"
+     },
+     {
+      "zh": "已完成",
+      "en": "Completed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "演练方案、签到、问题清单与整改",
+    "en": "Drill plans, attendance, issue lists and remediation"
+   },
+   "sub": ""
+  },
+  {
+   "id": "ir-report",
+   "g": "response",
+   "n": {
+    "zh": "事件报告",
+    "en": "Incident Report"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "记录事件的时间线、根因与教训。",
+    "en": "Records the incident timeline, root cause and lessons."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "inc",
+     "事件",
+     "Incident"
+    ],
+    [
+     "lvl",
+     "等级",
+     "Level"
+    ],
+    [
+     "root",
+     "根因",
+     "Root cause"
+    ],
+    [
+     "fix",
+     "纠正措施",
+     "Corrective action"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "IR-2026-034",
+      "en": "IR-2026-034"
+     },
+     {
+      "zh": "暴力破解主机登录成功",
+      "en": "Brute Force Host Login Success"
+     },
+     {
+      "zh": "P2",
+      "en": "P2"
+     },
+     {
+      "zh": "口令策略强度不足 + MFA 未覆盖 Zone 2",
+      "en": "Weak password policy + MFA not enforced in Zone 2"
+     },
+     {
+      "zh": "补强口令策略 + Zone 2 强制 MFA",
+      "en": "Strengthen password policy + enforce MFA in Zone 2"
+     },
+     {
+      "zh": "2026-11-09",
+      "en": "2026-11-09"
+     }
+    ],
+    [
+     {
+      "zh": "IR-2026-029",
+      "en": "IR-2026-029"
+     },
+     {
+      "zh": "Web Shell 植入",
+      "en": "Web Shell Implanted"
+     },
+     {
+      "zh": "P1",
+      "en": "P1"
+     },
+     {
+      "zh": "外网发布组件未打补丁",
+      "en": "Externally published component not patched"
+     },
+     {
+      "zh": "升级 + WAF 规则 + 上线前漏洞扫描",
+      "en": "Upgrade + WAF rules + pre-release vulnerability scan"
+     },
+     {
+      "zh": "2026-09-30",
+      "en": "2026-09-30"
+     }
+    ],
+    [
+     {
+      "zh": "IR-2026-021",
+      "en": "IR-2026-021"
+     },
+     {
+      "zh": "采集链路中断导致监控盲区",
+      "en": "Collection path outage created a monitoring blind spot"
+     },
+     {
+      "zh": "P3",
+      "en": "P3"
+     },
+     {
+      "zh": "采集源配置变更未同步到 SIEM",
+      "en": "Collection source change not synced to the SIEM"
+     },
+     {
+      "zh": "变更联动检查清单",
+      "en": "Change linkage checklist"
+     },
+     {
+      "zh": "2026-07-08",
+      "en": "2026-07-08"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 11,
+   "req": {
+    "zh": "事件报告、复盘会议记录",
+    "en": "Incident reports and post-incident review records"
+   },
+   "sub": ""
+  },
+  {
+   "id": "iso-proc",
+   "g": "response",
+   "n": {
+    "zh": "隔离与处置程序",
+    "en": "Isolation & Containment"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "记录隔离手段与其对 CBS 可用性的影响评估。",
+    "en": "Records isolation methods and the availability impact assessed on the CBS."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "method",
+     "隔离手段",
+     "Method"
+    ],
+    [
+     "target",
+     "适用对象",
+     "Applies to"
+    ],
+    [
+     "impact",
+     "可用性影响",
+     "Availability impact"
+    ],
+    [
+     "approved",
+     "批准层级",
+     "Approval level"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "IC-2026-011",
+      "en": "IC-2026-011"
+     },
+     {
+      "zh": "Zone 划分子网 + ACL 收紧",
+      "en": "VLAN segmentation + tightened ACLs"
+     },
+     {
+      "zh": "单台 CBS",
+      "en": "Single CBS"
+     },
+     {
+      "zh": "该主机业务中断，需靠港窗口",
+      "en": "That host's service stops — needs a port-call window"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "IC-2026-009",
+      "en": "IC-2026-009"
+     },
+     {
+      "zh": "断网隔离（物理拔纤）",
+      "en": "Network isolation (physically unplugged)"
+     },
+     {
+      "zh": "已失陷主机",
+      "en": "Compromised host"
+     },
+     {
+      "zh": "全部功能中断",
+      "en": "All functions stop"
+     },
+     {
+      "zh": "轮机长（可先行执行）",
+      "en": "Chief Engineer (may execute first)"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "IC-2026-007",
+      "en": "IC-2026-007"
+     },
+     {
+      "zh": "账号禁用 + 令牌吊销",
+      "en": "Disable the account + revoke tokens"
+     },
+     {
+      "zh": "疑似被盗账户",
+      "en": "Suspected stolen account"
+     },
+     {
+      "zh": "不影响其他功能",
+      "en": "No impact on other functions"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 7,
+   "req": {
+    "zh": "隔离程序、演练记录、审批模板",
+    "en": "Isolation procedures, drill records and approval templates"
+   },
+   "sub": ""
+  },
+  {
+   "id": "impact-assess",
+   "g": "response",
+   "n": {
+    "zh": "影响评估",
+    "en": "Impact Assessment"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "评估事件对船舶运营、安全与合规的实际影响。",
+    "en": "Assesses the actual impact of an incident on vessel operations, safety and compliance."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "inc",
+     "关联事件",
+     "Related incident"
+    ],
+    [
+     "ops",
+     "运营影响",
+     "Operational impact"
+    ],
+    [
+     "safe",
+     "安全影响",
+     "Safety impact"
+    ],
+    [
+     "comp",
+     "合规影响",
+     "Compliance impact"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "IA-2026-021",
+      "en": "IA-2026-021"
+     },
+     {
+      "zh": "IR-2026-029",
+      "en": "IR-2026-029"
+     },
+     {
+      "zh": "船岸数据交换中断 4 小时",
+      "en": "Ship-shore data exchange interrupted for 4 hours"
+     },
+     {
+      "zh": "无直接安全后果，但涉及航行数据完整性",
+      "en": "No direct safety consequence, but voyage data integrity is involved"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "2026-10-02",
+      "en": "2026-10-02"
+     }
+    ],
+    [
+     {
+      "zh": "IA-2026-018",
+      "en": "IA-2026-018"
+     },
+     {
+      "zh": "IR-2026-034",
+      "en": "IR-2026-034"
+     },
+     {
+      "zh": "无",
+      "en": "None"
+     },
+     {
+      "zh": "有（账户被盗用）",
+      "en": "Yes (account misuse)"
+     },
+     {
+      "zh": "有（保密信息条款）",
+      "en": "Yes (classified information clause)"
+     },
+     {
+      "zh": "2026-11-11",
+      "en": "2026-11-11"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "影响评估表、纠正措施关闭证据",
+    "en": "Impact assessment forms and corrective action closure evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "rec-plan",
+   "g": "response",
+   "n": {
+    "zh": "恢复计划",
+    "en": "Recovery Plan"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "定义从恢复到正常运行的步骤与目标时间。",
+    "en": "Defines the steps from recovery to normal operation and the target times."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scope",
+     "恢复范围",
+     "Recovery scope"
+    ],
+    [
+     "rto",
+     "目标恢复时间",
+     "Target RTO"
+    ],
+    [
+     "step",
+     "关键步骤",
+     "Key steps"
+    ],
+    [
+     "dep",
+     "依赖",
+     "Dependencies"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RP-2026-011",
+      "en": "RP-2026-011"
+     },
+     {
+      "zh": "CBS-PWR-01 系统恢复",
+      "en": "CBS-PWR-01 System Recovery"
+     },
+     {
+      "zh": "4 小时",
+      "en": "4 hours"
+     },
+     {
+      "zh": "从离线备份还原 → 配置比对 → 功能测试 → 复位",
+      "en": "Restore from offline backup → compare configuration → functional test → reset"
+     },
+     {
+      "zh": "需要完整备份 + 厂商在场",
+      "en": "Requires a complete backup + the vendor on site"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "RP-2026-009",
+      "en": "RP-2026-009"
+     },
+     {
+      "zh": "船岸链路恢复",
+      "en": "Ship-shore Link Recovery"
+     },
+     {
+      "zh": "2 小时",
+      "en": "2 hours"
+     },
+     {
+      "zh": "切换冗余链路 → 配置下发 → 连通性验证",
+      "en": "Fail over to the redundant link → push configuration → verify connectivity"
+     },
+     {
+      "zh": "备用链路可用",
+      "en": "Redundant link available"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ],
+    [
+     {
+      "zh": "RP-2026-005",
+      "en": "RP-2026-005"
+     },
+     {
+      "zh": "域控恢复",
+      "en": "Domain Controller Recovery"
+     },
+     {
+      "zh": "8 小时",
+      "en": "8 hours"
+     },
+     {
+      "zh": "从系统映像还原 → AD 恢复 → 策略复核",
+      "en": "Restore from system image → recover AD → re-check policy"
+     },
+     {
+      "zh": "需要异地备份",
+      "en": "Requires an offsite backup"
+     },
+     {
+      "zh": "生效",
+      "en": "In Force"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 10,
+   "req": {
+    "zh": "恢复计划、备份策略、责任人",
+    "en": "Recovery plan, backup strategy and responsibilities"
+   },
+   "sub": ""
+  },
+  {
+   "id": "rec-test",
+   "g": "response",
+   "n": {
+    "zh": "恢复测试记录",
+    "en": "Recovery Test Record"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "记录恢复演练的实际结果与耗时。",
+    "en": "Records the actual result and elapsed time of recovery drills."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "plan",
+     "关联计划",
+     "Related plan"
+    ],
+    [
+     "date",
+     "测试日期",
+     "Test date"
+    ],
+    [
+     "target",
+     "目标 RTO",
+     "Target RTO"
+    ],
+    [
+     "actual",
+     "实际耗时",
+     "Actual"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RT-2026-014",
+      "en": "RT-2026-014"
+     },
+     {
+      "zh": "RP-2026-009",
+      "en": "RP-2026-009"
+     },
+     {
+      "zh": "2026-09-18",
+      "en": "2026-09-18"
+     },
+     {
+      "zh": "2 小时",
+      "en": "2 hours"
+     },
+     {
+      "zh": "1 小时 20 分",
+      "en": "1 hour 20 minutes"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     }
+    ],
+    [
+     {
+      "zh": "RT-2026-011",
+      "en": "RT-2026-011"
+     },
+     {
+      "zh": "RP-2026-005",
+      "en": "RP-2026-005"
+     },
+     {
+      "zh": "2026-06-20",
+      "en": "2026-06-20"
+     },
+     {
+      "zh": "8 小时",
+      "en": "8 hours"
+     },
+     {
+      "zh": "未完成",
+      "en": "Not Completed"
+     },
+     {
+      "zh": "未通过",
+      "en": "Failed"
+     }
+    ],
+    [
+     {
+      "zh": "RT-2026-008",
+      "en": "RT-2026-008"
+     },
+     {
+      "zh": "RP-2026-011",
+      "en": "RP-2026-011"
+     },
+     {
+      "zh": "2026-03-14",
+      "en": "2026-03-14"
+     },
+     {
+      "zh": "4 小时",
+      "en": "4 hours"
+     },
+     {
+      "zh": "未完成",
+      "en": "Not Completed"
+     },
+     {
+      "zh": "未通过",
+      "en": "Failed"
+     }
+    ]
+   ],
+   "st": "crit",
+   "ev": 6,
+   "req": {
+    "zh": "恢复测试记录、耗时对比、失败项整改",
+    "en": "Recovery test records, elapsed time comparison and failure remediation"
+   },
+   "sub": ""
+  },
+  {
+   "id": "backup-reg",
+   "g": "response",
+   "n": {
+    "zh": "备份台账",
+    "en": "Backup Register"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "登记备份对象、频率与介质，区分船岸两侧。",
+    "en": "Registers backup targets, frequency and media, separately for ship and shore."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "obj",
+     "备份对象",
+     "Target"
+    ],
+    [
+     "freq",
+     "频率",
+     "Frequency"
+    ],
+    [
+     "media",
+     "介质",
+     "Media"
+    ],
+    [
+     "loc",
+     "存放位置",
+     "Location"
+    ],
+    [
+     "ver",
+     "校验",
+     "Verified"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "BK-2026-041",
+      "en": "BK-2026-041"
+     },
+     {
+      "zh": "CBS 组态与程序块",
+      "en": "CBS Configuration & Program Blocks"
+     },
+     {
+      "zh": "每次变更后",
+      "en": "After every change"
+     },
+     {
+      "zh": "磁带 + 离线副本",
+      "en": "Tape + offline copy"
+     },
+     {
+      "zh": "岸基 IDC-B",
+      "en": "Shore-side IDC-B"
+     },
+     {
+      "zh": "每日校验",
+      "en": "Verified daily"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "BK-2026-038",
+      "en": "BK-2026-038"
+     },
+     {
+      "zh": "岸基虚机（IDC-A / IDC-B）",
+      "en": "Shore-side VMs (IDC-A / IDC-B)"
+     },
+     {
+      "zh": "每日增量 + 每周全量",
+      "en": "Daily incremental + weekly full"
+     },
+     {
+      "zh": "虚拟化存储 + 独立备份服务器",
+      "en": "Virtualised storage + dedicated backup server"
+     },
+     {
+      "zh": "IDC-B",
+      "en": "IDC-B"
+     },
+     {
+      "zh": "每周校验",
+      "en": "Verified weekly"
+     },
+     {
+      "zh": "正常",
+      "en": "Healthy"
+     }
+    ],
+    [
+     {
+      "zh": "BK-2026-034",
+      "en": "BK-2026-034"
+     },
+     {
+      "zh": "域控系统映像",
+      "en": "Domain Controller System Image"
+     },
+     {
+      "zh": "每月全量",
+      "en": "Monthly full"
+     },
+     {
+      "zh": "磁带",
+      "en": "Tape"
+     },
+     {
+      "zh": "异地",
+      "en": "Offsite"
+     },
+     {
+      "zh": "每季校验",
+      "en": "Verified quarterly"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 11,
+   "req": {
+    "zh": "备份台账、校验记录、异地保存证明",
+    "en": "Backup register, verification records and offsite storage evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "backup-test",
+   "g": "response",
+   "n": {
+    "zh": "备份恢复测试",
+    "en": "Backup Restore Test"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "定期从备份恢复并验证 —— 没恢复过的备份不算备份。",
+    "en": "Periodically restores from backup and verifies — a backup never restored is not a backup."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "obj",
+     "备份对象",
+     "Target"
+    ],
+    [
+     "date",
+     "测试日期",
+     "Test date"
+    ],
+    [
+     "res",
+     "恢复结果",
+     "Restore result"
+    ],
+    [
+     "diff",
+     "数据比对",
+     "Data comparison"
+    ],
+    [
+     "res",
+     "结果",
+     "Result"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "BT-2026-021",
+      "en": "BT-2026-021"
+     },
+     {
+      "zh": "CBS 组态与程序块",
+      "en": "CBS Configuration & Program Blocks"
+     },
+     {
+      "zh": "2026-10-10",
+      "en": "2026-10-10"
+     },
+     {
+      "zh": "恢复成功",
+      "en": "Restore succeeded"
+     },
+     {
+      "zh": "校验值一致",
+      "en": "Checksum matches"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     }
+    ],
+    [
+     {
+      "zh": "BT-2026-018",
+      "en": "BT-2026-018"
+     },
+     {
+      "zh": "岸基虚机备份",
+      "en": "Shore-side VM Backup"
+     },
+     {
+      "zh": "2026-09-05",
+      "en": "2026-09-05"
+     },
+     {
+      "zh": "恢复成功",
+      "en": "Restore succeeded"
+     },
+     {
+      "zh": "差异 0",
+      "en": "0 differences"
+     },
+     {
+      "zh": "通过",
+      "en": "Pass"
+     }
+    ],
+    [
+     {
+      "zh": "BT-2026-014",
+      "en": "BT-2026-014"
+     },
+     {
+      "zh": "域控系统映像",
+      "en": "Domain Controller System Image"
+     },
+     {
+      "zh": "2026-06-15",
+      "en": "2026-06-15"
+     },
+     {
+      "zh": "恢复失败",
+      "en": "Restore failed"
+     },
+     {
+      "zh": "未执行",
+      "en": "Not executed"
+     },
+     {
+      "zh": "未通过",
+      "en": "Failed"
+     }
+    ]
+   ],
+   "st": "crit",
+   "ev": 8,
+   "req": {
+    "zh": "恢复测试记录、失败项分析与整改",
+    "en": "Restore test records, failure analysis and remediation"
+   },
+   "sub": ""
+  },
+  {
+   "id": "redundancy",
+   "g": "response",
+   "n": {
+    "zh": "冗余与独立设计",
+    "en": "Redundancy & Independent Design"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "记录冗余设计及其独立性 —— 冗余但共享依赖等于没有冗余。",
+    "en": "Records redundancy designs and their independence — redundancy sharing dependencies is not redundancy."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "sys",
+     "系统",
+     "System"
+    ],
+    [
+     "mode",
+     "冗余方式",
+     "Redundancy mode"
+    ],
+    [
+     "indep",
+     "独立性",
+     "Independence"
+    ],
+    [
+     "fail",
+     "共因失效",
+     "Common-cause failure"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RD-2026-011",
+      "en": "RD-2026-011"
+     },
+     {
+      "zh": "核心工业交换机",
+      "en": "Core Industrial Switch"
+     },
+     {
+      "zh": "双机 + 双链路",
+      "en": "Dual appliance + dual link"
+     },
+     {
+      "zh": "独立电源 + 独立配置",
+      "en": "Independent power + independent configuration"
+     },
+     {
+      "zh": "机房供电（已核实为不同回路）",
+      "en": "Plant power (verified as separate circuits)"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "RD-2026-009",
+      "en": "RD-2026-009"
+     },
+     {
+      "zh": "OT 边界防火墙",
+      "en": "OT Boundary Firewall"
+     },
+     {
+      "zh": "IPS HA 集群",
+      "en": "IPS HA cluster"
+     },
+     {
+      "zh": "独立管理面",
+      "en": "Independent management plane"
+     },
+     {
+      "zh": "机房供电",
+      "en": "Plant power"
+     },
+     {
+      "zh": "符合",
+      "en": "Compliant"
+     }
+    ],
+    [
+     {
+      "zh": "RD-2026-007",
+      "en": "RD-2026-007"
+     },
+     {
+      "zh": "船岸链路",
+      "en": "Ship-shore Link"
+     },
+     {
+      "zh": "双运营商 + SD-WAN",
+      "en": "Dual carrier + SD-WAN"
+     },
+     {
+      "zh": "物理路由分离",
+      "en": "Physically separated routing"
+     },
+     {
+      "zh": "船端单电源",
+      "en": "Single ship-side power feed"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ],
+    [
+     {
+      "zh": "RD-2026-005",
+      "en": "RD-2026-005"
+     },
+     {
+      "zh": "推进系统控制器",
+      "en": "Propulsion System Controller"
+     },
+     {
+      "zh": "主备控制器",
+      "en": "Primary + standby controller"
+     },
+     {
+      "zh": "同型同版本",
+      "en": "Same model, same version"
+     },
+     {
+      "zh": "同型固件漏洞会同时命中（见漏洞管理）",
+      "en": "A firmware flaw in the same model hits both at once (see Vulnerability Management)"
+     },
+     {
+      "zh": "关注",
+      "en": "Needs Attention"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 9,
+   "req": {
+    "zh": "冗余设计说明、共因失效分析",
+    "en": "Redundancy design notes and common-cause failure analysis"
+   },
+   "sub": ""
+  },
+  {
+   "id": "rollback",
+   "g": "response",
+   "n": {
+    "zh": "回滚程序",
+    "en": "Rollback Procedure"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "记录回滚步骤、前置条件与实测耗时。",
+    "en": "Records rollback steps, preconditions and measured elapsed time."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "target",
+     "回滚对象",
+     "Target"
+    ],
+    [
+     "pre",
+     "前置条件",
+     "Precondition"
+    ],
+    [
+     "step",
+     "步骤",
+     "Steps"
+    ],
+    [
+     "time",
+     "实测耗时",
+     "Measured"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "RB-2026-014",
+      "en": "RB-2026-014"
+     },
+     {
+      "zh": "CBS 组态回滚",
+      "en": "CBS Configuration Rollback"
+     },
+     {
+      "zh": "已留存变更前镜像",
+      "en": "Pre-change image retained"
+     },
+     {
+      "zh": "导入镜像 → 重启 → 校验 → 复位",
+      "en": "Import image → reboot → verify → reset"
+     },
+     {
+      "zh": "15 分钟",
+      "en": "15 minutes"
+     },
+     {
+      "zh": "已演练",
+      "en": "Exercised"
+     }
+    ],
+    [
+     {
+      "zh": "RB-2026-011",
+      "en": "RB-2026-011"
+     },
+     {
+      "zh": "防火墙配置回滚",
+      "en": "Firewall Configuration Rollback"
+     },
+     {
+      "zh": "已留存配置备份",
+      "en": "Config backup retained"
+     },
+     {
+      "zh": "导入备份 → 重载 → 验证连通性",
+      "en": "Import backup → reload → verify connectivity"
+     },
+     {
+      "zh": "8 分钟",
+      "en": "8 minutes"
+     },
+     {
+      "zh": "已演练",
+      "en": "Exercised"
+     }
+    ],
+    [
+     {
+      "zh": "RB-2026-008",
+      "en": "RB-2026-008"
+     },
+     {
+      "zh": "固件回退",
+      "en": "Firmware Rollback"
+     },
+     {
+      "zh": "厂商提供降级包",
+      "en": "Vendor provides a downgrade package"
+     },
+     {
+      "zh": "降级固件 → 清除配置 → 恢复参数",
+      "en": "Downgrade firmware → clear configuration → restore parameters"
+     },
+     {
+      "zh": "45 分钟",
+      "en": "45 minutes"
+     },
+     {
+      "zh": "未演练",
+      "en": "Not Exercised"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 7,
+   "req": {
+    "zh": "回滚程序、演练记录、镜像留存证明",
+    "en": "Rollback procedures, drill records and image custody evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "cont-ops",
+   "g": "response",
+   "n": {
+    "zh": "持续运行安排",
+    "en": "Continuity of Operations"
+   },
+   "cl": "3.12",
+   "p": {
+    "zh": "记录系统降级运行时的最低功能集合与人工替代方案。",
+    "en": "Records the minimum viable function set under degraded operation and the manual fallbacks."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "scene",
+     "降级场景",
+     "Degraded scenario"
+    ],
+    [
+     "min",
+     "最低功能",
+     "Minimum function"
+    ],
+    [
+     "manual",
+     "人工替代",
+     "Manual fallback"
+    ],
+    [
+     "accept",
+     "业务方接受",
+     "Business acceptance"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CO-2026-008",
+      "en": "CO-2026-008"
+     },
+     {
+      "zh": "SCADA 不可用",
+      "en": "SCADA Unavailable"
+     },
+     {
+      "zh": "维持推进与电力人工监视",
+      "en": "Maintain manual watch on propulsion and power"
+     },
+     {
+      "zh": "轮机员定时抄表 + 无线电报",
+      "en": "Engineers read gauges on a schedule + radio reports"
+     },
+     {
+      "zh": "已确认",
+      "en": "Confirmed"
+     }
+    ],
+    [
+     {
+      "zh": "CO-2026-006",
+      "en": "CO-2026-006"
+     },
+     {
+      "zh": "船岸链路中断",
+      "en": "Ship-shore Link Interruption"
+     },
+     {
+      "zh": "本地缓存 72 小时",
+      "en": "72-hour local cache"
+     },
+     {
+      "zh": "卫星电话 + 纸质日报",
+      "en": "Satellite phone + paper daily report"
+     },
+     {
+      "zh": "已确认",
+      "en": "Confirmed"
+     }
+    ],
+    [
+     {
+      "zh": "CO-2026-004",
+      "en": "CO-2026-004"
+     },
+     {
+      "zh": "OT DMZ 不可用",
+      "en": "OT DMZ Unavailable"
+     },
+     {
+      "zh": "禁止一切远程接入",
+      "en": "All remote access prohibited"
+     },
+     {
+      "zh": "厂商到场维护",
+      "en": "Vendor attends for maintenance"
+     },
+     {
+      "zh": "已确认",
+      "en": "Confirmed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "持续运行安排、业务方确认签字",
+    "en": "Continuity of operations arrangements with business sign-off"
+   },
+   "sub": ""
+  },
+  {
+   "id": "lesson-learned",
+   "g": "response",
+   "n": {
+    "zh": "经验教训与改进",
+    "en": "Lessons Learned"
+   },
+   "cl": "3.11",
+   "p": {
+    "zh": "把事件与演练的教训转成具体的改进项。",
+    "en": "Turns the lessons from incidents and drills into concrete improvement items."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "src",
+     "来源",
+     "Source"
+    ],
+    [
+     "lesson",
+     "教训",
+     "Lesson"
+    ],
+    [
+     "action",
+     "改进项",
+     "Improvement"
+    ],
+    [
+     "owner",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "LL-2026-014",
+      "en": "LL-2026-014"
+     },
+     {
+      "zh": "IR-2026-034",
+      "en": "IR-2026-034"
+     },
+     {
+      "zh": "口令强度不足导致暴力破解成功",
+      "en": "Weak password policy allowed a successful brute force"
+     },
+     {
+      "zh": "Zone 2 强制 MFA + 口令策略补强",
+      "en": "Enforce MFA in Zone 2 + strengthen password policy"
+     },
+     {
+      "zh": "安全运营",
+      "en": "Security Operations"
+     },
+     {
+      "zh": "整改中",
+      "en": "Remediation in Progress"
+     }
+    ],
+    [
+     {
+      "zh": "LL-2026-009",
+      "en": "LL-2026-009"
+     },
+     {
+      "zh": "IR-2026-029",
+      "en": "IR-2026-029"
+     },
+     {
+      "zh": "上线前无漏洞扫描环节",
+      "en": "No vulnerability scan before release"
+     },
+     {
+      "zh": "发布清单增加扫描关卡",
+      "en": "Add a scan gate to the release checklist"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ],
+    [
+     {
+      "zh": "LL-2026-006",
+      "en": "LL-2026-006"
+     },
+     {
+      "zh": "DR-2026-005",
+      "en": "DR-2026-005"
+     },
+     {
+      "zh": "边界失效时无人工切换流程",
+      "en": "No manual failover procedure when the boundary fails"
+     },
+     {
+      "zh": "编制作业切换卡",
+      "en": "Author an operations switch-over card"
+     },
+     {
+      "zh": "轮机长",
+      "en": "Chief Engineer"
+     },
+     {
+      "zh": "已关闭",
+      "en": "Closed"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 8,
+   "req": {
+    "zh": "经验教训记录、改进项关闭证据",
+    "en": "Lessons learned records and improvement closure evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "evidence-pkg",
+   "g": "other",
+   "n": {
+    "zh": "证据包",
+    "en": "Evidence Package"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "按检验场景一键装配证据包，避免检验当天临时找材料。",
+    "en": "Assembles the evidence for a survey scenario in one click, so nothing is hunted for on the day."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "pkg",
+     "证据包",
+     "Package"
+    ],
+    [
+     "scope",
+     "覆盖范围",
+     "Scope"
+    ],
+    [
+     "items",
+     "条目数",
+     "Items"
+    ],
+    [
+     "for",
+     "适用检验",
+     "For survey"
+    ],
+    [
+     "date",
+     "生成日期",
+     "Generated"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "EP-2026-031",
+      "en": "EP-2026-031"
+     },
+     {
+      "zh": "CBS-A 系统",
+      "en": "CBS-A System"
+     },
+     {
+      "zh": "推进 / 操舵 / 电力 / 消防",
+      "en": "Propulsion / Steering / Power / Fire"
+     },
+     {
+      "zh": "48",
+      "en": "48"
+     },
+     {
+      "zh": "初次 + 年度",
+      "en": "Initial + Annual"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     },
+     {
+      "zh": "已生成",
+      "en": "Generated"
+     }
+    ],
+    [
+     {
+      "zh": "EP-2026-029",
+      "en": "EP-2026-029"
+     },
+     {
+      "zh": "CBS-B 系统",
+      "en": "CBS-B System"
+     },
+     {
+      "zh": "导航 / 通信 / 链路",
+      "en": "Navigation / Comms / Link"
+     },
+     {
+      "zh": "31",
+      "en": "31"
+     },
+     {
+      "zh": "初次 + 年度",
+      "en": "Initial + Annual"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     },
+     {
+      "zh": "已生成",
+      "en": "Generated"
+     }
+    ],
+    [
+     {
+      "zh": "EP-2026-025",
+      "en": "EP-2026-025"
+     },
+     {
+      "zh": "岸基 IT",
+      "en": "Shore-side IT"
+     },
+     {
+      "zh": "域控 / 邮件 / 终端",
+      "en": "DC / Mail / Endpoints"
+     },
+     {
+      "zh": "27",
+      "en": "27"
+     },
+     {
+      "zh": "年度",
+      "en": "Annual"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     },
+     {
+      "zh": "已生成",
+      "en": "Generated"
+     }
+    ],
+    [
+     {
+      "zh": "EP-2026-018",
+      "en": "EP-2026-018"
+     },
+     {
+      "zh": "全船网络",
+      "en": "Ship-wide Network"
+     },
+     {
+      "zh": "拓扑 + 规则 + 访问记录",
+      "en": "Topology + Rules + Access Records"
+     },
+     {
+      "zh": "63",
+      "en": "63"
+     },
+     {
+      "zh": "初次",
+      "en": "Initial"
+     },
+     {
+      "zh": "2026-10-20",
+      "en": "2026-10-20"
+     },
+     {
+      "zh": "已生成",
+      "en": "Generated"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 12,
+   "req": {
+    "zh": "证据包导出件、目录清单与校验值",
+    "en": "Exported evidence packages with index and checksums"
+   },
+   "sub": ""
+  },
+  {
+   "id": "evidence-item",
+   "g": "other",
+   "n": {
+    "zh": "证据条目",
+    "en": "Evidence Item"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "登记每一条证据的来源、生成时间与所属模块。",
+    "en": "Registers each evidence item with its source, generation time and owning module."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "item",
+     "证据名称",
+     "Evidence item"
+    ],
+    [
+     "mod",
+     "所属模块",
+     "Module"
+    ],
+    [
+     "src",
+     "来源",
+     "Source"
+    ],
+    [
+     "gen",
+     "生成时间",
+     "Generated"
+    ],
+    [
+     "hash",
+     "校验值",
+     "Checksum"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "EI-0341",
+      "en": "EI-0341"
+     },
+     {
+      "zh": "安全区域拓扑图",
+      "en": "Security Zone Topology Diagram"
+     },
+     {
+      "zh": "安全区域台账",
+      "en": "Security Zone Register"
+     },
+     {
+      "zh": "拓扑编排",
+      "en": "Topology Orchestration"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     },
+     {
+      "zh": "9f2a…7c1d",
+      "en": "9f2a…7c1d"
+     }
+    ],
+    [
+     {
+      "zh": "EI-0340",
+      "en": "EI-0340"
+     },
+     {
+      "zh": "防火墙规则导出",
+      "en": "Firewall Rule Export"
+     },
+     {
+      "zh": "防火墙规则基线",
+      "en": "Firewall Rule Baseline"
+     },
+     {
+      "zh": "设备导出",
+      "en": "Device export"
+     },
+     {
+      "zh": "2026-11-16",
+      "en": "2026-11-16"
+     },
+     {
+      "zh": "4b8e…03fa",
+      "en": "4b8e…03fa"
+     }
+    ],
+    [
+     {
+      "zh": "EI-0339",
+      "en": "EI-0339"
+     },
+     {
+      "zh": "会话录像索引",
+      "en": "Session Recording Index"
+     },
+     {
+      "zh": "远程访问日志",
+      "en": "Remote Access Log"
+     },
+     {
+      "zh": "FortiPAM",
+      "en": "FortiPAM"
+     },
+     {
+      "zh": "2026-11-15",
+      "en": "2026-11-15"
+     },
+     {
+      "zh": "c1d9…52aa",
+      "en": "c1d9…52aa"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 185,
+   "req": {
+    "zh": "证据条目清单、校验值清单",
+    "en": "Evidence item register with checksums"
+   },
+   "sub": ""
+  },
+  {
+   "id": "survey-record",
+   "g": "other",
+   "n": {
+    "zh": "检验记录",
+    "en": "Survey Record"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "记录历次检验的发现项与整改闭环。",
+    "en": "Records findings from each survey and their remediation closure."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "survey",
+     "检验",
+     "Survey"
+    ],
+    [
+     "date",
+     "日期",
+     "Date"
+    ],
+    [
+     "find",
+     "发现项",
+     "Findings"
+    ],
+    [
+     "close",
+     "已闭环",
+     "Closed"
+    ],
+    [
+     "status",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "SR-2026-011",
+      "en": "SR-2026-011"
+     },
+     {
+      "zh": "初次检验",
+      "en": "Initial Survey"
+     },
+     {
+      "zh": "2026-05-20",
+      "en": "2026-05-20"
+     },
+     {
+      "zh": "14",
+      "en": "14"
+     },
+     {
+      "zh": "14",
+      "en": "14"
+     },
+     {
+      "zh": "已闭环",
+      "en": "Closed Out"
+     }
+    ],
+    [
+     {
+      "zh": "SR-2026-007",
+      "en": "SR-2026-007"
+     },
+     {
+      "zh": "中间检验",
+      "en": "Intermediate Survey"
+     },
+     {
+      "zh": "2025-11-08",
+      "en": "2025-11-08"
+     },
+     {
+      "zh": "6",
+      "en": "6"
+     },
+     {
+      "zh": "6",
+      "en": "6"
+     },
+     {
+      "zh": "已闭环",
+      "en": "Closed Out"
+     }
+    ],
+    [
+     {
+      "zh": "SR-2025-012",
+      "en": "SR-2025-012"
+     },
+     {
+      "zh": "年度检验",
+      "en": "Annual Survey"
+     },
+     {
+      "zh": "2024-10-15",
+      "en": "2024-10-15"
+     },
+     {
+      "zh": "3",
+      "en": "3"
+     },
+     {
+      "zh": "3",
+      "en": "3"
+     },
+     {
+      "zh": "已闭环",
+      "en": "Closed Out"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 9,
+   "req": {
+    "zh": "检验报告、发现项与整改闭环证据",
+    "en": "Survey reports with finding and closure evidence"
+   },
+   "sub": ""
+  },
+  {
+   "id": "clause-trace",
+   "g": "other",
+   "n": {
+    "zh": "条款追溯映射",
+    "en": "Clause Traceability Mapping"
+   },
+   "cl": "3.10",
+   "p": {
+    "zh": "建立条款 → 模块 → 证据的映射，回答「这一条拿什么证明」。",
+    "en": "Maps clause → module → evidence — the answer to 'what proves this clause'."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "cl",
+     "条款",
+     "Clause"
+    ],
+    [
+     "name",
+     "条款名称",
+     "Clause name"
+    ],
+    [
+     "mods",
+     "关联模块",
+     "Linked modules"
+    ],
+    [
+     "ev",
+     "证据条目",
+     "Evidence items"
+    ],
+    [
+     "cov",
+     "覆盖率",
+     "Coverage"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "CT-2026-012",
+      "en": "CT-2026-012"
+     },
+     {
+      "zh": "3.3",
+      "en": "3.3"
+     },
+     {
+      "zh": "防火墙管理",
+      "en": "Firewall Management"
+     },
+     {
+      "zh": "fb-baseline, fw-change, fw-review, fw-log",
+      "en": "fb-baseline, fw-change, fw-review, fw-log"
+     },
+     {
+      "zh": "14",
+      "en": "14"
+     },
+     {
+      "zh": "95%",
+      "en": "95%"
+     }
+    ],
+    [
+     {
+      "zh": "CT-2026-011",
+      "en": "CT-2026-011"
+     },
+     {
+      "zh": "3.4",
+      "en": "3.4"
+     },
+     {
+      "zh": "恶意软件防护管理",
+      "en": "Malware Protection Management"
+     },
+     {
+      "zh": "av-deploy, av-signature, av-exclusion, mal-incident",
+      "en": "av-deploy, av-signature, av-exclusion, mal-incident"
+     },
+     {
+      "zh": "9",
+      "en": "9"
+     },
+     {
+      "zh": "74%",
+      "en": "74%"
+     }
+    ],
+    [
+     {
+      "zh": "CT-2026-010",
+      "en": "CT-2026-010"
+     },
+     {
+      "zh": "3.6",
+      "en": "3.6"
+     },
+     {
+      "zh": "保密信息管理",
+      "en": "Classified Information Management"
+     },
+     {
+      "zh": "class-reg, class-label, class-access",
+      "en": "class-reg, class-label, class-access"
+     },
+     {
+      "zh": "7",
+      "en": "7"
+     },
+     {
+      "zh": "69%",
+      "en": "69%"
+     }
+    ],
+    [
+     {
+      "zh": "CT-2026-009",
+      "en": "CT-2026-009"
+     },
+     {
+      "zh": "3.10",
+      "en": "3.10"
+     },
+     {
+      "zh": "安全功能验证",
+      "en": "Security Function Validation"
+     },
+     {
+      "zh": "func-verify, func-test, issue-track",
+      "en": "func-verify, func-test, issue-track"
+     },
+     {
+      "zh": "8",
+      "en": "8"
+     },
+     {
+      "zh": "77%",
+      "en": "77%"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 11,
+   "req": {
+    "zh": "条款映射表、缺口清单",
+    "en": "Clause mapping table and gap list"
+   },
+   "sub": ""
+  },
+  {
+   "id": "training",
+   "g": "other",
+   "n": {
+    "zh": "培训记录",
+    "en": "Training Record"
+   },
+   "cl": "3.1",
+   "p": {
+    "zh": "记录人员培训与资质，以及证书到期。",
+    "en": "Records staff training and qualifications, including certificate expiry."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "who",
+     "人员",
+     "Person"
+    ],
+    [
+     "role",
+     "角色",
+     "Role"
+    ],
+    [
+     "course",
+     "课程",
+     "Course"
+    ],
+    [
+     "cert",
+     "证书到期",
+     "Certificate expiry"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "TR-2026-022",
+      "en": "TR-2026-022"
+     },
+     {
+      "zh": "陈默",
+      "en": "Chen Mo"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "OT 安全意识 + 事件响应",
+      "en": "OT Security Awareness + Incident Response"
+     },
+     {
+      "zh": "2027-05-30",
+      "en": "2027-05-30"
+     },
+     {
+      "zh": "有效",
+      "en": "Valid"
+     }
+    ],
+    [
+     {
+      "zh": "TR-2026-018",
+      "en": "TR-2026-018"
+     },
+     {
+      "zh": "王海",
+      "en": "Wang Hai"
+     },
+     {
+      "zh": "船舶轮机长",
+      "en": "Ship's Chief Engineer"
+     },
+     {
+      "zh": "CBS 变更管理与最小功能",
+      "en": "CBS Change Management & Minimum Function"
+     },
+     {
+      "zh": "2027-03-12",
+      "en": "2027-03-12"
+     },
+     {
+      "zh": "有效",
+      "en": "Valid"
+     }
+    ],
+    [
+     {
+      "zh": "TR-2026-014",
+      "en": "TR-2026-014"
+     },
+     {
+      "zh": "某第三方工程师",
+      "en": "A third-party engineer"
+     },
+     {
+      "zh": "厂商",
+      "en": "Vendor"
+     },
+     {
+      "zh": "无 —— 未完成培训",
+      "en": "None — training not completed"
+     },
+     {
+      "zh": "—",
+      "en": "—"
+     },
+     {
+      "zh": "不符合",
+      "en": "Non-compliant"
+     }
+    ]
+   ],
+   "st": "warn",
+   "ev": 7,
+   "req": {
+    "zh": "培训记录、证书扫描件、缺口清单",
+    "en": "Training records, certificate scans and gap list"
+   },
+   "sub": ""
+  },
+  {
+   "id": "organization",
+   "g": "other",
+   "n": {
+    "zh": "组织与职责",
+    "en": "Organisation & Responsibilities"
+   },
+   "cl": "3.1",
+   "p": {
+    "zh": "记录组织架构、职责边界与外部接口人。",
+    "en": "Records the organisational structure, responsibility boundaries and external points of contact."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "role",
+     "角色",
+     "Role"
+    ],
+    [
+     "who",
+     "责任人",
+     "Owner"
+    ],
+    [
+     "scope",
+     "职责范围",
+     "Responsibility scope"
+    ],
+    [
+     "side",
+     "所在",
+     "Location"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "OG-2026-014",
+      "en": "OG-2026-014"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "陈默",
+      "en": "Chen Mo"
+     },
+     {
+      "zh": "整体安全策略、事件响应、检验对接",
+      "en": "Overall security policy, incident response, survey liaison"
+     },
+     {
+      "zh": "岸基",
+      "en": "Shore-side"
+     }
+    ],
+    [
+     {
+      "zh": "OG-2026-013",
+      "en": "OG-2026-013"
+     },
+     {
+      "zh": "船舶轮机长",
+      "en": "Ship's Chief Engineer"
+     },
+     {
+      "zh": "王海",
+      "en": "Wang Hai"
+     },
+     {
+      "zh": "船上 CBS 运行、变更执行、隔离决策",
+      "en": "Ship-side CBS operation, change execution, isolation decisions"
+     },
+     {
+      "zh": "船上",
+      "en": "Ship-side"
+     }
+    ],
+    [
+     {
+      "zh": "OG-2026-012",
+      "en": "OG-2026-012"
+     },
+     {
+      "zh": "平台运维",
+      "en": "Platform Operations"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "设备与平台运行、备份、采集",
+      "en": "Device and platform operation, backup, collection"
+     },
+     {
+      "zh": "岸基",
+      "en": "Shore-side"
+     }
+    ],
+    [
+     {
+      "zh": "OG-2026-011",
+      "en": "OG-2026-011"
+     },
+     {
+      "zh": "船东代表",
+      "en": "Shipowner Representative"
+     },
+     {
+      "zh": "赵敏",
+      "en": "Zhao Min"
+     },
+     {
+      "zh": "批准高风险变更、对外沟通",
+      "en": "Approves high-risk changes, external communication"
+     },
+     {
+      "zh": "岸基",
+      "en": "Shore-side"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 6,
+   "req": {
+    "zh": "组织架构图、职责矩阵、代理人安排",
+    "en": "Organisation chart, responsibility matrix and deputy arrangements"
+   },
+   "sub": ""
+  },
+  {
+   "id": "op-audit",
+   "g": "other",
+   "n": {
+    "zh": "操作审计",
+    "en": "Operation Audit"
+   },
+   "cl": "3.9",
+   "p": {
+    "zh": "记录所有写操作与敏感读取 —— 敏感读取同样要留痕。",
+    "en": "Records every write and sensitive read — a sensitive read is an audit event too."
+   },
+   "cols": [
+    [
+     "id",
+     "编号",
+     "ID"
+    ],
+    [
+     "time",
+     "时间",
+     "Time"
+    ],
+    [
+     "who",
+     "操作人",
+     "Actor"
+    ],
+    [
+     "act",
+     "动作",
+     "Action"
+    ],
+    [
+     "obj",
+     "对象",
+     "Object"
+    ],
+    [
+     "ip",
+     "来源 IP",
+     "Source IP"
+    ],
+    [
+     "st",
+     "状态",
+     "Status"
+    ]
+   ],
+   "rows": [
+    [
+     {
+      "zh": "OA-2026-0912",
+      "en": "OA-2026-0912"
+     },
+     {
+      "zh": "2026-11-16 08:00:03",
+      "en": "2026-11-16 08:00:03"
+     },
+     {
+      "zh": "system",
+      "en": "system"
+     },
+     {
+      "zh": "导出证据包",
+      "en": "Exported evidence package"
+     },
+     {
+      "zh": "CBS-A 系统 · 48 份 PDF",
+      "en": "CBS-A System · 48 PDFs"
+     },
+     {
+      "zh": "10.20.4.11",
+      "en": "10.20.4.11"
+     },
+     {
+      "zh": "成功",
+      "en": "Success"
+     }
+    ],
+    [
+     {
+      "zh": "OA-2026-0908",
+      "en": "OA-2026-0908"
+     },
+     {
+      "zh": "2026-11-15 14:22:41",
+      "en": "2026-11-15 14:22:41"
+     },
+     {
+      "zh": "安全负责人",
+      "en": "Security Lead"
+     },
+     {
+      "zh": "查看凭据",
+      "en": "Viewed a credential"
+     },
+     {
+      "zh": "FortiSIEM · admin（已掩码）",
+      "en": "FortiSIEM · admin (masked)"
+     },
+     {
+      "zh": "10.20.4.31",
+      "en": "10.20.4.31"
+     },
+     {
+      "zh": "成功",
+      "en": "Success"
+     }
+    ],
+    [
+     {
+      "zh": "OA-2026-0904",
+      "en": "OA-2026-0904"
+     },
+     {
+      "zh": "2026-11-15 09:11:07",
+      "en": "2026-11-15 09:11:07"
+     },
+     {
+      "zh": "运维团队",
+      "en": "Operations Team"
+     },
+     {
+      "zh": "修改配置",
+      "en": "Modified configuration"
+     },
+     {
+      "zh": "FW-EDGE-01 · 策略",
+      "en": "FW-EDGE-01 · policy"
+     },
+     {
+      "zh": "10.20.4.22",
+      "en": "10.20.4.22"
+     },
+     {
+      "zh": "成功",
+      "en": "Success"
+     }
+    ],
+    [
+     {
+      "zh": "OA-2026-0899",
+      "en": "OA-2026-0899"
+     },
+     {
+      "zh": "2026-11-14 22:03:55",
+      "en": "2026-11-14 22:03:55"
+     },
+     {
+      "zh": "未知",
+      "en": "Unknown"
+     },
+     {
+      "zh": "口令错误",
+      "en": "Bad password"
+     },
+     {
+      "zh": "DC01.goad.lab · 域控",
+      "en": "DC01.goad.lab · domain controller"
+     },
+     {
+      "zh": "45.11.22.7",
+      "en": "45.11.22.7"
+     },
+     {
+      "zh": "已锁定",
+      "en": "Locked"
+     }
+    ]
+   ],
+   "st": "ok",
+   "ev": 14,
+   "req": {
+    "zh": "审计日志导出、只追加证明、留存策略",
+    "en": "Audit log export, append-only evidence and retention policy"
+   },
+   "sub": ""
+  }
+ ],
+ "counts": {
+  "asset": 3,
+  "change": 5,
+  "network": 29,
+  "monitor": 11,
+  "response": 15,
+  "other": 7
+ },
+ "total": 70,
+ "evidence": 877
+}

@@ -1,0 +1,38 @@
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# ── 运行时凭据（绝不入库）────────────────────────────────────────────
+# FortiSIEM MCP session 是运行时凭据，每次 initialize 都变
+_ref/*.session.json
+*.session.json
+.env
+.env.*
+!.env.example
+# 本地票据密钥 / JWT 密钥
+*.key
+*.pem
+secrets.json
+credentials.json
+
+# ── 备份与临时 ───────────────────────────────────────────────────────
+_backup/
+*.bak
+*.orig
+*.tmp
+*.log
+
+# ── 操作系统 ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── 编辑器 ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp

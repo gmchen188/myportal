@@ -1,0 +1,28 @@
+# 默认按文本处理，入库时统一 LF，检出时 Windows 还原 CRLF
+* text=auto eol=lf
+
+# 文档与数据：明确按文本
+*.md      text eol=lf
+*.txt     text eol=lf
+*.json    text eol=lf
+*.csv     text eol=lf
+*.py      text eol=lf
+*.conf    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+
+# HTML：单文件原型，行尾统一 LF（里面含 JS/CSS，混合行尾会让 diff 失真）
+*.html    text eol=lf
+
+# 二进制：一律不参与行尾转换与 diff
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.docx    binary
+*.pptx    binary
+*.xlsx    binary
+*.war     binary
+*.zip     binary

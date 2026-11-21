@@ -1,0 +1,23 @@
+{
+  "session": "<MCP-SESSION-ID-取自 initialize 响应头，每次会话不同，不入库>",
+  "tools": [
+    "query_fsm_postgres",
+    "query_fsm_clickhouse",
+    "get_incidents_by_entity",
+    "get_incident_by_id",
+    "get_related_incidents_by_id",
+    "get_trigger_events_by_incident_id",
+    "get_context_by_entity",
+    "update_incident_resolution_by_id",
+    "update_incident_severity_by_id",
+    "clear_incident_by_id",
+    "append_incident_comment_by_id",
+    "get_top_10_risky_users_incidents",
+    "get_top_10_risky_devices_incidents",
+    "get_iocs_by_incident_ids",
+    "get_reputation_by_entity",
+    "query_fsm_postgres_prompts",
+    "query_fsm_clickhouse_prompts"
+  ],
+  "_note": "session 是运行时凭据，已脱敏。取法见 docs/SYNC.md"
+}

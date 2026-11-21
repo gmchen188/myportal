@@ -1,0 +1,96 @@
+# 自检 + 产物构建 + 发布
+#
+# 这是 myPortal 的「同步更新」流水线：
+#   push / PR  →  跑 check_demo.py（57 项断言）→ 绿才继续
+#              →  构建 docx / pptx 产物
+#              →  main 分支则发布到 GitHub Pages（demo 可直接点开看）
+#
+# 产物构建之所以放这里而不是靠本地跑：Docx/ 与 _ref/ 里的素材变了，
+# 上游产物不会自己更新 —— 每次都从源码重建，产物与源码不可能对不上。
+
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Demo self-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # check_demo.py 只用标准库，不需要装依赖
+      - name: Run demo self-check
+        run: python tools/check_demo.py
+
+  build-docs:
+    name: Build docx / pptx
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install python-docx
+        run: pip install python-docx
+
+      # 文档构建脚本会改写 Docx/ 下的产物。跑在 CI 里，产物作为
+      # artifact 上传 —— 不直接提交回仓库（否则每次推送都产生一个
+      # "更新产物" 的提交，来回触发 CI）。
+      - name: Build design doc
+        run: python tools/build_design_doc.py
+
+      - name: Build plan doc
+        run: python tools/build_plan_doc.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: myportal-docs
+          path: Docx/
+          if-no-files-found: error
+
+  publish-demo:
+    name: Publish demo to Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check, build-docs]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/configure-pages@v5
+
+      # demo/ 是纯静态：单文件 HTML，无外部依赖。用官方 static action 部署，
+      # 不用自己写 action（自己写要处理 404 回退、缓存头、路径重写，
+      # 官方 action 已经把这些做对了）。
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: demo
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,180 @@
+{
+  "probe_date": "2026-11-18",
+  "fortisiem": {
+    "host": "172.16.20.48",
+    "version": "7.5.1 (FortiSIEM_MCP v1.24.0)",
+    "auth": "OAuth2 client_credentials @ /phoenix/rest/pub/security/oauth/token (form-encoded), token TTL 900s",
+    "client_id": "712381cd-bbfe-4c51-8bd8-11070b655ce4",
+    "gui_login_admin": "FAILED (Invalid username or password) in both super and SYSTEM orgs",
+    "mcp": {
+      "path": "/phoenix/mcp",
+      "server": "FortiSIEM_MCP v1.24.0",
+      "tool_count": 17,
+      "tools": [
+        "query_fsm_postgres",
+        "query_fsm_clickhouse",
+        "get_incidents_by_entity",
+        "get_incident_by_id",
+        "get_related_incidents_by_id",
+        "get_trigger_events_by_incident_id",
+        "get_context_by_entity",
+        "update_incident_resolution_by_id",
+        "update_incident_severity_by_id",
+        "clear_incident_by_id",
+        "append_incident_comment_by_id",
+        "get_top_10_risky_users_incidents",
+        "get_top_10_risky_devices_incidents",
+        "get_iocs_by_incident_ids",
+        "get_reputation_by_entity",
+        "query_fsm_postgres_prompts",
+        "query_fsm_clickhouse_prompts"
+      ],
+      "session_header": "Mcp-Session-Id",
+      "accept": "application/json, text/event-stream"
+    },
+    "rest_404_confirmed": [
+      "/phoenix/rest/pub/v2/query/incidents",
+      "/phoenix/rest/pub/v2/cmdb/devices",
+      "/phoenix/rest/pub/v2/query/license",
+      "/phoenix/rest/pub/v2/query/cmdb"
+    ],
+    "rest_ok": [
+      "/phoenix/rest/organization/list (XML!)",
+      "/phoenix/rest/pub/device (POST)",
+      "/phoenix/rest/system/health"
+    ],
+    "orgs": {
+      "system": 0,
+      "service": 2,
+      "Super": 1
+    },
+    "pg_tables": [
+      "ph_device",
+      "ph_incident"
+    ],
+    "ph_device_cols": [
+      "id",
+      "cust_org_id",
+      "name",
+      "access_ip",
+      "vuln_count_critical/high/medium/low",
+      "asset_category",
+      "device_type_id",
+      "phy_loc",
+      "serial"
+    ],
+    "ph_incident_cols": [
+      "id",
+      "cust_org_id",
+      "severity(1-10)",
+      "severity_cat(HIGH/MEDIUM/...)",
+      "incident_status(0-3)",
+      "incident_title",
+      "incident_et",
+      "host_ip_addr",
+      "src_ip_addr",
+      "dest_ip_addr",
+      "last_riskscore_calculation_time",
+      "cve_codes",
+      "ph_incident_category",
+      "incident_reso",
+      "ticket_status",
+      "creation_time",
+      "first_seen_time",
+      "last_seen_time"
+    ],
+    "ch_table": "events",
+    "ch_cols": [
+      "phRecvTime",
+      "phCustId",
+      "customer",
+      "eventType",
+      "eventTypeGrp",
+      "eventName",
+      "eventSeverityCat",
+      "phEventCategory",
+      "reptDevName",
+      "reptDevIpAddr",
+      "reptVendor",
+      "collectorId",
+      "parserName",
+      "rawEventMsg",
+      "srcName",
+      "destName",
+      "user",
+      "hostName",
+      "appName"
+    ],
+    "ch_allowlist": [
+      "events"
+    ],
+    "live_stats": {
+      "devices": 3,
+      "incidents": 4,
+      "events_total": 1249270,
+      "events_cust_super": 1249210,
+      "events_cust_system": 60,
+      "eps_by_day": {
+        "2026-11-18": 75034,
+        "2026-11-17": 78309,
+        "2026-11-16": 78459,
+        "2026-11-15": 78227,
+        "2026-11-14": 78242,
+        "2026-11-13": 79702,
+        "2026-11-12": 76347
+      },
+      "severity_cat": {
+        "MEDIUM": 3,
+        "HIGH": 1
+      },
+      "incident_status": {
+        "0": 2,
+        "3": 2
+      },
+      "top_risky_devices": {
+        "172.16.0.57": "51.07",
+        "fortisiem751.binqsoft.com": "36.37",
+        "DC01.goad.lab": "22.10"
+      }
+    }
+  },
+  "fortianalyzer": {
+    "host": "172.16.21.12",
+    "version": "v7.6.5-build3653 251215 (GA.M)",
+    "hostname": "faz2.binqsoft.com",
+    "mode": "HA Master/Slave, FAZVM64, ADOM enabled",
+    "auth": "POST /cgi-bin/module/flatui_auth body {url:/gui/userauth, method:login, params:{username,secretkey,logintype:0}} -> CURRENT_SESSION + HTTP_CSRF_TOKEN cookies",
+    "data": "POST /cgi-bin/module/flatui_proxy body {method:get, url:<path>}",
+    "old_contract": "POST /jsonrpc with user/passwd -> -11 (this build moved to flatui_auth/flatui_proxy)",
+    "license_payload_keys": [
+      "licenses.<CODE>.{status,css,txt}",
+      "account_id",
+      "company",
+      "current_num_dev",
+      "max_num_dev",
+      "max_num_adom",
+      "max_gb_day",
+      "is_vm",
+      "is_vm_trial_lic",
+      "duplicate_license",
+      "faz_status",
+      "root_adom_storage_info"
+    ],
+    "license_expiry_observed": {
+      "ADOM": "2026-12-28",
+      "COMP": "2026-12-28",
+      "ENHN": "2026-12-28",
+      "FMWR": "2026-12-28",
+      "FOAS": "2026-12-28",
+      "FRVS": "2026-12-28",
+      "PBDS": "2026-12-28",
+      "SOAR": "2026-12-28",
+      "SPRT": "2026-12-28",
+      "VMLS": "2026-12-28",
+      "FCEM": "2024-04-14 (expired)",
+      "FCEP": "2022-01-14 (expired)"
+    },
+    "eps_endpoint": "/gui/sys/monitor -> {data:[{name:TOTAL,data:[...]}]} interval=120s samples=30",
+    "info_endpoint": "/gui/sys/info -> fwversion, ha.mode, uptimeSeconds, hostname"
+  }
+}
