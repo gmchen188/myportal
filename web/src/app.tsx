@@ -61,7 +61,25 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     if (me.isError) {
-        return <LoginPage onLoggedIn={() => void me.refetch()} />
+        /*
+          区分两种失败 —— 处置完全不同：
+
+          · **401 未授权** → 用户没登录（或令牌过期）→ 显示登录页
+          · **其他错误（404 / 网络失败）** → **后台根本没连上**
+
+          第二种在 GitHub Pages 上是常态：Pages 是纯静态站，没有
+          后端，`/api/auth/me` 直接 404。没有这一步的话，演示站会
+          永远停在登录页，登录还必然失败 —— 演示能力直接没了。
+
+          所以：后台不可用时**退回演示模式**，不挡路。
+          生产部署（有后台）时永远走 401 分支，认证一点不松。
+        */
+        const status = (me.error as { status?: number } | null)?.status
+        if (status === 401 || status === 403) {
+            return <LoginPage onLoggedIn={() => void me.refetch()} />
+        }
+        // 后台不可达 —— 放行，页面自己会显示各自的数据加载失败
+        return <>{children}</>
     }
 
     return <>{children}</>

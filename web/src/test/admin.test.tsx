@@ -206,3 +206,51 @@ describe("管理后台页", () => {
         expect(screen.getByText("从未收到")).toBeInTheDocument()
     })
 })
+
+
+/**
+ * AuthGate 的分叉 —— **不能退化**。
+ *
+ * 后台不可达（404 / 网络失败）时必须放行，演示站才还能用；
+ * 401（未授权）时必须显示登录页，认证才没被绕过。
+ *
+ * 判错了两个方向都出事：
+ * - 把 404 当 401 → 演示站永远停在登录页，登录还必然失败
+ * - 把 401 当 404 → 生产环境不登录就能进后台
+ */
+describe("AuthGate 的错误分叉", () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        localStorage.clear()
+    })
+
+    async function renderApp(meResult: { status?: number; message?: string }) {
+        const { api, ApiError } = await import("@/api/client")
+        vi.mocked(api.auth.me).mockRejectedValue(
+            new ApiError(meResult.status ?? 500, meResult.message ?? "内部错误"),
+        )
+        const { App } = await import("@/app")
+        render(<App />, { wrapper })
+    }
+
+    it("401（未授权）要显示登录页", async () => {
+        await renderApp({ status: 401, message: "需要 Bearer 令牌" })
+        await waitFor(() => expect(screen.getByLabelText("用户名")).toBeInTheDocument())
+    })
+
+    it("403 也要显示登录页", async () => {
+        await renderApp({ status: 403, message: "租户已停用" })
+        await waitFor(() => expect(screen.getByLabelText("用户名")).toBeInTheDocument())
+    })
+
+    it("404（后台没连上）要放行 —— 演示站不能卡在登录页", async () => {
+        await renderApp({ status: 404, message: "Not Found" })
+        // **不该出现登录页**
+        await waitFor(() => expect(screen.queryByLabelText("用户名")).toBeNull())
+    })
+
+    it("500（后台挂了）也要放行", async () => {
+        await renderApp({ status: 500, message: "内部错误" })
+        await waitFor(() => expect(screen.queryByLabelText("用户名")).toBeNull())
+    })
+})
