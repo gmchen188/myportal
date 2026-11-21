@@ -72,13 +72,18 @@ def health():
             "connected": siem.connected,
             "org": siem.org,
             "error": siem.error,
+            "stage": siem.stage,
         },
     }
 
 
 @app.get("/api/siem/status")
 def siem_status():
-    """FortiSIEM 连接状态与设备列表。"""
+    """FortiSIEM 连接状态与设备列表。
+
+    带上**分阶段诊断**（tcp / tls / auth / api）：运维看到的是"卡在哪一段"，
+    不是一句"连接失败"。
+    """
     c = get_client()
     st = c.status()
     out = {
@@ -86,6 +91,8 @@ def siem_status():
         "connected": st.connected,
         "org": st.org,
         "error": st.error,
+        "stage": st.stage,
+        "probes": st.probes or {},
         "devices": [],
     }
     if st.connected:

@@ -46,6 +46,10 @@ class SiemStatus:
     error: str | None = None
     last_sync: str | None = None
     incident_count: int = 0
+    # 分阶段诊断 —— 「连不上」有太多种原因，不分阶段就只能猜
+    stage: str | None = None
+    # 各阶段的实测结果，供前端显示
+    probes: dict[str, Any] | None = None
 
 
 @dataclass
@@ -184,17 +188,84 @@ class FortiSiemClient:
         return out
 
     def status(self) -> SiemStatus:
-        """探活。不可达时返回 connected=False + 原因，不抛异常。"""
+        """探活，并把「连不上」拆成可定位的阶段。
+
+        分四段，每段的结果单独报出来：
+
+            tcp     TCP 能不能连上        —— 不通 = 网络/路由问题
+            tls     TLS 能不能握手        —— 不通 = 证书或协议问题
+            auth    能不能取到 token      —— 不行 = 凭据问题
+            api     能不能读到设备        —— 不行 = 权限或接口问题
+
+        **不合并成一句「连接失败」** —— 那等于让运维自己猜。
+        """
+        probes: dict[str, Any] = {}
+
+        # ① TCP
+        import socket
+        import urllib.parse
+
+        parsed = urllib.parse.urlparse(self.base_url)
+        host = parsed.hostname or ""
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        try:
+            with socket.create_connection((host, port), timeout=8):
+                probes["tcp"] = {"ok": True, "detail": f"{host}:{port} 可连接"}
+        except Exception as e:
+            probes["tcp"] = {"ok": False, "detail": f"{host}:{port} 不可连接：{type(e).__name__}"}
+            return SiemStatus(
+                configured=self.configured, connected=False, org=self.org,
+                error=f"网络不通：{probes['tcp']['detail']}",
+                stage="tcp", probes=probes,
+            )
+
+        # ② TLS
+        try:
+            r = self._ensure_client().get(self.base_url, timeout=10)
+            probes["tls"] = {"ok": True, "detail": f"TLS 握手成功，HTTP {r.status_code}"}
+        except httpx.ConnectError as e:
+            probes["tls"] = {"ok": False, "detail": f"TLS 失败：{str(e)[:120]}"}
+            return SiemStatus(
+                configured=self.configured, connected=False, org=self.org,
+                error=probes["tls"]["detail"], stage="tls", probes=probes,
+            )
+        except Exception as e:
+            probes["tls"] = {"ok": True, "detail": f"连接成功（{type(e).__name__}）"}
+
+        # ③ 认证
         if not self.configured:
-            return SiemStatus(configured=False, connected=False, org=self.org,
-                              error="未配置 FORTISIEM_CLIENT_ID / FORTISIEM_CLIENT_SECRET")
+            probes["auth"] = {
+                "ok": False,
+                "detail": "未配置 FORTISIEM_CLIENT_ID / FORTISIEM_CLIENT_SECRET",
+            }
+            return SiemStatus(
+                configured=False, connected=False, org=self.org,
+                error=probes["auth"]["detail"], stage="auth", probes=probes,
+            )
         try:
             self.token()
-            devs = self.devices()
-            return SiemStatus(configured=True, connected=True, org=self.org,
-                              incident_count=len(devs))
+            probes["auth"] = {"ok": True, "detail": "token 获取成功"}
         except Exception as e:
-            return SiemStatus(configured=True, connected=False, org=self.org, error=str(e)[:300])
+            probes["auth"] = {"ok": False, "detail": str(e)[:200]}
+            return SiemStatus(
+                configured=True, connected=False, org=self.org,
+                error=probes["auth"]["detail"], stage="auth", probes=probes,
+            )
+
+        # ④ 读设备
+        try:
+            devs = self.devices()
+            probes["api"] = {"ok": True, "detail": f"读到 {len(devs)} 台设备"}
+            return SiemStatus(
+                configured=True, connected=True, org=self.org,
+                incident_count=len(devs), stage="ok", probes=probes,
+            )
+        except Exception as e:
+            probes["api"] = {"ok": False, "detail": str(e)[:200]}
+            return SiemStatus(
+                configured=True, connected=False, org=self.org,
+                error=probes["api"]["detail"], stage="api", probes=probes,
+            )
 
 
 # 全局单例 —— token 要按 (base_url, client_id) 缓存，不能每次请求重铸
