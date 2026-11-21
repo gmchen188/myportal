@@ -178,6 +178,13 @@ jobs:
             # 当成要打包的成员名。
             (cd web/dist && tar --exclude='*.map' -cf - .) | (cd _site && tar -xf -)
           fi
+          # SPA fallback —— GitHub Pages 找不到路径时返回 404.html，
+          # 所以把 index.html 复制成 404.html，深链接（/siem、/monitor）
+          # 刷新时才能加载到应用，而不是 GitHub 的 404 页。
+          # （实测过：没有它，线上 /siem 直接 404）
+          if [ -f _site/index.html ]; then
+            cp _site/index.html _site/404.html
+          fi
           du -sh _site
           find _site -type f | head -20
 
