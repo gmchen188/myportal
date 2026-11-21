@@ -42,8 +42,13 @@ export function useSiemRefresh() {
 /**
  * 同步 SIEM 的事件与设备。
  *
- * 同步会把设备写进资产清单 —— 所以成功后要把 assets 的缓存作废，
- * 否则资产页还显示同步前的数量。
+ * 同步会写入两类数据，**两类缓存都要作废**：
+ *   · 设备 → 资产清单（`["assets"]`）
+ *   · 事件 → 事件表（`["events", ...]` 与总览的 `["events"]`）
+ *
+ * 漏掉 events 的话，用户点了同步、看到「新增 2 条」，但事件列表还是
+ * 同步前的旧数据 —— 直到轮询自然过期才变。**静默过期比报错更坏**：
+ * 用户会以为同步没生效。
  */
 export function useSiemSync() {
     const qc = useQueryClient()
@@ -53,6 +58,11 @@ export function useSiemSync() {
         onSuccess: () => {
             void qc.invalidateQueries({ queryKey: ["assets"] })
             void qc.invalidateQueries({ queryKey: ["siem-status"] })
+            // 事件页用 ["events", severity, source]，总览用 ["events"] ——
+            // 用前缀失效，两种都能命中
+            void qc.invalidateQueries({ queryKey: ["events"] })
+            // 监控面板的节点颜色也依赖事件
+            void qc.invalidateQueries({ queryKey: ["monitor-panel"] })
         },
     })
 }
