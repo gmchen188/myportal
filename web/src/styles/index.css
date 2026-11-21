@@ -262,6 +262,43 @@
 
     .tbl-wrap {
         overflow-x: auto;
+        /* 触屏上横向滚动更跟手 */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /*
+     * **窄屏下表格要有最小宽度**。
+     *
+     * 不加的话：table 是 `width: 100%`，内容多的列被压到容器宽度里，
+     * 文字被**裁掉**（不是换行、也不是滚动）—— 实测 375px 下
+     * 「最近事件」表的标题列显示成 "CBS-PRC" + "件"，来源列完全看不见。
+     *
+     * 有 min-width 之后表格本身超宽，`.tbl-wrap` 的
+     * overflow-x:auto 就能横向滚动 —— 内容不丢。
+     */
+    @media (max-width: 640px) {
+        /*
+         * 单元格不换行。
+         *
+         * 只加 min-width 是不够的 —— 列宽不够时浏览器会把中文
+         * **逐字**折行（实测「初始管理员」变成「初始管理」+「员」），
+         * 比被裁掉还难读。
+         *
+         * 不换行之后表格自然撑到内容宽度，`.tbl-wrap` 横向滚动，
+         * 每个词都完整。
+         *
+         * 长文本列（事件标题、JSON 详情）加 `.wrap` 类放开换行 ——
+         * 它们本来就长，强行不换行会让表格宽到没法用。
+         */
+        .tbl-wrap th,
+        .tbl-wrap td {
+            white-space: nowrap;
+        }
+
+        .tbl-wrap th.wrap,
+        .tbl-wrap td.wrap {
+            white-space: normal;
+        }
     }
 
     table {

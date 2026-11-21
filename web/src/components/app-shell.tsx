@@ -196,6 +196,11 @@ export function AppShell() {
                         position: "sticky",
                         top: 0,
                         zIndex: 20,
+                        // **minWidth: 0** —— flex 子项默认 min-width:auto，
+                        // 内容不换行就会把父容器撑破。375px 下顶栏有
+                        // 菜单按钮 + 用户名 + 登出 + 租户按钮，不加这个
+                        // 整页横向溢出 65px。
+                        minWidth: 0,
                     }}
                 >
                     <button
@@ -213,11 +218,30 @@ export function AppShell() {
                       **登录了却不知道是谁、也没法退出** —— 那是半个登录系统。
                     */}
                     {me && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                // 可收缩 —— 否则长用户名撑破顶栏
+                                minWidth: 0,
+                            }}
+                        >
+                            {/*
+                              窄屏只显示用户名，租户名收进 title ——
+                              375px 放不下「初始管理员 · AquaSync Innovation」
+                              加登出按钮加租户按钮。
+                            */}
                             <span
-                                className="subtle"
-                                style={{ fontSize: 12, whiteSpace: "nowrap" }}
-                                title={`角色：${me.role}`}
+                                className="subtle hidden md:inline"
+                                style={{
+                                    fontSize: 12,
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    maxWidth: 220,
+                                }}
+                                title={`${me.user?.display_name || me.user?.username || me.user_id} · ${me.tenant?.name ?? me.tenant_slug}（角色：${me.role}）`}
                             >
                                 {me.user?.display_name || me.user?.username || me.user_id}
                                 {/* 分隔符 —— 「初始管理员AquaSync Innovation」连成一片读不出边界 */}
@@ -225,12 +249,16 @@ export function AppShell() {
                                     · {me.tenant?.name ?? me.tenant_slug}
                                 </span>
                             </span>
+                            {/*
+                              窄屏只留登出图标，但**必须有可访问名** ——
+                              只剩图标时 aria-label 是唯一的可访问标识。
+                            */}
                             <button
                                 type="button"
                                 className="btn"
-                                style={{ height: 30 }}
+                                style={{ height: 30, flexShrink: 0 }}
                                 onClick={() => void logout()}
-                                title="退出登录"
+                                title={`退出登录（${me.user?.display_name || me.user?.username || me.user_id}）`}
                                 aria-label="退出登录"
                             >
                                 <LogOut size={14} />
@@ -238,11 +266,26 @@ export function AppShell() {
                         </div>
                     )}
 
-                    <div style={{ position: "relative", marginLeft: me ? 0 : "auto" }}>
+                    <div
+                        style={{
+                            position: "relative",
+                            marginLeft: me ? 0 : "auto",
+                            // 可收缩
+                            minWidth: 0,
+                        }}
+                    >
                         <button
                             type="button"
                             className="btn"
-                            style={{ height: 30 }}
+                            style={{
+                                height: 30,
+                                // 文字过长时截断而不是撑破顶栏
+                                maxWidth: 160,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                            }}
                             onClick={() => setTenantOpen((v) => !v)}
                             aria-expanded={tenantOpen}
                             aria-haspopup="listbox"

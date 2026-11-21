@@ -254,3 +254,79 @@ describe("AuthGate 的错误分叉", () => {
         await waitFor(() => expect(screen.queryByLabelText("用户名")).toBeNull())
     })
 })
+
+
+/**
+ * 窄屏渲染回归 —— **这些是实测出来的真问题，不是假设**。
+ *
+ * ## 1. 顶栏横向溢出 65px
+ *
+ * 本轮给顶栏加了「用户名 + 登出按钮 + 租户按钮」，375px 下放不下：
+ * 用户名的 `white-space: nowrap` 把整个 header 撑破，**整页横向
+ * 溢出 65px**，租户按钮被切掉右边缘。
+ *
+ * 修法：header 加 `minWidth: 0`（flex 子项默认 min-width:auto，
+ * 不换行的内容会撑破父容器）、窄屏隐藏用户名、租户按钮限宽截断。
+ *
+ * ## 2. 表格文字被裁 / 逐字折行
+ *
+ * `table { width: 100% }` + 窄屏容器 → 内容多的列被压到容器宽，
+ * 文字被**裁掉**（不是换行）。加了 min-width 后表格能滚了，
+ * 但列宽仍不够 → 中文**逐字**折行（「初始管理员」→「初始管理」+
+ * 「员」），比裁掉还难读。
+ *
+ * 修法：窄屏 `.tbl-wrap td/th { white-space: nowrap }`。
+ */
+describe("窄屏渲染", () => {
+    it("顶栏不能因为用户名而溢出", async () => {
+        const { readFileSync } = await import("node:fs")
+        const { join } = await import("node:path")
+        const src = readFileSync(join(process.cwd(), "src", "components", "app-shell.tsx"), "utf8")
+
+        // header 必须有 minWidth: 0 —— 没有它 flex 子项会撑破父容器
+        //
+        // **不能只查字符串包含** —— 注释里写着「minWidth: 0」也会
+        // 满足 `toContain`。要查注释**之外**真的有这个属性。
+        const headerBlock = src.slice(src.indexOf("<header"), src.indexOf("</header>"))
+        // 去掉行注释后再找
+        const codeOnly = headerBlock
+            .split("\n")
+            .filter((l) => !l.trim().startsWith("//"))
+            .join("\n")
+        expect(codeOnly).toContain("minWidth: 0")
+
+        // 窄屏必须隐藏用户名（hidden md:inline）
+        expect(src).toContain("hidden md:inline")
+
+        // 租户按钮必须限宽，否则长租户名会撑破
+        expect(src).toContain("textOverflow")
+    })
+
+    it("窄屏表格单元格不换行（中文不能逐字折行）", async () => {
+        const { readFileSync } = await import("node:fs")
+        const { join } = await import("node:path")
+        const css = readFileSync(join(process.cwd(), "src", "styles", "index.css"), "utf8")
+
+        // 窄屏媒体查询里必须有 white-space: nowrap
+        //
+        // 注意：文件里有**多个** `@media (max-width: 640px)`（一个管表格、
+        // 一个管 grid），不能只取最后一个 —— 用正则找「含 .tbl-wrap td
+        // 且含 nowrap」的那一段。
+        const narrowBlock = /@media \(max-width: 640px\) \{[^}]*?\.tbl-wrap td[^}]*?\}/s.exec(css)
+        expect(narrowBlock).toBeTruthy()
+        expect(narrowBlock![0]).toContain("white-space: nowrap")
+    })
+
+    it("长文本列要显式放开换行，否则表格会宽到没法用", async () => {
+        const { readFileSync } = await import("node:fs")
+        const { join } = await import("node:path")
+
+        const overview = readFileSync(join(process.cwd(), "src", "pages", "overview.tsx"), "utf8")
+        // 事件标题列
+        expect(overview).toContain('className="wrap"')
+
+        const admin = readFileSync(join(process.cwd(), "src", "pages", "admin.tsx"), "utf8")
+        // 审计详情列（JSON）
+        expect(admin).toContain("wrap")
+    })
+})

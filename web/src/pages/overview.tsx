@@ -80,7 +80,7 @@ export function OverviewPage() {
                                     <tr key={e.id}>
                                         <td><SeverityBadge severity={e.severity} /></td>
                                         <td className="mono muted">{e.device_name ?? e.device_natural_id ?? "—"}</td>
-                                        <td>{e.title}</td>
+                                        <td className="wrap">{e.title}</td>
                                         <td><span className="bdg neutral">{e.source}</span></td>
                                     </tr>
                                 ))}

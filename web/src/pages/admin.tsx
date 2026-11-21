@@ -858,7 +858,7 @@ function AuditTab() {
                                     <td className="subtle">
                                         {e.target_type ? `${e.target_type}#${e.target_id}` : "—"}
                                     </td>
-                                    <td className="mono subtle" style={{ fontSize: 11, maxWidth: 320 }}>
+                                    <td className="mono subtle wrap" style={{ fontSize: 11, maxWidth: 320 }}>
                                         {Object.keys(e.detail ?? {}).length > 0
                                             ? JSON.stringify(e.detail)
                                             : "—"}
