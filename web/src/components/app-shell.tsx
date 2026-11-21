@@ -12,6 +12,7 @@ import {
     Menu,
     MonitorSmartphone,
     Network,
+    Radar,
     ShieldAlert,
     X,
 } from "lucide-react"
@@ -26,6 +27,7 @@ const NAV = [
     { to: "/topologies", label: "网络拓扑", icon: Network },
     { to: "/monitor", label: "监控面板", icon: MonitorSmartphone },
     { to: "/events", label: "安全事件", icon: ShieldAlert },
+    { to: "/siem", label: "FortiSIEM", icon: Radar },
 ]
 
 const TENANTS = [

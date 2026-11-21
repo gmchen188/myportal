@@ -95,13 +95,47 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     }
 
     if (!res.ok) {
-        const detail =
-            payload && typeof payload === "object" && "error" in payload
-                ? String((payload as { error: unknown }).error)
-                : `HTTP ${res.status}`
-        throw new ApiError(res.status, detail)
+        throw new ApiError(res.status, extractDetail(payload, res.status))
     }
     return payload as T
+}
+
+/**
+ * 从错误响应里取出**人话**。
+ *
+ * 后台有两种错误形状：
+ *   - FastAPI 的 `{"detail": "资产名称不能为空"}`
+ *   - 自定义的 `{"error": "拉取事件失败", ...}`
+ *
+ * siem 的 502 还会在 detail 里带上 `stage`（卡在哪一段）与 `probes`
+ * （分段实测结果）—— 那是运维定位问题的关键，不能只剩一句「HTTP 502」。
+ */
+function extractDetail(payload: unknown, status: number): string {
+    if (payload && typeof payload === "object") {
+        const obj = payload as Record<string, unknown>
+        const direct = obj.error
+        if (typeof direct === "string" && direct) return direct
+        if (direct !== undefined && direct !== null && typeof direct !== "object") {
+            return String(direct)
+        }
+
+        const detail = obj.detail
+        if (typeof detail === "string" && detail) return detail
+        if (detail && typeof detail === "object") {
+            const inner = detail as Record<string, unknown>
+            const msg =
+                typeof inner.error === "string" && inner.error
+                    ? inner.error
+                    : typeof inner.detail === "string" && inner.detail
+                      ? inner.detail
+                      : null
+            const stage = typeof inner.stage === "string" && inner.stage ? inner.stage : null
+            if (msg && stage) return `${msg}（卡在 ${stage} 段）`
+            if (msg) return msg
+            if (stage) return `请求失败（卡在 ${stage} 段）`
+        }
+    }
+    return `HTTP ${status}`
 }
 
 // ── 类型 ────────────────────────────────────────────────────────────────────
@@ -281,18 +315,57 @@ export interface ModelOption {
     provider: string
 }
 
+/** FortiSIEM 连接诊断停在哪一段。 */
+export type SiemStage = "tcp" | "tls" | "auth" | "api" | "ok"
+
+/** 单段探测的结果。 */
+export interface SiemProbe {
+    ok: boolean
+    detail: string
+}
+
+/** 四段探测 —— 键就是 stage 的取值。 */
+export type SiemProbes = Partial<Record<Exclude<SiemStage, "ok">, SiemProbe>>
+
+export interface SiemDevice {
+    name: string
+    natural_id: string
+    access_ip: string
+    sn: string
+    org: string | null
+    org_id: string | null
+    vendor: string | null
+    model: string | null
+    version: string | null
+}
+
 export interface SiemStatus {
     configured: boolean
     connected: boolean
     org: string | null
     error: string | null
-    devices: Array<{
-        name: string
-        natural_id: string
-        access_ip: string
-        vendor: string | null
-        model: string | null
-    }>
+    /** 卡在哪一段。`"ok"` 表示四段全通。 */
+    stage: SiemStage | null
+    /** 各段的实测结果。缺哪段就是没走到哪段。 */
+    probes: SiemProbes
+    devices: SiemDevice[]
+}
+
+/** 同步的计数。事件与设备各一份。 */
+export interface SiemSyncCounts {
+    fetched?: number
+    total?: number
+    created: number
+    updated: number
+    skipped: number
+}
+
+export interface SiemSyncResult {
+    org: string
+    window_minutes: number
+    events: SiemSyncCounts
+    devices: SiemSyncCounts
+    synced_at: string
 }
 
 // ── 接口 ────────────────────────────────────────────────────────────────────
@@ -399,5 +472,18 @@ export const api = {
 
     siem: {
         status: () => request<SiemStatus>("/api/siem/status"),
+
+        /**
+         * 把 SIEM 的事件与设备同步进 myPortal。
+         *
+         * 默认回溯 24 小时、同时同步设备、不覆盖已有行 —— 与后台默认值一致。
+         */
+        sync: (params: { minutes?: number; devices?: boolean; overwrite?: boolean } = {}) => {
+            const qs = new URLSearchParams()
+            qs.set("minutes", String(params.minutes ?? 1440))
+            qs.set("devices", String(params.devices ?? true))
+            qs.set("overwrite", String(params.overwrite ?? false))
+            return request<SiemSyncResult>(`/api/siem/sync?${qs.toString()}`, { method: "POST" })
+        },
     },
 }

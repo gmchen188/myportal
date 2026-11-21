@@ -52,6 +52,7 @@ export function OverviewPage() {
                     <div className="subtle" style={{ marginTop: 2 }}>
                         {siem?.error ?? "事件汇聚点正常"}
                     </div>
+                    <Link to="/siem" className="link" style={{ fontSize: 12 }}>分段诊断 →</Link>
                 </div>
             </div>
 
