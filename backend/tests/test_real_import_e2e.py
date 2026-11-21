@@ -34,8 +34,17 @@ REAL_DB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 @pytest.fixture(scope="module")
 def real_db():
+    """真实库的一份副本。
+
+    **CI 上这个测试会被跳过** —— 生产库不进仓库（backend/data/ 被
+    gitignore），CI 上是后端 startup 建的空库，里面没有拓扑图。
+
+    所以判断依据不是「文件在不在」（CI 上文件存在但是空的），
+    而是「**里面有没有拓扑图**」。没有就 skip —— 这是环境依赖型测试
+    该有的行为，不该让 CI 变红。
+    """
     if not os.path.exists(REAL_DB):
-        pytest.skip("生产库不存在")
+        pytest.skip("生产库不存在，跳过真实数据验证")
     tmpdir = tempfile.mkdtemp(prefix="myportal-e2e-")
     dst = os.path.join(tmpdir, "copy.db")
     for suffix in ("", "-wal", "-shm"):
@@ -45,6 +54,9 @@ def real_db():
     engine = create_engine(f"sqlite:///{dst}", future=True, connect_args={"check_same_thread": False})
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
     try:
+        db = Session()
+        if db.scalars(select(Topology)).first() is None:
+            pytest.skip("生产库里没有拓扑图（CI 上是空库），跳过真实数据验证")
         yield Session
     finally:
         engine.dispose()

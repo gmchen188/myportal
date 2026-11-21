@@ -47,6 +47,12 @@ def real_db():
     engine = create_engine(f"sqlite:///{dst}", future=True, connect_args={"check_same_thread": False})
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
     try:
+        # **判断依据是「里面有没有拓扑图」，不是「文件在不在」** ——
+        # CI 上后端 startup 会建一个空的库文件，文件存在但没内容。
+        # 没有拓扑图就跳过 —— 环境依赖型测试不该让 CI 变红。
+        db = Session()
+        if db.scalars(select(Topology)).first() is None:
+            pytest.skip("生产库里没有拓扑图（CI 上是空库），跳过真实数据验证")
         yield Session
     finally:
         engine.dispose()
