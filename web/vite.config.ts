@@ -16,7 +16,14 @@ export default defineConfig({
         // 开发时前端跑在 5173，后台在 9102 —— 用代理而不是跨域，
         // 这样和生产的同源部署行为一致（cookie、相对路径都不用改）。
         proxy: {
+            // /api 与 /health 都要代理 —— /health 是后台的健康检查，
+            // 侧栏的 FortiSIEM 指示灯用它。只配 /api 的话 /health 会 404，
+            // 指示灯永远显示「未连接」。
             "/api": {
+                target: process.env.MP_API_ORIGIN ?? "http://127.0.0.1:9102",
+                changeOrigin: true,
+            },
+            "/health": {
                 target: process.env.MP_API_ORIGIN ?? "http://127.0.0.1:9102",
                 changeOrigin: true,
             },
