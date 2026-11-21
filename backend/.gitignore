@@ -8,3 +8,8 @@ __pycache__/
 
 # 运行期凭据（FortiSIEM client secret 等）—— 绝不入库
 .env
+
+# 整个 data 目录都不入库 ——
+# 里面有运行期的 SQLite 库（含真实 SIEM 的设备与事件），
+# 还有备份文件（*.db.bak-<时间戳>，后缀不匹配上面的规则）。
+data/

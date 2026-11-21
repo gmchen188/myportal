@@ -9,3 +9,8 @@ openpyxl>=3.1
 xlrd>=2.0
 # .env 加载（FortiSIEM 凭据等运行期配置）
 python-dotenv>=1.0
+# 文件上传端点（资产清单 CSV/Excel 导入）需要它。
+# **缺了它，FastAPI 在 import app.main 时就抛**
+# RuntimeError: Form data requires "python-multipart" to be installed
+# —— 本地装过所以测不出来，CI 上直接收集失败。
+python-multipart>=0.0.9
