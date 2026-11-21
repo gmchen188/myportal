@@ -483,6 +483,97 @@ export interface SiemSyncResult {
 
 // ── 接口 ────────────────────────────────────────────────────────────────────
 
+// ── 认证 ─────────────────────────────────────────────────────────────────────
+export interface LoginResult {
+    access_token: string
+    token_type: string
+    expires_in: number
+    user: AdminUser
+    tenant: AdminTenant
+}
+
+export interface CurrentUser {
+    user_id: string
+    tenant_id: string
+    tenant_slug: string
+    role: string
+    locale: string
+    is_admin: boolean
+    is_super_admin: boolean
+    can_write: boolean
+    user?: AdminUser
+    tenant?: AdminTenant
+}
+
+// ── 管理后台 ─────────────────────────────────────────────────────────────────
+export interface AdminUser {
+    id: number
+    tenant_id: string
+    username: string
+    display_name: string | null
+    role: string
+    email: string | null
+    is_active: boolean
+    last_login_at: string | null
+    failed_attempts: number
+    locked_until: string | null
+    created_at: string | null
+}
+
+export interface AdminTenant {
+    id: string
+    slug: string
+    name: string
+    locale: string
+    fortisiem_org: string | null
+    is_active: boolean
+    description: string | null
+    created_at: string | null
+}
+
+export type IntakeKind = "fortisiem" | "syslog" | "webhook" | "agent"
+
+export interface IntakeSource {
+    id: number
+    tenant_id: string
+    kind: IntakeKind
+    name: string
+    description: string | null
+    config: Record<string, unknown>
+    enabled: boolean
+    last_seen_at: string | null
+    events_received: number
+    created_by: string | null
+    created_at: string | null
+    updated_at: string | null
+}
+
+export interface AuditEntry {
+    id: number
+    tenant_id: string
+    user_id: number | null
+    username: string | null
+    action: string
+    target_type: string | null
+    target_id: string | null
+    detail: Record<string, unknown>
+    ip: string | null
+    created_at: string | null
+}
+
+export interface AdminOverview {
+    tenants: number
+    active_tenants: number
+    users: number
+    assets: number
+    incidents: number
+    topologies: number
+    intake_sources: number
+    intake_active: number
+    intake_never_seen: number
+    audit_entries: number
+}
+
 export const api = {
     health: () => request<{ status: string; siem: { configured: boolean; connected: boolean; error: string | null } }>("/health"),
 
@@ -635,6 +726,113 @@ export const api = {
             // 数字看着是诚实的但没人知道还有更多。
             qs.set("limit", String(params.limit ?? 1000))
             return request<SiemSyncResult>(`/api/siem/sync?${qs.toString()}`, { method: "POST" })
+        },
+    },
+
+    /**
+     * 认证。
+     *
+     * 登录成功后**必须把令牌存起来**（setToken）—— 后台在生产模式
+     * 下只认 Bearer 令牌，而令牌是无状态的，服务端不持有，登出也
+     * 作废不了它（只能靠过期）。
+     */
+    auth: {
+        login: (username: string, password: string, tenant: string) =>
+            request<LoginResult>("/api/auth/login", {
+                method: "POST",
+                body: { username, password, tenant },
+            }),
+
+        /** 当前是谁。前端启动时调它 —— 401 就跳登录页。 */
+        me: () => request<CurrentUser>("/api/auth/me"),
+
+        logout: () => request<{ ok: boolean; note: string }>("/api/auth/logout", { method: "POST" }),
+
+        changePassword: (oldPassword: string, newPassword: string) =>
+            request<{ ok: boolean }>("/api/auth/change-password", {
+                method: "POST",
+                body: { old_password: oldPassword, new_password: newPassword },
+            }),
+
+        /** 最近的登录失败 —— 排查是不是有人在撞库。 */
+        loginAttempts: () => request<AuditEntry[]>("/api/auth/login-attempts"),
+    },
+
+    /**
+     * 管理后台。
+     *
+     * 这些端点**任何模式都要令牌**（后台的严格认证）—— 开发模式
+     * 的免登录头只对业务读接口有效。
+     */
+    admin: {
+        overview: () => request<AdminOverview>("/api/admin/overview"),
+
+        users: {
+            list: () => request<AdminUser[]>("/api/admin/users"),
+            create: (body: {
+                username: string
+                password: string
+                role?: string
+                display_name?: string
+                email?: string
+                tenant_id?: string
+            }) => request<AdminUser>("/api/admin/users", { method: "POST", body }),
+            update: (id: number, body: Partial<{
+                display_name: string
+                role: string
+                email: string
+                is_active: boolean
+                password: string
+            }>) => request<AdminUser>(`/api/admin/users/${id}`, { method: "PATCH", body }),
+            remove: (id: number) => request<AdminUser>(`/api/admin/users/${id}`, { method: "DELETE" }),
+        },
+
+        tenants: {
+            list: () => request<AdminTenant[]>("/api/admin/tenants"),
+            create: (body: {
+                slug: string
+                name: string
+                fortisiem_org?: string
+                locale?: string
+                description?: string
+            }) => request<AdminTenant>("/api/admin/tenants", { method: "POST", body }),
+            update: (id: string, body: Partial<{
+                name: string
+                fortisiem_org: string
+                locale: string
+                description: string
+                is_active: boolean
+            }>) => request<AdminTenant>(`/api/admin/tenants/${id}`, { method: "PATCH", body }),
+        },
+
+        intakeSources: {
+            list: () => request<IntakeSource[]>("/api/admin/intake-sources"),
+            create: (body: {
+                kind: IntakeKind
+                name: string
+                description?: string
+                config?: Record<string, unknown>
+                enabled?: boolean
+                tenant_id?: string
+            }) => request<IntakeSource>("/api/admin/intake-sources", { method: "POST", body }),
+            update: (id: number, body: Partial<{
+                name: string
+                description: string
+                config: Record<string, unknown>
+                enabled: boolean
+            }>) => request<IntakeSource>(`/api/admin/intake-sources/${id}`, { method: "PATCH", body }),
+            remove: (id: number) =>
+                request<{ ok: boolean; deleted: IntakeSource }>(`/api/admin/intake-sources/${id}`, {
+                    method: "DELETE",
+                }),
+        },
+
+        audit: (params: { action?: string; limit?: number } = {}) => {
+            const qs = new URLSearchParams()
+            if (params.action) qs.set("action", params.action)
+            if (params.limit) qs.set("limit", String(params.limit))
+            const s = qs.toString()
+            return request<AuditEntry[]>(`/api/admin/audit${s ? `?${s}` : ""}`)
         },
     },
 }

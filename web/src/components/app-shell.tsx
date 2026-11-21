@@ -4,21 +4,24 @@
  * 布局用 CSS Grid 而不是固定像素 —— 375px 窄屏下侧栏收成抽屉。
  */
 
+import { useQuery } from "@tanstack/react-query"
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 import {
     Boxes,
     ChevronDown,
     LayoutDashboard,
+    LogOut,
     Menu,
     MonitorSmartphone,
     Network,
     Radar,
+    Settings2,
     ShieldAlert,
     X,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { getTenant, setTenant } from "@/api/client"
+import { api, getTenant, setToken, setTenant } from "@/api/client"
 import { useHealth } from "@/hooks/use-health"
 
 const NAV = [
@@ -28,6 +31,9 @@ const NAV = [
     { to: "/monitor", label: "监控面板", icon: MonitorSmartphone },
     { to: "/events", label: "安全事件", icon: ShieldAlert },
     { to: "/siem", label: "FortiSIEM", icon: Radar },
+    // 管理后台 —— **只对能管的人显示**。
+    // 服务端也会拦（viewer 拿到 403），但入口不该摆在那儿让人白点一次。
+    { to: "/admin", label: "管理后台", icon: Settings2, adminOnly: true },
 ]
 
 const TENANTS = [
@@ -41,6 +47,15 @@ export function AppShell() {
     const [tenantOpen, setTenantOpen] = useState(false)
     const location = useLocation()
     const { data: health } = useHealth()
+
+    // 当前是谁 —— 决定要不要显示「管理后台」入口、顶栏显示谁
+    const { data: me } = useQuery({
+        queryKey: ["auth-me"],
+        queryFn: () => api.auth.me(),
+        retry: false,
+        staleTime: 60_000,
+    })
+    const canManage = me?.can_write ?? false
 
     // 路由变了就收起抽屉
     useEffect(() => {
@@ -115,7 +130,7 @@ export function AppShell() {
                 </div>
 
                 <nav style={{ padding: "10px 8px", flex: 1 }}>
-                    {NAV.map((n) => (
+                    {NAV.filter((n) => !("adminOnly" in n) || !n.adminOnly || canManage).map((n) => (
                         <NavLink
                             key={n.to}
                             to={n.to}
@@ -195,7 +210,46 @@ export function AppShell() {
                         <Menu size={15} />
                     </button>
 
-                    <div style={{ position: "relative", marginLeft: "auto" }}>
+                    {/*
+                      当前用户 + 登出。
+                      **登录了却不知道是谁、也没法退出** —— 那是半个登录系统。
+                    */}
+                    {me && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span
+                                className="subtle"
+                                style={{ fontSize: 12, whiteSpace: "nowrap" }}
+                                title={`角色：${me.role}`}
+                            >
+                                {me.user?.display_name || me.user?.username || me.user_id}
+                                {/* 分隔符 —— 「初始管理员AquaSync Innovation」连成一片读不出边界 */}
+                                <span className="muted" style={{ marginLeft: 6 }}>
+                                    · {me.tenant?.name ?? me.tenant_slug}
+                                </span>
+                            </span>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{ height: 30 }}
+                                onClick={async () => {
+                                    try {
+                                        await api.auth.logout()
+                                    } finally {
+                                        // **令牌必须清掉** —— 服务端不持有它，
+                                        // 留着的话刷新页面还能继续用。
+                                        setToken(null)
+                                        window.location.reload()
+                                    }
+                                }}
+                                title="退出登录"
+                                aria-label="退出登录"
+                            >
+                                <LogOut size={14} />
+                            </button>
+                        </div>
+                    )}
+
+                    <div style={{ position: "relative", marginLeft: me ? 0 : "auto" }}>
                         <button
                             type="button"
                             className="btn"
