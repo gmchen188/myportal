@@ -169,12 +169,22 @@ jobs:
           if [ -d web/dist ]; then cp -r web/dist/* _site/; fi
           ls -la _site
 
-      # 用官方 action 部署，不用自己写 action（自己写要处理 404 回退、
-      # 缓存头、路径重写，官方 action 已经把这些做对了）。
-      - uses: actions/upload-pages-artifact@v5
+      # **不用 upload-pages-artifact** —— 它内部固定用 upload-artifact@v3
+      # 的 SHA（bbbca2d），而 v3 的产物存储在旧后端，deploy-pages 找不到：
+      #
+      #     Error: No artifacts named "github-pages" were found for this
+      #     workflow run.
+      #
+      # 直接用 upload-artifact@v7 上传同名 artifact —— deploy-pages 按名字
+      # 找，新存储它就找得到。v3 弃用后 upload-pages-artifact 还没跟进。
+      - name: Upload Pages artifact
         continue-on-error: true
+        uses: actions/upload-artifact@v7
         with:
+          name: github-pages
           path: _site
+          retention-days: 1
+          if-no-files-found: error
 
       - id: deployment
         uses: actions/deploy-pages@v5
