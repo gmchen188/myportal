@@ -8,6 +8,16 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
     plugins: [react(), tailwindcss()],
+    // **base 必须是部署路径**。GitHub Pages 的项目站点挂在 /<仓库名>/ 下
+    // （这里是 /myportal/），而 Vite 默认 base="/" —— 构建出的 index.html
+    // 会引用 "/assets/xxx.js"，浏览器去域名根找，资源 404，页面全白。
+    //
+    // 实测踩过：线上 curl 拿 index.html 是 200，看起来没问题，
+    // 但浏览器里 /assets/... 全 404，React 根本没挂载。
+    //
+    // VITE_BASE 由构建环境传入；本地开发留空（"/"）。
+    // **base 是构建期内联的 —— 改了必须重新 build。**
+    base: process.env.VITE_BASE ?? "/",
     resolve: {
         alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     },

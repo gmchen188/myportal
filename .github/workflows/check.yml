@@ -159,6 +159,10 @@ jobs:
       - name: Build web frontend
         continue-on-error: true
         working-directory: web
+        env:
+          # Pages 项目站点挂在 /<仓库名>/ 下 —— 构建时的 base 必须跟着变，
+          # 否则 index.html 引用 /assets/...，浏览器去域名根找，全 404。
+          VITE_BASE: /${{ github.event.repository.name }}/
         run: npm ci && npm run build
 
       - name: Assemble publish directory
