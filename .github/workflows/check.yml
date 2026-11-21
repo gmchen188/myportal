@@ -114,13 +114,16 @@ jobs:
       # workflow 判成红灯。红灯的含义是「代码有问题」，不是「没配部署」。
       - uses: actions/configure-pages@v6
         continue-on-error: true
+        id: configure_pages
 
       # demo/ 是纯静态：单文件 HTML，无外部依赖。用官方 action 部署，
       # 不用自己写 action（自己写要处理 404 回退、缓存头、路径重写，
       # 官方 action 已经把这些做对了）。
       - uses: actions/upload-pages-artifact@v5
+        continue-on-error: true
         with:
           path: demo
 
       - id: deployment
         uses: actions/deploy-pages@v5
+        continue-on-error: true
