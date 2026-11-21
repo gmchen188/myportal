@@ -14,3 +14,6 @@ python-dotenv>=1.0
 # RuntimeError: Form data requires "python-multipart" to be installed
 # —— 本地装过所以测不出来，CI 上直接收集失败。
 python-multipart>=0.0.9
+# 密码哈希（登录、用户管理）。**绝不明文存密码**。
+# 装不上 bcrypt 的话整个认证模块 import 就失败 —— 明确写出来。
+bcrypt>=4.1

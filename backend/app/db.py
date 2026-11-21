@@ -88,10 +88,27 @@ class Tenant(Base):
     name = Column(String(200), nullable=False)
     locale = Column(String(16), nullable=False, default="zh-CN")
     fortisiem_org = Column(String(120), nullable=True)
+    # 停用的租户：登录被拒、后台看不到它的数据，但**历史数据不删**。
+    # 安全事件要留痕 —— 不能因为客户不续费就把记录抹了。
+    is_active = Column(Boolean, nullable=False, default=True)
+    description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     assets = relationship("Asset", back_populates="tenant", cascade="all, delete-orphan")
     topologies = relationship("Topology", back_populates="tenant", cascade="all, delete-orphan")
+    users = relationship("User", back_populates="tenant", cascade="all, delete-orphan")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "slug": self.slug,
+            "name": self.name,
+            "locale": self.locale,
+            "fortisiem_org": self.fortisiem_org,
+            "is_active": self.is_active,
+            "description": self.description,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
 
 
 # ── 资产清单 ────────────────────────────────────────────────────────────────
@@ -319,13 +336,206 @@ class DeviceMonitor(Base):
         }
 
 
+# ── 用户 ────────────────────────────────────────────────────────────────────
+class User(Base):
+    """一个能登录的人。
+
+    **为什么要有这张表** —— 之前 auth.py 里只有 `issue_access_token`
+    这个函数，**却没有任何地方能拿到令牌**：没有登录端点、没有用户表。
+    多租户认证是「有锁没钥匙」，生产模式一开谁都登不进去。
+
+    角色：
+        tenant_admin  —— 本租户管理员，能管本租户的用户与接入源
+        analyst       —— 能看数据、不能改配置
+        viewer        —— 只读
+        super_admin   —— 能管所有租户
+
+    `password_hash` 用 bcrypt —— **绝不明文存密码**。
+    """
+
+    __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("tenant_id", "username", name="uq_user_tenant_username"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    username = Column(String(120), nullable=False, index=True)
+    password_hash = Column(String(200), nullable=False)
+    display_name = Column(String(200), nullable=True)
+    role = Column(String(32), nullable=False, default="viewer")
+    email = Column(String(200), nullable=True)
+
+    is_active = Column(Boolean, nullable=False, default=True)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+    # 连续登录失败次数 —— 用来锁暴力破解
+    failed_attempts = Column(Integer, nullable=False, default=0)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    tenant = relationship("Tenant", back_populates="users")
+
+    def to_dict(self) -> dict[str, Any]:
+        """**不含 password_hash** —— 任何对外输出都不能带它。"""
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "username": self.username,
+            "display_name": self.display_name,
+            "role": self.role,
+            "email": self.email,
+            "is_active": self.is_active,
+            "last_login_at": self.last_login_at.isoformat() if self.last_login_at else None,
+            "failed_attempts": self.failed_attempts,
+            "locked_until": self.locked_until.isoformat() if self.locked_until else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ── 接入源 ──────────────────────────────────────────────────────────────────
+class IntakeSource(Base):
+    """一个事件来源。
+
+    **这是「真正有用的后台」最核心的一张表** —— 之前 syslog / webhook
+    的接收端点都在代码里，但**没有任何地方能配置它们**：
+    运维不知道有哪些接入源、哪个开着、上次收到东西是什么时候。
+
+    `kind` 对应通道：
+        fortisiem  —— 从 SIEM 同步
+        syslog     —— UDP/TCP syslog 收进来
+        webhook    —— 第三方系统推
+        agent      —— 部署在设备侧的采集器
+
+    `config` 存通道自己的配置（JSON）：syslog 收哪个端口、webhook 的
+    密钥、agent 的地址。**不存明文凭据** —— 密钥类的字段由调用方自己
+    处理，这里只记录非敏感的连接参数。
+    """
+
+    __tablename__ = "intake_sources"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    kind = Column(String(32), nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    config = Column(JSON, nullable=True)
+
+    enabled = Column(Boolean, nullable=False, default=True)
+    # 上次收到事件的时间 —— 「这个通道还活着吗」的判据
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
+    # 累计收到多少条 —— 一眼看出哪个通道在贡献数据
+    events_received = Column(Integer, nullable=False, default=0)
+
+    created_by = Column(String(120), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "kind": self.kind,
+            "name": self.name,
+            "description": self.description,
+            "config": self.config or {},
+            "enabled": self.enabled,
+            "last_seen_at": self.last_seen_at.isoformat() if self.last_seen_at else None,
+            "events_received": self.events_received,
+            "created_by": self.created_by,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+# ── 审计日志 ────────────────────────────────────────────────────────────────
+class AuditLog(Base):
+    """谁在什么时候做了什么。
+
+    **安全运营门户没有审计日志等于没有 accountability** ——
+    出事了查不到人。写日志的粒度刻意定在「管理动作」上
+    （建用户、停租户、改接入源、删资产），而不是每次查询 ——
+    全量记查询会把库撑爆，而且没人会去看。
+
+    `detail` 存动作的上下文（JSON）：改了哪个字段、改前是什么。
+    """
+
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    user_id = Column(Integer, nullable=True)
+    username = Column(String(120), nullable=True)
+    action = Column(String(64), nullable=False, index=True)
+    target_type = Column(String(64), nullable=True)
+    target_id = Column(String(120), nullable=True)
+    detail = Column(JSON, nullable=True)
+
+    ip = Column(String(64), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "user_id": self.user_id,
+            "username": self.username,
+            "action": self.action,
+            "target_type": self.target_type,
+            "target_id": self.target_id,
+            "detail": self.detail or {},
+            "ip": self.ip,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+def _ensure_columns() -> None:
+    """给**已存在**的表补上新增的列。
+
+    ## 为什么需要这个
+
+    `Base.metadata.create_all(engine)` 只会建**还不存在的表**，
+    **不会给已有的表加列** —— SQLite 不支持 `ALTER TABLE ... ADD
+    COLUMN` 之外的列变更，但 ADD COLUMN 是支持的，所以这里手工补。
+
+    漏了这一步的后果很隐蔽：老库上 `tenants.is_active` 这一列
+    不存在，ORM 查 `Tenant` 时报 `no such column`，
+    **而且只在用旧库启动时才复现** —— CI 每次都是空库，测不出来。
+
+    做的是「查列 → 缺了就 ADD」—— 幂等，重复跑没问题。
+    """
+    import sqlalchemy as sa
+
+    # 表名 → [(列名, DDL 类型)]
+    wanted: dict[str, list[tuple[str, str]]] = {
+        "tenants": [
+            ("is_active", "BOOLEAN NOT NULL DEFAULT 1"),
+            ("description", "TEXT"),
+        ],
+    }
+    with engine.begin() as conn:
+        inspector = sa.inspect(conn)
+        existing_tables = set(inspector.get_table_names())
+        for table, cols in wanted.items():
+            if table not in existing_tables:
+                continue
+            have = {c["name"] for c in inspector.get_columns(table)}
+            for name, ddl in cols:
+                if name in have:
+                    continue
+                conn.execute(sa.text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+
+
 def init_db() -> None:
-    """建表 + 播种开发租户。
+    """建表 + 补列 + 播种开发租户与初始管理员。
 
     生产环境该用 alembic，但这个项目还没有迁移历史。
     """
     Base.metadata.create_all(engine)
+    _ensure_columns()
     seed_tenants()
+    seed_admin_user()
 
 
 def seed_tenants() -> None:
@@ -352,6 +562,46 @@ def seed_tenants() -> None:
                     fortisiem_org=t.get("fortisiem_org"),
                 )
             )
+        db.commit()
+
+
+def seed_admin_user() -> None:
+    """建初始管理员账号。
+
+    **没有这个账号，生产模式登录页打开就是死的** ——
+    没人能登录，就没人能建用户，就永远登不进去。
+
+    密码从环境变量 `MP_ADMIN_PASSWORD` 来，**不写死在代码里**。
+    没设这个变量就**不建** —— 不能给个默认密码 'admin/admin'，
+    那等于开后门。
+    """
+    import os
+
+    from .services.passwords import hash_password
+
+    password = os.getenv("MP_ADMIN_PASSWORD", "").strip()
+    if not password:
+        return
+
+    username = os.getenv("MP_ADMIN_USERNAME", "admin").strip()
+    tenant_slug = os.getenv("MP_ADMIN_TENANT", "asi").strip()
+
+    with SessionLocal() as db:
+        exists = db.query(User).filter(User.username == username).first()
+        if exists:
+            return
+        tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+        if tenant is None:
+            return
+        db.add(
+            User(
+                tenant_id=tenant.id,
+                username=username,
+                password_hash=hash_password(password),
+                display_name="初始管理员",
+                role="super_admin",
+            )
+        )
         db.commit()
 
 
