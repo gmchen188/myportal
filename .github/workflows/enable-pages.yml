@@ -1,0 +1,36 @@
+name: Enable Pages
+
+# 一次性：开 Pages 并把 source 设成 workflow。
+# 用 GITHUB_TOKEN（默认带 pages: write）调 API —— fine-grained PAT 没有
+# Pages 权限项，但 Actions 自己的 token 有。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable Pages
+        uses: actions/github-script@v8
+        with:
+          script: |
+            try {
+              const res = await github.rest.repos.createPagesSite({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                build_type: "workflow",
+              })
+              console.log("created:", res.data.html_url)
+            } catch (e) {
+              if (e.status === 409) {
+                console.log("already exists")
+              } else {
+                console.log("ERROR:", e.status, e.message)
+                throw e
+              }
+            }
