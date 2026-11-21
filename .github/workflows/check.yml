@@ -172,7 +172,11 @@ jobs:
           cp demo/index.html _site/demo/
           if [ -d web/dist ]; then
             # 不要 sourcemap —— 生产部署不需要，还占 1.9MB
-            find web/dist -type f ! -name '*.map' -exec cp --parents {} _site/ \;
+            #
+            # 用 tar 而不是 cp --parents —— 后者会留下 _site/web/dist/… 的嵌套路径。
+            # --exclude='*.map' 要放在 -cf 之前、路径之前，否则 GNU tar 会把它
+            # 当成要打包的成员名。
+            (cd web/dist && tar --exclude='*.map' -cf - .) | (cd _site && tar -xf -)
           fi
           du -sh _site
           find _site -type f | head -20
