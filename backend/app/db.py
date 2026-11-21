@@ -172,7 +172,13 @@ class Topology(Base):
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     xml = Column(Text, nullable=False, default="")
-    # 拓扑图里每个节点对应哪件资产（natural_id → 节点标签）
+    # 拓扑图里每个节点对应哪件资产。
+    #
+    # **方向是 node_id → {natural_id, label, ip}**，不是 natural_id → 节点标签。
+    # 依据：node_id 是唯一能「一节点一 key」的标识 —— natural_id 不保证存在
+    # （SIEM 同步进来的设备可能没有），也不保证一台设备只画一个节点。
+    # 要按 natural_id 查，扫 value 即可。
+    # 写入方见 services/topology_import.py。
     node_bindings = Column(JSON, nullable=False, default=dict)
     # 图片导入时的原始来源说明
     origin = Column(String(32), nullable=False, default="manual")
