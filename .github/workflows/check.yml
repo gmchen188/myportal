@@ -215,7 +215,7 @@ jobs:
           ls -la "$RUNNER_TEMP/artifact.tar"
 
       - name: Upload Pages artifact
-        continue-on-error: true
+        id: upload_pages_artifact
         uses: actions/upload-artifact@v7
         with:
           name: github-pages
@@ -223,6 +223,30 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+      # 上传与部署之间必须等一下。
+      #
+      # **这是 GitHub 的 artifact 索引最终一致性问题** —— 实测连续 6 次
+      # 部署全部失败，日志是：
+      #
+      #     Found 2 artifact(s)
+      #     Error: No artifacts named "github-pages" were found
+      #            for this workflow run.
+      #
+      # run 里明明有 3 个 artifact（web-dist / myportal-docs /
+      # github-pages），github-pages 也存在且未过期 —— 但 deploy-pages
+      # 查 metadata 时索引还没刷新，**它不重试，直接失败**。
+      #
+      # 之前的 `continue-on-error: true` 把这个失败完全吞掉了，
+      # 于是 CI 报 success，线上却一直是旧版本 —— 连续 6 次 push
+      # 都没真正上线（线上产物停在 15:50）。
+      - name: Wait for artifact index
+        run: |
+          echo "Waiting for the artifact index to catch up..."
+          sleep 20
+
+      # 部署失败必须报红。**不能加 continue-on-error** ——
+      # 之前就是它让「部署没发生」伪装成「CI 全绿」。
       - id: deployment
         uses: actions/deploy-pages@v5
-        continue-on-error: true
+        with:
+          artifact_name: github-pages
