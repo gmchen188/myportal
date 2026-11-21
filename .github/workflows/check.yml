@@ -181,20 +181,34 @@ jobs:
           du -sh _site
           find _site -type f | head -20
 
-      # **不用 upload-pages-artifact** —— 它内部固定用 upload-artifact@v3
-      # 的 SHA（bbbca2d），而 v3 的产物存储在旧后端，deploy-pages 找不到：
+      # Pages 要求 artifact 是「gzip 包着 tar」，且 tar 里不能有硬链接/符号链接。
+      # 直接把目录丢给 upload-artifact 会生成 zip —— Pages 的校验器不认，
+      # 报的是那句很含糊的：
       #
-      #     Error: No artifacts named "github-pages" were found for this
-      #     workflow run.
+      #     Artifact could not be deployed. Please ensure the content does
+      #     not contain any hard links, symlinks and total size is less
+      #     than 10GB.
       #
-      # 直接用 upload-artifact@v7 上传同名 artifact —— deploy-pages 按名字
-      # 找，新存储它就找得到。v3 弃用后 upload-pages-artifact 还没跟进。
+      # 所以照 upload-pages-artifact 的实现自己做：先 tar 成单文件，再上传。
+      # --dereference --hard-dereference 是必须的（把符号链接/硬链接解成普通文件）。
+      - name: Archive Pages artifact
+        continue-on-error: true
+        run: |
+          tar \
+            --dereference --hard-dereference \
+            --directory "_site" \
+            -cvf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            .
+          ls -la "$RUNNER_TEMP/artifact.tar"
+
       - name: Upload Pages artifact
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: github-pages
-          path: _site
+          path: ${{ runner.temp }}/artifact.tar
           retention-days: 1
           if-no-files-found: error
 
