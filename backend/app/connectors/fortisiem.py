@@ -178,6 +178,10 @@ class FortiSiemClient:
     # 探测结果缓存（见 _STATUS_CACHE_TTL 的说明）
     _status_cache: SiemStatus | None = field(default=None, init=False)
     _status_cache_expires: float = field(default=0.0, init=False)
+    # 设备列表缓存 —— 与探测缓存同 TTL。
+    # 不缓存的话，每次 30 秒轮询都要真拉一遍 CMDB XML（几十台设备）。
+    _devices_cache: list[dict[str, Any]] | None = field(default=None, init=False)
+    _devices_cache_expires: float = field(default=0.0, init=False)
 
     @property
     def configured(self) -> bool:
@@ -230,14 +234,27 @@ class FortiSiemClient:
         }
 
     # ── 读 ──────────────────────────────────────────────────────────────────
-    def devices(self) -> list[dict[str, Any]]:
+    def devices(self, *, use_cache: bool = True) -> list[dict[str, Any]]:
         """CMDB 设备列表。内部面答 XML。
 
         设备的组织在每个 <device> 上：
             <organization id="1" name="Super"/>
         丢掉属性就丢了组织名，而组织名是租户边界。
+
+        ## 缓存
+
+        **必须缓存** —— 前端 30 秒轮询一次，每次拉 CMDB 都是一次完整
+        HTTP 请求（拉 XML、解析几十台设备）。不缓存的话侧栏的 /health
+        轮询和 /siem 面板的轮询每次都真拉一遍。
+
+        TTL 与探测缓存一致（10 秒）—— 同一轮询周期内两个入口拿到的是
+        同一份数据，不会一个显示 3 台另一个显示 0 台。
         """
         import xml.etree.ElementTree as ET
+
+        now = time.time()
+        if use_cache and self._devices_cache is not None and now < self._devices_cache_expires:
+            return self._devices_cache
 
         r = self._ensure_client().get(
             f"{self.base_url}/phoenix/rest/cmdbDeviceInfo/devices",
@@ -265,6 +282,9 @@ class FortiSiemClient:
                     "version": (dt.findtext("version") if dt is not None else None),
                 }
             )
+        # 写缓存 —— 下次轮询直接复用
+        self._devices_cache = out
+        self._devices_cache_expires = now + _STATUS_CACHE_TTL
         return out
 
     def incidents(

@@ -193,3 +193,41 @@ describe("重新检测的失败态", () => {
  * 这个测试放在独立文件里 —— 同文件的顶层 vi.mock 把 use-siem 整个
  * mock 掉了，测不到 hook 的真实行为。
  */
+
+
+/**
+ * 502 消息不能只留笼统标签。
+ *
+ * 后端 502 的 body：
+ *   {"detail": {"error": "FortiSIEM 不可达",       ← 笼统标签
+ *               "detail": "未配置 CLIENT_ID",       ← 具体原因
+ *               "stage": "auth", "probes": {...}}}
+ *
+ * 只取 error 就把真正有用的那半句丢了 —— 用户看到「卡在认证段」，
+ * 但不知道是「没配 client id」还是「凭据过期」。
+ */
+describe("502 消息的完整度", () => {
+    it("error 与 detail 同时存在时要拼起来", () => {
+        const msg = extractDetail(
+            {
+                detail: {
+                    error: "FortiSIEM 不可达",
+                    detail: "未配置 FORTISIEM_CLIENT_ID / FORTISIEM_CLIENT_SECRET",
+                    stage: "auth",
+                },
+            },
+            502,
+        )
+        expect(msg).toContain("FortiSIEM 不可达")
+        expect(msg).toContain("未配置 FORTISIEM_CLIENT_ID")
+        expect(msg).toContain("认证取 Token")
+    })
+
+    it("只有 error 时不要画蛇添足", () => {
+        expect(extractDetail({ detail: { error: "拉取事件失败" } }, 502)).toBe("拉取事件失败")
+    })
+
+    it("只有 detail 时直接用它", () => {
+        expect(extractDetail({ detail: { detail: "超时" } }, 502)).toBe("超时")
+    })
+})

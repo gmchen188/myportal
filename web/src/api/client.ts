@@ -143,12 +143,13 @@ export function extractDetail(payload: unknown, status: number): string {
         if (typeof detail === "string" && detail) return detail
         if (detail && typeof detail === "object") {
             const inner = detail as Record<string, unknown>
-            const msg =
-                typeof inner.error === "string" && inner.error
-                    ? inner.error
-                    : typeof inner.detail === "string" && inner.detail
-                      ? inner.detail
-                      : null
+            // **error 与 detail 同时存在时要拼起来** ——
+            // 后端 502 的 error 是笼统标签（"FortiSIEM 不可达"），
+            // detail 才是具体原因（"未配置 FORTISIEM_CLIENT_ID"）。
+            // 只取 error 会把真正有用的那半句丢掉。
+            const errText = typeof inner.error === "string" && inner.error ? inner.error : null
+            const detText = typeof inner.detail === "string" && inner.detail ? inner.detail : null
+            const msg = errText && detText ? `${errText}：${detText}` : (errText ?? detText)
             const stage = typeof inner.stage === "string" && inner.stage ? inner.stage : null
             if (msg && stage) return `${msg}（卡在 ${stageLabel(stage)} 这一段）`
             if (msg) return msg
@@ -459,6 +460,17 @@ export interface SiemSyncCounts {
     created: number
     updated: number
     skipped: number
+    /**
+     * 设备拉取失败的原因。
+     *
+     * **必须透出** —— 没有它，「设备 0 台」跟「SIEM 里确实没有纳管设备」
+     * 长得一模一样。而这个页面存在的意义就是区分「漏纳管 ≠ 安全」。
+     */
+    error?: string
+    /** 自动绑定了多少台设备到拓扑节点 —— 运维想看这个数 */
+    bound?: number
+    /** 拓扑自动绑定失败的原因 */
+    bind_error?: string
 }
 
 export interface SiemSyncResult {

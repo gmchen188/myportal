@@ -16,7 +16,7 @@
 import { Download, RefreshCw } from "lucide-react"
 import { useState } from "react"
 
-import { STAGE_LABEL } from "@/api/client"
+import { stageLabel } from "@/api/client"
 import { SiemStageList } from "@/components/siem-diagnostics"
 import { useSiemStatus, useSiemSync, useSiemRefresh } from "@/hooks/use-siem"
 
@@ -129,18 +129,37 @@ export function SiemPage() {
                 </div>
             )}
 
-            {/* 请求失败 —— 说清楚是请求失败，不是「SIEM 连不上」 */}
+            {/*
+              请求失败。
+
+              **TanStack Query v5 在 error 时保留 data**（reducer 只把
+              status 改成 "error"）。所以后台挂掉后的下一次轮询失败，
+              屏上会同时出现「无法获取连接状态」和「四段全通」——
+              自相矛盾。
+
+              分两种说法：
+                · 没有旧数据 → 「无法获取连接状态」
+                · 有旧数据   → 「刷新失败，以下是上次结果」
+              旧数据标清楚是上次的，不要让人当成刚测的。
+            */}
             {status.isError && (
                 <div className="card" style={{ padding: 14, marginBottom: 14, borderColor: "var(--color-sev-critical)" }}>
-                    <b style={{ color: "var(--color-sev-critical)" }}>无法获取连接状态</b>
+                    <b style={{ color: "var(--color-sev-critical)" }}>
+                        {data ? "刷新连接状态失败" : "无法获取连接状态"}
+                    </b>
                     <div className="subtle" style={{ marginTop: 4 }}>
                         {status.error instanceof Error ? status.error.message : String(status.error)}
                     </div>
+                    {data && (
+                        <div className="subtle" style={{ marginTop: 6 }}>
+                            下面显示的是**上一次成功探测**的结果，不是当前状态。
+                        </div>
+                    )}
                     <button
                         type="button"
                         className="btn"
                         style={{ marginTop: 10 }}
-                        onClick={() => void status.refetch()}
+                        onClick={() => refresh.mutate()}
                     >
                         重试
                     </button>
@@ -157,7 +176,7 @@ export function SiemPage() {
                                 {data.connected ? "已连接" : data.configured ? "未连通" : "未配置"}
                             </div>
                             <div className="subtle" style={{ marginTop: 2 }}>
-                                {data.stage === "ok" ? "四段全通" : data.stage ? `卡在 ${STAGE_LABEL[data.stage]} 这一段` : "未探测"}
+                                {data.stage === "ok" ? "四段全通" : data.stage ? `卡在 ${stageLabel(data.stage)} 这一段` : "未探测"}
                             </div>
                         </div>
                         <div className="card" style={{ padding: "12px 14px" }}>
@@ -314,7 +333,35 @@ export function SiemPage() {
                                             <span className="bdg neutral">
                                                 设备 跳过 {result.devices.skipped}
                                             </span>
+                                            {result.devices.bound !== undefined && (
+                                                <span className="bdg ok">
+                                                    已绑到拓扑节点 {result.devices.bound}
+                                                </span>
+                                            )}
                                         </div>
+                                        {/*
+                                          设备拉取失败必须显红 ——
+                                          否则「设备 共 0」跟「SIEM 里确实没有
+                                          纳管设备」长得一模一样。而这个面板
+                                          存在的意义就是区分「漏纳管 ≠ 安全」。
+                                        */}
+                                        {result.devices.error && (
+                                            <div
+                                                className="bdg err"
+                                                style={{ marginTop: 8, display: "block" }}
+                                            >
+                                                设备拉取失败：{result.devices.error}
+                                                （上面的「设备 共 0」不代表 SIEM 里没有设备）
+                                            </div>
+                                        )}
+                                        {result.devices.bind_error && (
+                                            <div
+                                                className="bdg warn"
+                                                style={{ marginTop: 6, display: "block" }}
+                                            >
+                                                拓扑自动绑定失败：{result.devices.bind_error}
+                                            </div>
+                                        )}
                                         <div className="mono muted" style={{ marginTop: 8, fontSize: 11.5 }}>
                                             {result.synced_at?.slice(0, 19).replace("T", " ")}
                                         </div>

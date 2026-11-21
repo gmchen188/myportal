@@ -402,3 +402,68 @@ class TestDevicesErrorSeparation:
         assert body["stage"] == "tcp", "502 body 必须带 stage"
         assert "probes" in body, "502 body 必须带 probes"
         assert body["probes"]["tcp"]["ok"] is False
+
+class TestDevicesCache:
+    """设备列表的缓存。
+
+    前端 30 秒轮询一次 /api/siem/status，而 status 里的 c.devices()
+    **在探测缓存之外** —— 每次轮询都真拉一遍 CMDB XML。
+    审查发现的问题：侧栏 /health 轮询 + /siem 面板轮询，每次都拉。
+    """
+
+    def test_repeated_devices_uses_cache(self, monkeypatch):
+        from app.connectors import fortisiem as fs
+
+        calls = {"n": 0}
+        real_get = fs.FortiSiemClient._ensure_client
+
+        class FakeResp:
+            text = "<cmdb><device><name>A</name></device></cmdb>"
+
+            def raise_for_status(self):
+                pass
+
+        class FakeClient:
+            def get(self, url, headers=None):
+                calls["n"] += 1
+                return FakeResp()
+
+            def post(self, url, **kw):
+                raise AssertionError("不该走到取 token —— _headers 应已被替换")
+
+        monkeypatch.setattr(fs.FortiSiemClient, "_ensure_client", lambda self: FakeClient())
+        # 绕过 token 流程（_headers 会去拿 token）
+        monkeypatch.setattr(fs.FortiSiemClient, "_headers", lambda self: {})
+
+        c = fs.FortiSiemClient(client_id="a", client_secret="b")
+        c.devices()
+        c.devices()
+        c.devices()
+        assert calls["n"] == 1, f"应只拉 1 次 CMDB，实际 {calls['n']}"
+
+    def test_use_cache_false_bypasses_cache(self, monkeypatch):
+        from app.connectors import fortisiem as fs
+
+        calls = {"n": 0}
+
+        class FakeResp:
+            text = "<cmdb><device><name>A</name></device></cmdb>"
+
+            def raise_for_status(self):
+                pass
+
+        class FakeClient:
+            def get(self, url, headers=None):
+                calls["n"] += 1
+                return FakeResp()
+
+            def post(self, url, **kw):
+                raise AssertionError("不该走到取 token —— _headers 应已被替换")
+
+        monkeypatch.setattr(fs.FortiSiemClient, "_ensure_client", lambda self: FakeClient())
+        monkeypatch.setattr(fs.FortiSiemClient, "_headers", lambda self: {})
+
+        c = fs.FortiSiemClient(client_id="a", client_secret="b")
+        c.devices()
+        c.devices(use_cache=False)
+        assert calls["n"] == 2, f"强制重拉应拉 2 次，实际 {calls['n']}"

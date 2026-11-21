@@ -83,7 +83,9 @@ def siem_status(refresh: bool = Query(False, description="强制重测，绕过�
     }
     if st.connected:
         try:
-            out["devices"] = c.devices()
+            # **refresh=true 时绕过设备缓存** —— 用户点了「重新检测」
+            # 就该真拉一次，不能给他 10 秒前的旧列表。
+            out["devices"] = c.devices(use_cache=not refresh)
         except Exception as e:
             # **不能写进 out["error"]** —— 那个字段的语义是「连接失败」。
             # 连接明明是通的（四段全绿），只是设备清单这一步拉取失败。
