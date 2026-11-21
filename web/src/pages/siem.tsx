@@ -28,6 +28,15 @@ const WINDOWS = [
     { minutes: 43200, label: "最近 30 天" },
 ]
 
+/** 把分钟数说成人话 ——「回溯 1440 分钟」没人读得懂。 */
+function windowLabel(minutes: number): string {
+    const known = WINDOWS.find((w) => w.minutes === minutes)
+    if (known) return known.label
+    if (minutes % 1440 === 0) return `最近 ${minutes / 1440} 天`
+    if (minutes % 60 === 0) return `最近 ${minutes / 60} 小时`
+    return `最近 ${minutes} 分钟`
+}
+
 export function SiemPage() {
     const status = useSiemStatus()
     const refresh = useSiemRefresh()
@@ -85,17 +94,16 @@ export function SiemPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div className="page-head">
                 <div>
                     <h2 style={{ margin: 0, fontSize: 16 }}>FortiSIEM 连接</h2>
                     <p className="subtle" style={{ margin: "3px 0 0" }}>
                         分段诊断 · 设备清单 · 同步到资产
                     </p>
                 </div>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                <div className="page-tools">
                     <select
                         className="select"
-                        style={{ width: 150 }}
                         value={minutes}
                         onChange={(e) => setMinutes(Number(e.target.value))}
                         aria-label="同步时间窗口"
@@ -369,7 +377,7 @@ export function SiemPage() {
                                 {result && !sync.isError && (
                                     <div style={{ marginTop: 12 }}>
                                         <div className="subtle" style={{ marginBottom: 6 }}>
-                                            上次同步 · 组织 {result.org} · 回溯 {result.window_minutes} 分钟
+                                            上次同步 · 组织 {result.org} · {windowLabel(result.window_minutes)}
                                         </div>
                                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
                                             <span className="bdg info">
@@ -385,6 +393,19 @@ export function SiemPage() {
                                                 事件 跳过 {result.events.skipped}
                                             </span>
                                         </div>
+                                        {/*
+                                          「拉取 0」有两种完全相反的含义：
+                                            · SIEM 里确实没有事件
+                                            · 事件都在时间窗之外
+                                          用户看到 0 会以为前者。**必须说清楚** ——
+                                          否则运维会以为同步没生效。
+                                        */}
+                                        {(result.events.fetched ?? 0) === 0 && (
+                                            <div className="bdg warn" style={{ marginTop: 6, display: "block" }}>
+                                                这个时间窗内没有事件。SIEM 里可能有更早的事件 ——
+                                                换一个更长的时间窗再试。
+                                            </div>
+                                        )}
                                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                             <span className="bdg info">
                                                 设备 共 {result.devices.total ?? 0}

@@ -321,6 +321,47 @@
         font-family: inherit;
     }
 
+    /*
+      页面标题 + 工具栏这一行。
+
+      **窄屏必须能换行** —— 工具栏里有窗口下拉、overwrite 复选框和两个
+      按钮，横排挤爆 375px（实测溢出 57px，按钮被推出屏幕外点不到）。
+      flex-wrap 让它们换行而不是溢出。
+    */
+    .page-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+
+    .page-head .page-tools {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    /* 窗口下拉在桌面固定宽，窄屏跟着工具栏一起伸缩 */
+    .page-head .page-tools .select {
+        width: 150px;
+    }
+
+    @media (max-width: 640px) {
+        .page-head .page-tools {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .page-head .page-tools .select {
+            width: auto;
+            flex: 1 1 140px;
+            min-width: 0;
+        }
+    }
+
     .input:focus,
     .select:focus {
         border-color: var(--color-brand-500);

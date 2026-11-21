@@ -216,3 +216,80 @@ describe("同步失败时的分段实测结果", () => {
         expect(screen.getByText(/未配置 FORTISIEM_CLIENT_ID/)).toBeTruthy()
     })
 })
+
+
+/**
+ * 「拉取 0」必须说清楚。
+ *
+ * 「事件 拉取 0」有两种完全相反的含义：
+ *   · SIEM 里确实没有事件
+ *   · 事件都在时间窗之外（实测：真实事件发生在 81.9 小时前，
+ *     选「最近 24 小时」就拉不到）
+ *
+ * 用户看到 0 会以为前者，然后以为同步没生效。**必须提示换窗口。**
+ */
+describe("拉取 0 条事件时", () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it("要说明是时间窗内没有事件，并提示换更长的窗口", async () => {
+        const { useSiemStatus, useSiemSync, useSiemRefresh } = await import("@/hooks/use-siem")
+        const { SiemPage } = await import("@/pages/siem")
+
+        vi.mocked(useSiemStatus).mockReturnValue({
+            data: status(), isPending: false, isFetching: false, isError: false,
+            error: null, refetch: vi.fn(),
+        } as never)
+        vi.mocked(useSiemSync).mockReturnValue({
+            mutate: vi.fn(), isPending: false, isError: false, error: null,
+            data: {
+                org: "Super",
+                window_minutes: 1440,
+                events: { fetched: 0, created: 0, updated: 0, skipped: 0 },
+                devices: { total: 3, created: 0, updated: 0, skipped: 3 },
+                synced_at: "2026-11-21T00:00:00",
+            },
+        } as never)
+        vi.mocked(useSiemRefresh).mockReturnValue({
+            mutate: vi.fn(), isPending: false, isError: false, error: null, data: undefined,
+        } as never)
+
+        render(<SiemPage />)
+
+        expect(screen.getByText(/这个时间窗内没有事件/)).toBeInTheDocument()
+        expect(screen.getByText(/换一个更长的时间窗/)).toBeInTheDocument()
+        // 窗口要用人话，不是「回溯 1440 分钟」
+        // （「最近 24 小时」出现多次 —— select 的 option 也有它）
+        expect(screen.getAllByText(/最近 24 小时/).length).toBeGreaterThan(0)
+        expect(screen.queryByText(/回溯 1440 分钟/)).toBeNull()
+    })
+
+    it("拉到事件时就不显示那个提示", async () => {
+        const { useSiemStatus, useSiemSync, useSiemRefresh } = await import("@/hooks/use-siem")
+        const { SiemPage } = await import("@/pages/siem")
+
+        vi.mocked(useSiemStatus).mockReturnValue({
+            data: status(), isPending: false, isFetching: false, isError: false,
+            error: null, refetch: vi.fn(),
+        } as never)
+        vi.mocked(useSiemSync).mockReturnValue({
+            mutate: vi.fn(), isPending: false, isError: false, error: null,
+            data: {
+                org: "Super",
+                window_minutes: 10080,
+                events: { fetched: 4, created: 4, updated: 0, skipped: 0 },
+                devices: { total: 3, created: 0, updated: 0, skipped: 3 },
+                synced_at: "2026-11-21T00:00:00",
+            },
+        } as never)
+        vi.mocked(useSiemRefresh).mockReturnValue({
+            mutate: vi.fn(), isPending: false, isError: false, error: null, data: undefined,
+        } as never)
+
+        render(<SiemPage />)
+
+        expect(screen.queryByText(/这个时间窗内没有事件/)).toBeNull()
+        expect(screen.getAllByText(/最近 7 天/).length).toBeGreaterThan(0)
+    })
+})
