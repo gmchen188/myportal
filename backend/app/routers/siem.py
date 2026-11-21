@@ -78,12 +78,18 @@ def siem_status(refresh: bool = Query(False, description="强制重测，绕过�
         "stage": st.stage,
         "probes": st.probes or {},
         "devices": [],
+        # 「连接失败」与「设备清单拉取失败」是两回事，分开报
+        "devices_error": None,
     }
     if st.connected:
         try:
             out["devices"] = c.devices()
         except Exception as e:
-            out["error"] = str(e)[:300]
+            # **不能写进 out["error"]** —— 那个字段的语义是「连接失败」。
+            # 连接明明是通的（四段全绿），只是设备清单这一步拉取失败。
+            # 混在一起前端会同时显示「四段全通」和红色的「连接失败」，
+            # 自相矛盾，还会让运维去查根本没问题的那一段。
+            out["devices_error"] = str(e)[:300]
     return out
 
 
@@ -103,7 +109,18 @@ def preview_siem_incidents(
     try:
         evs = c.incidents(org=org, limit=limit, minutes=minutes)
     except Exception as e:
-        raise HTTPException(502, {"error": "拉取事件失败", "detail": str(e)[:300]}) from e
+        # 带上 stage 与 probes —— 运维要靠它知道卡在哪一段，
+        # 只剩一句「拉取事件失败」等于让人自己猜。
+        st = c.status()
+        raise HTTPException(
+            502,
+            {
+                "error": "拉取事件失败",
+                "detail": str(e)[:300],
+                "stage": st.stage,
+                "probes": st.probes or {},
+            },
+        ) from e
     # 预览不返回 raw（体积大且含内部字段）
     return [{k: v for k, v in e.items() if k != "raw"} for e in evs]
 
@@ -142,7 +159,18 @@ def sync_from_siem(
     try:
         raw_events = c.incidents(org=org, limit=limit, minutes=minutes)
     except Exception as e:
-        raise HTTPException(502, {"error": "拉取事件失败", "detail": str(e)[:300]}) from e
+        # 带上 stage 与 probes —— 运维要靠它知道卡在哪一段，
+        # 只剩一句「拉取事件失败」等于让人自己猜。
+        st = c.status()
+        raise HTTPException(
+            502,
+            {
+                "error": "拉取事件失败",
+                "detail": str(e)[:300],
+                "stage": st.stage,
+                "probes": st.probes or {},
+            },
+        ) from e
 
     created = skipped = updated = 0
     seen_ids: set[str] = set()

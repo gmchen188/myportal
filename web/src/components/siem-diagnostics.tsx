@@ -13,17 +13,14 @@
  * 颜色来自设计令牌，不在组件里硬编码。
  */
 
+import { STAGE_LABEL } from "@/api/client"
 import type { SiemProbe, SiemStage, SiemStatus } from "@/api/client"
 
 /** 四段探测的固定顺序 —— 与后台的探测顺序一致。 */
 export const STAGE_ORDER: Exclude<SiemStage, "ok">[] = ["tcp", "tls", "auth", "api"]
 
-export const STAGE_LABEL: Record<Exclude<SiemStage, "ok">, string> = {
-    tcp: "TCP 连接",
-    tls: "TLS 握手",
-    auth: "认证取 Token",
-    api: "读取设备",
-}
+// STAGE_LABEL 从 @/api/client 引入 —— 中文标签只有一份，
+// 错误文案那边也要用。
 
 /** 一段的状态。`skipped` = 前面已经断了，没走到这一段。 */
 export type StageState = "ok" | "fail" | "skipped"
@@ -95,7 +92,9 @@ export function SiemStageList({ status }: { status: SiemStatus }) {
                             padding: "10px 14px",
                             borderBottom: "1px solid var(--border)",
                             background:
-                                row.state === "fail" ? "rgb(220 38 38 / 6%)" : "transparent",
+                                row.state === "fail"
+                                    ? "color-mix(in srgb, var(--color-sev-critical) 6%, transparent)"
+                                    : "transparent",
                             borderLeft:
                                 row.state === "fail" ? "3px solid var(--color-sev-critical)" : "3px solid transparent",
                         }}

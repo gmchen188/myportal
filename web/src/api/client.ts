@@ -19,12 +19,15 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? ""
 export class ApiError extends Error {
     readonly status: number
     readonly detail: string
+    /** 后端附带的定位信息（stage / probes）—— 没有时是 undefined */
+    readonly meta?: ErrorMeta
 
-    constructor(status: number, detail: string) {
+    constructor(status: number, detail: string, meta?: ErrorMeta) {
         super(`[${status}] ${detail}`)
         this.status = status
         this.detail = detail
         this.name = "ApiError"
+        this.meta = meta
     }
 }
 
@@ -95,9 +98,26 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     }
 
     if (!res.ok) {
-        throw new ApiError(res.status, extractDetail(payload, res.status))
+        throw new ApiError(
+            res.status,
+            extractDetail(payload, res.status),
+            extractErrorMeta(payload),
+        )
     }
     return payload as T
+}
+
+/**
+ * 后端错误里附带的定位信息。
+ *
+ * siem 的 502 会带上 `stage`（卡在哪一段）与 `probes`（分段实测结果）——
+ * 那是运维定位问题的关键，不能只剩一句「HTTP 502」。
+ */
+export interface ErrorMeta {
+    /** 卡在哪一段：tcp / tls / auth / api */
+    stage?: string
+    /** 四段探测的实测结果 */
+    probes?: Record<string, { ok: boolean; detail?: string }>
 }
 
 /**
@@ -110,7 +130,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
  * siem 的 502 还会在 detail 里带上 `stage`（卡在哪一段）与 `probes`
  * （分段实测结果）—— 那是运维定位问题的关键，不能只剩一句「HTTP 502」。
  */
-function extractDetail(payload: unknown, status: number): string {
+export function extractDetail(payload: unknown, status: number): string {
     if (payload && typeof payload === "object") {
         const obj = payload as Record<string, unknown>
         const direct = obj.error
@@ -130,12 +150,37 @@ function extractDetail(payload: unknown, status: number): string {
                       ? inner.detail
                       : null
             const stage = typeof inner.stage === "string" && inner.stage ? inner.stage : null
-            if (msg && stage) return `${msg}（卡在 ${stage} 段）`
+            if (msg && stage) return `${msg}（卡在 ${stageLabel(stage)} 这一段）`
             if (msg) return msg
-            if (stage) return `请求失败（卡在 ${stage} 段）`
+            if (stage) return `请求失败（卡在 ${stageLabel(stage)} 这一段）`
         }
     }
     return `HTTP ${status}`
+}
+
+/**
+ * 取出错误里附带的 stage / probes。
+ *
+ * 两种形状都要看：FastAPI 把自定义 dict 包在 `detail` 里
+ * （`{"detail": {"error": ..., "stage": ...}}`），而我们自己的
+ * `HTTPException(502, {...})` 也走同一条路。
+ */
+export function extractErrorMeta(payload: unknown): ErrorMeta | undefined {
+    if (!payload || typeof payload !== "object") return undefined
+    const obj = payload as Record<string, unknown>
+    const sources: Record<string, unknown>[] = [obj]
+    const d = obj.detail
+    if (d && typeof d === "object") sources.push(d as Record<string, unknown>)
+
+    for (const src of sources) {
+        const stage = typeof src.stage === "string" && src.stage ? src.stage : undefined
+        const probes =
+            src.probes && typeof src.probes === "object"
+                ? (src.probes as Record<string, { ok: boolean; detail?: string }>)
+                : undefined
+        if (stage || probes) return { stage, probes }
+    }
+    return undefined
 }
 
 // ── 类型 ────────────────────────────────────────────────────────────────────
@@ -318,6 +363,25 @@ export interface ModelOption {
 /** FortiSIEM 连接诊断停在哪一段。 */
 export type SiemStage = "tcp" | "tls" | "auth" | "api" | "ok"
 
+/**
+ * 四段的中文标签。
+ *
+ * 放在这里而不是组件里 —— 后台的 stage 值是英文契约值，
+ * 但**用户看到的应该是中文**。错误文案（client.ts 的 extractDetail）
+ * 和诊断面板都要用同一份，避免两处各写一个。
+ */
+export const STAGE_LABEL: Record<Exclude<SiemStage, "ok">, string> = {
+    tcp: "TCP 连接",
+    tls: "TLS 握手",
+    auth: "认证取 Token",
+    api: "读取设备",
+}
+
+/** 未知 stage 的兜底 —— 直接显示原值，别吞掉信息。 */
+export function stageLabel(stage: string): string {
+    return STAGE_LABEL[stage as Exclude<SiemStage, "ok">] ?? stage
+}
+
 /** 单段探测的结果。 */
 export interface SiemProbe {
     ok: boolean
@@ -343,7 +407,16 @@ export interface SiemStatus {
     configured: boolean
     connected: boolean
     org: string | null
+    /** 连接失败的原因 —— 为空表示连接没问题 */
     error: string | null
+    /**
+     * 设备清单拉取失败的原因。
+     *
+     * 与 `error` 分开：连接可能是通的（四段全绿），只是拉设备那一步
+     * 挂了。混在一起前端会同时显示「四段全通」和红色「连接失败」，
+     * 自相矛盾，还会让运维去查根本没问题的那一段。
+     */
+    devices_error?: string | null
     /** 卡在哪一段。`"ok"` 表示四段全通。 */
     stage: SiemStage | null
     /** 各段的实测结果。缺哪段就是没走到哪段。 */

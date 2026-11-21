@@ -16,6 +16,7 @@
 import { Download, RefreshCw } from "lucide-react"
 import { useState } from "react"
 
+import { STAGE_LABEL } from "@/api/client"
 import { SiemStageList } from "@/components/siem-diagnostics"
 import { useSiemStatus, useSiemSync, useSiemRefresh } from "@/hooks/use-siem"
 
@@ -30,6 +31,12 @@ const WINDOWS = [
 export function SiemPage() {
     const status = useSiemStatus()
     const refresh = useSiemRefresh()
+
+    /** 重新检测的失败原因 —— 后端返回的是 {error, stage} 结构 */
+    const refreshErrorText = (() => {
+        const e = refresh.error as { detail?: string; message?: string } | null
+        return e?.detail ?? e?.message ?? "未知错误"
+    })()
     const sync = useSiemSync()
     const [minutes, setMinutes] = useState(1440)
     const [overwrite, setOverwrite] = useState(false)
@@ -70,6 +77,16 @@ export function SiemPage() {
                         <RefreshCw size={14} />
                         {refresh.isPending ? "检测中…" : "重新检测"}
                     </button>
+                    {/*
+                      重新检测失败必须说出来 —— 否则按钮从「检测中…」变回
+                      「重新检测」，屏上还是上一次的旧诊断结果，用户会以为
+                      刚测出来的就是新的。
+                    */}
+                    {refresh.isError && (
+                        <span className="muted" style={{ color: "var(--color-sev-critical)" }}>
+                            重新检测失败：{refreshErrorText}
+                        </span>
+                    )}
                     <button
                         type="button"
                         className="btn primary"
@@ -140,7 +157,7 @@ export function SiemPage() {
                                 {data.connected ? "已连接" : data.configured ? "未连通" : "未配置"}
                             </div>
                             <div className="subtle" style={{ marginTop: 2 }}>
-                                {data.stage === "ok" ? "四段全通" : data.stage ? `卡在 ${data.stage} 段` : "未探测"}
+                                {data.stage === "ok" ? "四段全通" : data.stage ? `卡在 ${STAGE_LABEL[data.stage]} 这一段` : "未探测"}
                             </div>
                         </div>
                         <div className="card" style={{ padding: "12px 14px" }}>
@@ -169,6 +186,11 @@ export function SiemPage() {
                     </div>
 
                     {/* 失败原因 —— 顶层 error 与分段诊断分开呈现 */}
+                    {/*
+                      连接失败 —— 四段诊断里已经有逐段说明了，这里只给总因。
+                      「设备清单拉取失败」是另一回事（连接是通的），单独一块，
+                      否则会出现「四段全通」+ 红「连接失败」自相矛盾。
+                    */}
                     {data.error && (
                         <div
                             className="card"
@@ -180,6 +202,24 @@ export function SiemPage() {
                         >
                             <b style={{ color: "var(--color-sev-critical)" }}>连接失败</b>
                             <div style={{ marginTop: 4, fontSize: 13 }}>{data.error}</div>
+                        </div>
+                    )}
+                    {data.devices_error && (
+                        <div
+                            className="card"
+                            style={{
+                                padding: 12,
+                                marginBottom: 14,
+                                borderColor: "var(--color-sev-high)",
+                            }}
+                        >
+                            <b style={{ color: "var(--color-sev-high)" }}>
+                                设备清单拉取失败
+                            </b>
+                            <div style={{ marginTop: 4, fontSize: 13 }}>
+                                连接本身是通的（四段诊断全绿），但取设备列表这一步失败了：
+                                {data.devices_error}
+                            </div>
                         </div>
                     )}
 

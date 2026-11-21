@@ -314,3 +314,91 @@ class TestStatusCache:
         c.status()
         c.status()
         assert calls["n"] == 2, f"TTL=0 时不应缓存，实际探测 {calls['n']} 次"
+
+class TestDevicesErrorSeparation:
+    """「连接失败」与「设备清单拉取失败」必须分开。
+
+    两者混在一起时，前端会同时显示「四段全通」和红色「连接失败」——
+    自相矛盾，还会让运维去查根本没问题的那一段（连接）。
+    """
+
+    def _client(self):
+        from app.connectors.fortisiem import SiemStatus
+
+        class FakeClient:
+            def status(self, **kw):
+                return SiemStatus(
+                    configured=True,
+                    connected=True,
+                    org="Super",
+                    error=None,
+                    stage="ok",
+                    probes={
+                        "tcp": {"ok": True, "detail": "可连接"},
+                        "tls": {"ok": True, "detail": "握手成功"},
+                        "auth": {"ok": True, "detail": "token 成功"},
+                        "api": {"ok": True, "detail": "读到 3 台"},
+                    },
+                )
+
+            def devices(self):
+                raise RuntimeError("CMDB 返回了非 XML 内容")
+
+        return FakeClient()
+
+    def test_devices_failure_does_not_set_error(self):
+        from fastapi.testclient import TestClient
+
+        from app.main import app
+        from app.routers import siem as S
+
+        original = S.get_client
+        S.get_client = lambda: self._client()
+        try:
+            with TestClient(app) as c:
+                d = c.get("/api/siem/status").json()
+        finally:
+            S.get_client = original
+
+        assert d["connected"] is True
+        assert d["stage"] == "ok"
+        # 连接是通的 —— error 不该被填
+        assert d["error"] is None
+        # 设备拉取失败要单独说
+        assert d["devices_error"], "devices_error 应该说明设备拉取失败"
+
+    def test_status_502_carries_stage_and_probes(self):
+        """502 的 body 必须带 stage 与 probes —— 运维要靠它知道卡在哪一段。"""
+        from fastapi.testclient import TestClient
+
+        from app.main import app
+        from app.routers import siem as S
+
+        class Failing:
+            def status(self, **kw):
+                from app.connectors.fortisiem import SiemStatus
+
+                return SiemStatus(
+                    configured=True,
+                    connected=False,
+                    error="连不上",
+                    stage="tcp",
+                    probes={"tcp": {"ok": False, "detail": "不可连接"}},
+                )
+
+            def incidents(self, **kw):
+                raise RuntimeError("boom")
+
+        original = S.get_client
+        S.get_client = lambda: Failing()
+        try:
+            with TestClient(app) as c:
+                r = c.get("/api/siem/incidents")
+        finally:
+            S.get_client = original
+
+        assert r.status_code == 502
+        body = r.json()["detail"]
+        assert body["stage"] == "tcp", "502 body 必须带 stage"
+        assert "probes" in body, "502 body 必须带 probes"
+        assert body["probes"]["tcp"]["ok"] is False
