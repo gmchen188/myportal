@@ -39,6 +39,28 @@ jobs:
       - name: Run demo self-check
         run: python tools/check_demo.py
 
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest
+
+      # 33 项断言，覆盖今天实际踩过的坑（display_diagram 的裸 XML、
+      # 区域框与标题分离、去重键与唯一约束对齐、zone 归一、
+      # critical 只能从数值来、没有数据 ≠ 正常、租户隔离）
+      - name: Run backend tests
+        working-directory: backend
+        run: python -m pytest tests -q
+
   build-docs:
     name: Build docx / pptx
     runs-on: ubuntu-latest

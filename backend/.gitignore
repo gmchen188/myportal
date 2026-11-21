@@ -1,0 +1,7 @@
+# 运行期产生的库文件
+data/*.db
+data/*.db-wal
+data/*.db-shm
+__pycache__/
+*.py[cod]
+.venv/
