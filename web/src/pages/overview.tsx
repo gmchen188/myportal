@@ -88,11 +88,27 @@ function SeverityBreakdown({ counts }: { counts: Record<string, number> }) {
 }
 
 /** 一支船队的卡片 */
-function FleetCard({ fleet, onOpen }: { fleet: Fleet; onOpen: (v: Vessel) => void }) {
+function FleetCard({
+    fleet,
+    onOpen,
+    onOpenFleet,
+}: {
+    fleet: Fleet
+    onOpen: (v: Vessel) => void
+    onOpenFleet: () => void
+}) {
     return (
         <div className="card" style={{ padding: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: 15 }}>{fleet.name}</h3>
+                {/* **点船队名回到船队视图** —— 看全部船队，而不是只盯这一支。
+                    卡片上的四个数字是这一支船队的，点了名字才知道全貌。 */}
+                <h3
+                    onClick={onOpenFleet}
+                    title="查看所有船队"
+                    style={{ margin: 0, fontSize: 15, cursor: "pointer" }}
+                >
+                    {fleet.name}
+                </h3>
                 {fleet.code && <span className="bdg neutral mono">{fleet.code}</span>}
             </div>
 
@@ -153,20 +169,77 @@ function FleetCard({ fleet, onOpen }: { fleet: Fleet; onOpen: (v: Vessel) => voi
     )
 }
 
+/**
+ * 下拉里的一个选项 —— 船 + 它的船队名。
+ *
+ * 不同船队可能有同名船，光看船名分不清是哪一艘，所以选项里带上船队。
+ */
+type VesselOption = Vessel & { fleet_name?: string | null }
+
 /** 单船视图 */
 function VesselView({
     data,
     loading,
     onBack,
+    vessels,
+    vesselId,
+    onSelect,
 }: {
     data: VesselOverview | undefined
     loading: boolean
     onBack: () => void
+    /** **所有船舶** —— 下拉里要能选到任意一艘 */
+    vessels: VesselOption[]
+    vesselId: number | null
+    onSelect: (id: number) => void
 }) {
+    /*
+     * **头部（返回 + 船舶下拉）必须始终渲染。**
+     *
+     * 原来 loading 分支直接 `return <加载中…>` —— 于是切进单船视图后，
+     * 在数据到达之前**「← 船队视图」按钮和下拉都不存在**，用户可能点不回去。
+     * （测试当场抓到的：找不到「← 船队视图」。）
+     */
+    const header = (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+            <button className="link" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }} onClick={onBack}>
+                ← 船队视图
+            </button>
+            {data && (
+                <>
+                    <h3 style={{ margin: 0, fontSize: 16 }}>{data.vessel.name}</h3>
+                    {data.vessel.code && <span className="bdg neutral mono">{data.vessel.code}</span>}
+                    {data.vessel.fleet_name && <span className="subtle">{data.vessel.fleet_name}</span>}
+                </>
+            )}
+
+            {/* **船舶下拉** —— 选了哪艘船，下面就显示哪艘。
+                选项带上船队名：不同船队可能有同名船，光看船名分不清。 */}
+            <select
+                className="select"
+                style={{ width: 220, marginLeft: "auto" }}
+                value={vesselId ?? ""}
+                onChange={(e) => onSelect(Number(e.target.value))}
+                title="选择要查看的船舶"
+            >
+                {vessels.length === 0 && <option value="">没有船</option>}
+                {vessels.map((x) => (
+                    <option key={x.id ?? "none"} value={x.id ?? ""}>
+                        {x.fleet_name ? `${x.fleet_name} · ${x.name}` : x.name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+
     if (loading || !data) {
-        return <div className="card"><div className="subtle">加载中…</div></div>
+        return (
+            <>
+                {header}
+                <div className="card"><div className="subtle">加载中…</div></div>
+            </>
+        )
     }
-    const v = data.vessel
     const byZone = data.assets.reduce<Record<string, typeof data.assets>>((acc, a) => {
         const z = a.zone || "未分区域"
         if (!acc[z]) acc[z] = []
@@ -176,14 +249,7 @@ function VesselView({
 
     return (
         <>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-                <button className="link" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }} onClick={onBack}>
-                    ← 船队视图
-                </button>
-                <h3 style={{ margin: 0, fontSize: 16 }}>{v.name}</h3>
-                {v.code && <span className="bdg neutral mono">{v.code}</span>}
-                {v.fleet_name && <span className="subtle">{v.fleet_name}</span>}
-            </div>
+            {header}
 
             <div className="grid g-4" style={{ marginBottom: 14 }}>
                 <div className="card" style={{ padding: "12px 14px" }}>
@@ -296,9 +362,23 @@ export function OverviewPage() {
     const siem = health.data?.siem
     const totals = fleetData.data?.totals
 
+    /** **所有船舶** —— 单船视图的下拉要用。带上船队名，避免同名船分不清。 */
+    const allVessels: VesselOption[] = (fleetData.data?.fleets ?? []).flatMap((f) =>
+        f.vessels.map((v) => ({ ...v, fleet_name: f.name })),
+    )
+
     const openVessel = (v: Vessel) => {
         if (v.id === null) return
         setVesselId(v.id)
+        setView("vessel")
+    }
+
+    /** 切到单船视图 —— 还没选船就选第一艘，别让页面空着 */
+    const openVesselView = () => {
+        if (vesselId === null) {
+            const first = allVessels.find((v) => v.id !== null)
+            if (first?.id !== null && first?.id !== undefined) setVesselId(first.id)
+        }
         setView("vessel")
     }
 
@@ -318,9 +398,9 @@ export function OverviewPage() {
                     <button
                         className={view === "vessel" ? "bdg ok" : "bdg neutral"}
                         style={{ cursor: view === "vessel" ? "default" : "pointer", border: "none" }}
-                        onClick={() => setView("vessel")}
-                        disabled={vesselId === null}
-                        title={vesselId === null ? "先在船队视图里选一艘船" : undefined}
+                        onClick={openVesselView}
+                        disabled={allVessels.length === 0}
+                        title={allVessels.length === 0 ? "还没有船" : undefined}
                     >
                         单船视图
                     </button>
@@ -363,7 +443,12 @@ export function OverviewPage() {
                     {/* 船队卡片 */}
                     <div className="grid g-2" style={{ marginBottom: 14 }}>
                         {(fleetData.data?.fleets ?? []).map((f) => (
-                            <FleetCard key={f.id ?? "none"} fleet={f} onOpen={openVessel} />
+                            <FleetCard
+                                key={f.id ?? "none"}
+                                fleet={f}
+                                onOpen={openVessel}
+                                onOpenFleet={() => setView("fleet")}
+                            />
                         ))}
                         {fleetData.isLoading && <div className="subtle">加载中…</div>}
                         {fleetData.data && fleetData.data.fleets.length === 0 && (
@@ -379,6 +464,9 @@ export function OverviewPage() {
                     data={vesselData.data}
                     loading={vesselData.isLoading}
                     onBack={() => setView("fleet")}
+                    vessels={allVessels}
+                    vesselId={vesselId}
+                    onSelect={(id) => setVesselId(id)}
                 />
             )}
 

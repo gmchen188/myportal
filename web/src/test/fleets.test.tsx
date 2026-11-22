@@ -138,7 +138,7 @@ describe("总览 · 船队视图 / 单船视图", () => {
 
     it("默认是船队视图 —— 显示船队卡片与船名", async () => {
         setup()
-        await waitFor(() => expect(screen.getByText("东海船队")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("东海船队")).toBeTruthy(), { timeout: 10000 })
         expect(screen.getByText("海洋一号")).toBeTruthy()
         // 单船视图的内容这时不该在（用该视图特有的文字判定，
         // 「设备」不行 —— 最近事件那张表的表头也叫「设备」）
@@ -148,11 +148,11 @@ describe("总览 · 船队视图 / 单船视图", () => {
 
     it("点船名切到单船视图 —— 显示那艘船的设备", async () => {
         setup()
-        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy(), { timeout: 10000 })
 
         fireEvent.click(screen.getByText("海洋一号"))
 
-        await waitFor(() => expect(screen.getByText("FW-EDGE-01")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("FW-EDGE-01")).toBeTruthy(), { timeout: 10000 })
         expect(screen.getByText("CBS-NAV-01")).toBeTruthy()
         // 面包屑指回船队
         expect(screen.getByText("← 船队视图")).toBeTruthy()
@@ -161,17 +161,17 @@ describe("总览 · 船队视图 / 单船视图", () => {
 
     it("单船视图里的设备按安全区域分组", async () => {
         setup()
-        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy(), { timeout: 10000 })
         fireEvent.click(screen.getByText("海洋一号"))
-        await waitFor(() => expect(screen.getByText("FW-EDGE-01")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("FW-EDGE-01")).toBeTruthy(), { timeout: 10000 })
         expect(screen.getByText("Zone 1")).toBeTruthy()
     })
 
     it("能退回船队视图", async () => {
         setup()
-        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("海洋一号")).toBeTruthy(), { timeout: 10000 })
         fireEvent.click(screen.getByText("海洋一号"))
-        await waitFor(() => expect(screen.getByText("← 船队视图")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("← 船队视图")).toBeTruthy(), { timeout: 10000 })
 
         fireEvent.click(screen.getByText("← 船队视图"))
         await waitFor(() => expect(screen.queryByText("FW-EDGE-01")).toBeNull())
@@ -214,7 +214,7 @@ describe("总览 · 船队视图 / 单船视图", () => {
 
     it("事件严重度按 pill 显示数量", async () => {
         setup()
-        await waitFor(() => expect(screen.getByText("东海船队")).toBeTruthy())
+        await waitFor(() => expect(screen.getByText("东海船队")).toBeTruthy(), { timeout: 10000 })
         // 严重 1、高危 2 —— 堆叠条与 pill 矩阵都要有
         expect(screen.getAllByText(/严重/).length).toBeGreaterThan(0)
         expect(screen.getAllByText(/高危/).length).toBeGreaterThan(0)
@@ -278,6 +278,69 @@ describe("船队与船舶 · 管理", () => {
         expect(vi.mocked(api.fleets.createFleet).mock.calls[0]![0]).toEqual({
             name: "带标签的队",
             code: "FLEET-X",
+        })
+    })
+
+
+    it("新建的船一定带着所属船队", async () => {
+        vi.mocked(api.fleets.list).mockResolvedValue({
+            fleets: [
+                {
+                    id: 3, name: "东海船队", code: null, description: null,
+                    vessel_count: 0, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0, vessels: [],
+                },
+            ],
+            vessels: [],
+        })
+        setupManage()
+
+        // 点船队那一行的「+ 加船」
+        fireEvent.click(await screen.findByText("+ 加船"))
+        const nameInput = await screen.findByPlaceholderText("船名")
+        fireEvent.change(nameInput, { target: { value: "海洋三号" } })
+        fireEvent.click(screen.getByText("创建"))
+
+        await waitFor(() => expect(api.fleets.create).toHaveBeenCalled())
+        // **船必须归属某一支船队** —— 后端 fleet_id 是必填
+        expect(vi.mocked(api.fleets.create).mock.calls[0]![0]).toMatchObject({
+            name: "海洋三号",
+            fleet_id: 3,
+        })
+    })
+
+    it("能把船改到别的船队", async () => {
+        vi.mocked(api.fleets.list).mockResolvedValue({
+            fleets: [
+                {
+                    id: 3, name: "东海船队", code: null, description: null,
+                    vessel_count: 1, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0,
+                    vessels: [
+                        {
+                            id: 9, fleet_id: 3, name: "海洋一号", code: null, imo: null,
+                            description: null, asset_count: 0, monitor_count: 0,
+                            event_count: 0, events_by_severity: {},
+                        },
+                    ],
+                },
+                {
+                    id: 4, name: "南海船队", code: null, description: null,
+                    vessel_count: 0, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0, vessels: [],
+                },
+            ],
+            vessels: [],
+        })
+        setupManage()
+
+        const select = await screen.findByTitle("改归属船队")
+        fireEvent.change(select, { target: { value: "4" } })
+
+        await waitFor(() => expect(api.fleets.patchVessel).toHaveBeenCalled())
+        expect(vi.mocked(api.fleets.patchVessel).mock.calls[0]![0]).toBe(9)
+        expect(vi.mocked(api.fleets.patchVessel).mock.calls[0]![1]).toMatchObject({
+            fleet_id: 4,
         })
     })
 

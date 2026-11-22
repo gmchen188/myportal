@@ -101,5 +101,12 @@ export default defineConfig({
         environment: "jsdom",
         globals: true,
         setupFiles: ["./src/test/setup.ts"],
+        // **超时放宽** —— 好几条测试要渲染整页（资产清单、总览），
+        // 那些组件很重（表格 + 导入 + 导出 + CMDB 面板 + 图表）。
+        // 默认 5 秒在机器稍忙时就整片变红 —— 那是**测试环境慢**，不是功能坏了。
+        //
+        // 判据：失败全是 `TestTimeoutError`，且**单独跑同一个文件必过**。
+        testTimeout: 20000,
+        hookTimeout: 20000,
     },
 })

@@ -78,7 +78,7 @@ describe("监控面板的区域导航", () => {
         renderMonitor()
 
         // 区域名会出现两次（导航按钮 + 画布里的区域标题），所以用 role 定位
-        await screen.findByRole("button", { name: /Zone 0/ })
+        await screen.findByRole("button", { name: /Zone 0/ }, { timeout: 10000 })
         expect(screen.getByRole("button", { name: /Zone 0/ })).toBeInTheDocument()
         expect(screen.getByRole("button", { name: /Zone 1/ })).toBeInTheDocument()
         expect(screen.getByRole("button", { name: /Zone 2/ })).toBeInTheDocument()
@@ -87,14 +87,14 @@ describe("监控面板的区域导航", () => {
     it("要说明画布比屏幕宽、可以横向滚动", async () => {
         renderMonitor()
 
-        await screen.findByText(/可横向滚动/)
+        await screen.findByText(/可横向滚动/, undefined, { timeout: 10000 })
         expect(screen.getByText(/可横向滚动/)).toBeInTheDocument()
     })
 
     it("按钮顺序要跟画布上的左右顺序一致（按 x 排序）", async () => {
         renderMonitor()
 
-        await screen.findByRole("button", { name: /Zone 0/ })
+        await screen.findByRole("button", { name: /Zone 0/ }, { timeout: 10000 })
         const btns = screen
             .getAllByRole("button")
             .map((b) => b.textContent.trim())
@@ -109,7 +109,7 @@ describe("监控面板的区域导航", () => {
     it("点按钮要真的滚动画布（不能是摆设）", async () => {
         renderMonitor()
 
-        await screen.findByRole("button", { name: /Zone 0/ })
+        await screen.findByRole("button", { name: /Zone 0/ }, { timeout: 10000 })
 
         // jsdom 不实现滚动 —— 拦下 Element.prototype.scrollTo，
         // 记录调用参数。
