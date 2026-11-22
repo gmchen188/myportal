@@ -255,17 +255,76 @@ class TestManage:
         assert a.vessel_id is None, "资产应该变成未归船"
         db.close()
 
-    def test_delete_fleet_keeps_vessels(self, env):
-        """删船队 —— 船变成「未归队」，船与资产都保留。"""
+    def test_delete_fleet_is_refused_while_it_has_vessels(self, env):
+        """删船队 —— **底下还有船就不给删**（409）。
+
+        船必须属于某一支船队，所以「删船队 → 船变孤儿」这条路堵死了。
+        要删船队，先把船移到别的船队。
+        """
         client, Session = env
         ids = _seed_tree(Session)
         h = _login(client, "u1")
-        assert client.delete(f"/api/fleets/{ids['fleet']}", headers=h).status_code == 200
+        r = client.delete(f"/api/fleets/{ids['fleet']}", headers=h)
+        assert r.status_code == 409, r.text
+        assert "船" in r.json()["detail"]
         db = Session()
         v = db.get(Vessel, ids["v1"])
         assert v is not None, "船被删了 —— 不该发生"
-        assert v.fleet_id is None
+        assert v.fleet_id == ids["fleet"], "船的归属被改了 —— 不该发生"
         db.close()
+
+    def test_delete_fleet_works_when_it_has_no_vessels(self, env):
+        """没有船的船队照删。"""
+        client, Session = env
+        _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        empty = Fleet(tenant_id=ASI, name="空船队")
+        db.add(empty)
+        db.commit()
+        fid = empty.id
+        db.close()
+        r = client.delete(f"/api/fleets/{fid}", headers=h)
+        assert r.status_code == 200, r.text
+
+    def test_create_vessel_requires_a_fleet(self, env):
+        """**新建船必须给船队** —— 不给就是 422。
+
+        船可以飘在船队之外的话，「船队视图」永远缺一块。
+        """
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post("/api/fleets/vessels", json={"name": "无主船"}, headers=h)
+        assert r.status_code == 422, r.text
+        assert "fleet_id" in r.text, r.text
+
+    def test_vessel_can_change_its_fleet(self, env):
+        """船可以改归属 —— 移船队是正常业务动作。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        other = Fleet(tenant_id=ASI, name="接收船队")
+        db.add(other)
+        db.commit()
+        oid = other.id
+        db.close()
+        r = client.patch(
+            f"/api/fleets/vessels/{ids['v1']}", json={"fleet_id": oid}, headers=h
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["fleet_id"] == oid
+        # 移走一艘还剩一艘 → 还是不能删船队
+        r2 = client.delete(f"/api/fleets/{ids['fleet']}", headers=h)
+        assert r2.status_code == 409, r2.text
+        assert "1 艘船" in r2.json()["detail"], r2.text
+        # 两艘都移走 → 原船队空了，可以删
+        r3 = client.patch(
+            f"/api/fleets/vessels/{ids['v2']}", json={"fleet_id": oid}, headers=h
+        )
+        assert r3.status_code == 200, r3.text
+        r4 = client.delete(f"/api/fleets/{ids['fleet']}", headers=h)
+        assert r4.status_code == 200, r4.text
 
     def test_assign_assets_is_idempotent(self, env):
         """批量归船幂等 —— 同一批再归一次，结果一样。"""
@@ -402,7 +461,11 @@ class TestAssetVessel:
         client, Session = env
         _seed_tree(Session)
         db = Session()
-        db.add(Vessel(tenant_id=DONGFANG, fleet_id=None, name="别人的船"))
+        # 船必须有归属 —— 给它一支别的租户的船队
+        other_fleet = Fleet(tenant_id=DONGFANG, name="别人的船队")
+        db.add(other_fleet)
+        db.flush()
+        db.add(Vessel(tenant_id=DONGFANG, fleet_id=other_fleet.id, name="别人的船"))
         db.commit()
         db.close()
         h = _login(client, "u1")

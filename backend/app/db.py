@@ -347,12 +347,20 @@ class Vessel(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
-    # 船队 —— 可以为空（还没归队的船）
+    # 船队 —— **必填**：一艘船必须属于某一支船队。
+    #
+    # 早先这里是可空的（「还没归队的船」）。那样的话船可以飘在船队之外，
+    # 删船队时船就变成无家可归，「船队视图」永远缺一块。
+    # 现在船必须归属一支船队；删船队时底下还有船会被拒绝
+    # （先把船移到别的船队）。
     #
     # **必须是 Integer**：fleet_id 指向 fleets.id（整数主键）。
     # 写成 String(64) 时 SQLite 会把值存成文本 '2'，于是
     # `vessel.fleet_id == fleet.id` 永远不成立 —— 船队视图会显示「0 艘船」。
-    fleet_id = Column(Integer, ForeignKey("fleets.id", ondelete="SET NULL"), nullable=True, index=True)
+    #
+    # **ondelete=RESTRICT**：删船队不会把船「踢成孤儿」——
+    # 外键直接挡住，让应用层给出人话提示。
+    fleet_id = Column(Integer, ForeignKey("fleets.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     name = Column(String(200), nullable=False, index=True)
     # 船代号 / 呼号 / IMO 编号
@@ -736,26 +744,38 @@ def _ensure_columns() -> None:
 
 
 def _rebuild_vessels_if_misbuilt() -> None:
-    """`vessels.fleet_id` 的类型不对就重建这张表。
+    """`vessels.fleet_id` 的**类型或可空性**不对就重建这张表。
 
     ## 为什么需要
 
-    早期版本把 `fleet_id` 声明成了 `String(64)`，于是 SQLite 把它建成
-    VARCHAR 列，存进去的值是**文本** `'2'` 而不是整数 `2`。
-    症状很隐蔽：数据库里看着有船队有船，但
-    `vessel.fleet_id == fleet.id` 永远不成立 —— **船队视图显示「0 艘船、
-    0 资产」**，而 totals 又是另一个数。
+    两个坑叠在一起：
+
+    1. 早期版本把 `fleet_id` 声明成了 `String(64)`，于是 SQLite 把它建成
+       VARCHAR 列，存进去的值是**文本** `'2'` 而不是整数 `2`。
+       症状很隐蔽：数据库里看着有船队有船，但
+       `vessel.fleet_id == fleet.id` 永远不成立 —— **船队视图显示「0 艘船、
+       0 资产」**，而 totals 又是另一个数。
+
+    2. 后来 `fleet_id` 又变成可空（「还没归队的船」）。现在船**必须**属于
+       某一支船队，列要是 NOT NULL —— 旧库建出来的是可空列，
+       约束不会自动跟着模型变。
 
     **SQLite 不能改列类型**（`ALTER TABLE ... ALTER COLUMN` 不存在），
     只能重建表。
 
-    ## 为什么重建是安全的
+    ## 重建必须**保住数据**
 
-    表里只有**播种**产生的数据（船队与船），没有用户录入的业务数据 ——
-    用户录入的是**资产**，在另一张表上。
+    早先的版本直接 `DROP TABLE vessels` 再 `create_all` —— 那时候表里
+    只有播种的数据，丢了无所谓。**现在用户能自己建船了**，直接 DROP
+    会把人家的船全弄丢。
 
-    重建后 `assets.vessel_id` 会指向不存在的 id，所以先清空，
-    让随后的播种重新挂一遍。
+    所以改成：**先读出来 → DROP → 建新表 → 写回去**。
+    船的数量很少（个位数到几十），在 Python 里搬比在 SQL 里搬安全。
+
+    ## 什么时候**不**重建
+
+    表里还有 `fleet_id IS NULL` 的船时不能改成 NOT NULL —— 会插不进去。
+    这种情况下**保持原样**（不重建、不丢数据），把问题留给应用层。
     """
     import sqlalchemy as sa
 
@@ -767,15 +787,45 @@ def _rebuild_vessels_if_misbuilt() -> None:
         fk = cols.get("fleet_id")
         if fk is None:
             return
-        # 已经是整数列 → 不用动
+        # 类型是整数 **且** 已经是 NOT NULL → 不用动
         #
         # `type` 是 SQLAlchemy 的**类型对象**（VARCHAR 类），不是字符串 ——
         # 直接 `.upper()` 会 AttributeError。用 str() 取它的名字。
-        if str(fk["type"]).upper() in ("INTEGER", "INT"):
+        type_ok = str(fk["type"]).upper() in ("INTEGER", "INT")
+        not_null_ok = not fk.get("nullable", True)
+        if type_ok and not_null_ok:
             return
+
+        nulls = conn.execute(
+            sa.text("SELECT COUNT(*) FROM vessels WHERE fleet_id IS NULL")
+        ).scalar() or 0
+        if nulls:
+            # 还有没归队的船 —— 改成 NOT NULL 会失败。
+            # **保持原样**：宁可约束松一点，也不要弄丢数据。
+            return
+
+        rows = conn.execute(
+            sa.text(
+                "SELECT id, tenant_id, fleet_id, name, code, imo, description,"
+                " created_at, updated_at FROM vessels"
+            )
+        ).fetchall()
         conn.execute(sa.text("DROP TABLE vessels"))
-        conn.execute(sa.text("UPDATE assets SET vessel_id = NULL"))
-    Base.metadata.create_all(engine)
+        # **必须用同一个连接建表** ——
+        # `Base.metadata.create_all(engine)` 会开**新连接**，看不到这个事务里
+        # 还没提交的 DROP，于是认为表还在、跳过创建 → 迁移静默不生效
+        # （实测：fleet_id 仍然是可空列）。
+        Vessel.__table__.create(conn, checkfirst=False)
+        if rows:
+            conn.execute(
+                sa.text(
+                    "INSERT INTO vessels (id, tenant_id, fleet_id, name, code, imo,"
+                    " description, created_at, updated_at) VALUES"
+                    " (:id, :tenant_id, :fleet_id, :name, :code, :imo,"
+                    " :description, :created_at, :updated_at)"
+                ),
+                [dict(r._mapping) for r in rows],
+            )
 
 
 def init_db() -> None:

@@ -74,7 +74,11 @@ class FleetPatch(BaseModel):
 
 class VesselIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
-    fleet_id: int | None = None
+    # **船队必填** —— 一艘船必须属于某一支船队。
+    #
+    # 早先是可空的（「还没归队的船」），但那样船可以飘在船队之外，
+    # 删船队时船就无家可归，「船队视图」永远缺一块。
+    fleet_id: int
     code: str | None = Field(default=None, max_length=64)
     imo: str | None = Field(default=None, max_length=32)
     description: str | None = None
@@ -503,16 +507,26 @@ def delete_fleet(
     p: Principal = Depends(principal_from_request_strict),
     db: Session = Depends(get_session),
 ):
-    """删船队 —— **不删船，也不删资产**。
+    """删船队 —— **底下还有船就不给删**。
 
-    船变成「未归队」，资产跟着船走。删船队不是删设备。
+    船必须属于某一支船队，所以「删船队 → 船变孤儿」这条路被堵死了：
+    要删船队，先把船移到别的船队。
+
+    返回 409 而不是 404/500 —— 这是**冲突**（船还在用这支船队），
+    前端据此提示人话。
+
+    拓扑不阻塞删船队（拓扑本来就可以不属于任何船队）。
     """
     require_admin(p)
     fleet = db.get(Fleet, fleet_id)
     if fleet is None or fleet.tenant_id != p.tenant_id:
         raise HTTPException(status_code=404, detail="船队不存在")
-    for v in db.query(Vessel).filter(Vessel.fleet_id == fleet.id).all():
-        v.fleet_id = None
+    vessel_count = db.query(Vessel).filter(Vessel.fleet_id == fleet.id).count()
+    if vessel_count:
+        raise HTTPException(
+            status_code=409,
+            detail=f"船队下还有 {vessel_count} 艘船 —— 先把它们移到别的船队",
+        )
     for t in db.query(Topology).filter(Topology.fleet_id == fleet.id).all():
         t.fleet_id = None
     db.delete(fleet)

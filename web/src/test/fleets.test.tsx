@@ -282,6 +282,69 @@ describe("船队与船舶 · 管理", () => {
     })
 
 
+    it("新建的船一定带着所属船队", async () => {
+        vi.mocked(api.fleets.list).mockResolvedValue({
+            fleets: [
+                {
+                    id: 3, name: "东海船队", code: null, description: null,
+                    vessel_count: 0, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0, vessels: [],
+                },
+            ],
+            vessels: [],
+        })
+        setupManage()
+
+        // 点船队那一行的「+ 加船」
+        fireEvent.click(await screen.findByText("+ 加船"))
+        const nameInput = await screen.findByPlaceholderText("船名")
+        fireEvent.change(nameInput, { target: { value: "海洋三号" } })
+        fireEvent.click(screen.getByText("创建"))
+
+        await waitFor(() => expect(api.fleets.create).toHaveBeenCalled())
+        // **船必须归属某一支船队** —— 后端 fleet_id 是必填
+        expect(vi.mocked(api.fleets.create).mock.calls[0]![0]).toMatchObject({
+            name: "海洋三号",
+            fleet_id: 3,
+        })
+    })
+
+    it("能把船改到别的船队", async () => {
+        vi.mocked(api.fleets.list).mockResolvedValue({
+            fleets: [
+                {
+                    id: 3, name: "东海船队", code: null, description: null,
+                    vessel_count: 1, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0,
+                    vessels: [
+                        {
+                            id: 9, fleet_id: 3, name: "海洋一号", code: null, imo: null,
+                            description: null, asset_count: 0, monitor_count: 0,
+                            event_count: 0, events_by_severity: {},
+                        },
+                    ],
+                },
+                {
+                    id: 4, name: "南海船队", code: null, description: null,
+                    vessel_count: 0, asset_count: 0, monitor_count: 0, event_count: 0,
+                    events_by_severity: {}, topology_count: 0, vessels: [],
+                },
+            ],
+            vessels: [],
+        })
+        setupManage()
+
+        const select = await screen.findByTitle("改归属船队")
+        fireEvent.change(select, { target: { value: "4" } })
+
+        await waitFor(() => expect(api.fleets.patchVessel).toHaveBeenCalled())
+        expect(vi.mocked(api.fleets.patchVessel).mock.calls[0]![0]).toBe(9)
+        expect(vi.mocked(api.fleets.patchVessel).mock.calls[0]![1]).toMatchObject({
+            fleet_id: 4,
+        })
+    })
+
+
     it("清空标签时发的是 code: null（不是空串、也不是不提交）", async () => {
         // **mock 要在渲染之前设** —— React Query 挂载时就取一次数，
         // 渲染之后再改 mock 只会更新缓存，页面已经渲染出空列表了。

@@ -18,7 +18,9 @@ import { api, type Fleet, type Vessel } from "@/api/client"
  *
  *   建船队 / 建船     名字、标签
  *   改名 / 改标签      船队与船都能改
+ *   改归属            船必须属于某一支船队，但**可以换一支**
  *   删                **删船不删资产** —— 资产变成「未归船」，还在清单里
+ *                     **删船队要先清空底下的船** —— 船不能变成无家可归
  *
  * ## 名称与标签是两回事
  *
@@ -145,8 +147,12 @@ export function FleetsPage() {
         onError: (e: Error) => setError(e.message),
     })
     const patchVessel = useMutation({
-        mutationFn: (args: { id: number; name?: string; code?: string | null }) =>
-            api.fleets.patchVessel(args.id, { name: args.name, code: args.code }),
+        mutationFn: (args: { id: number; name?: string; code?: string | null; fleet_id?: number }) =>
+            api.fleets.patchVessel(args.id, {
+                name: args.name,
+                code: args.code,
+                fleet_id: args.fleet_id,
+            }),
         onSuccess: refresh,
         onError: (e: Error) => setError(e.message),
     })
@@ -162,9 +168,6 @@ export function FleetsPage() {
     })
 
     const fleets = data.data?.fleets ?? []
-    const vessels = data.data?.vessels ?? []
-    const orphanVessels = vessels.filter((v) => v.id !== null && v.fleet_id === null)
-
     const vesselRow = (v: Vessel) => (
         <div
             key={v.id ?? "none"}
@@ -188,6 +191,25 @@ export function FleetsPage() {
                 onSave={(code) => v.id !== null && patchVessel.mutate({ id: v.id, code })}
             />
             {v.imo && <span className="subtle mono" style={{ fontSize: 11 }}>IMO {v.imo}</span>}
+            {/* 改归属 —— 船必须属于某一支船队，但**可以换一支** */}
+            {v.id !== null && (
+                <select
+                    className="input"
+                    style={{ width: 130, height: 24, padding: "0 4px", fontSize: 12 }}
+                    value={v.fleet_id ?? ""}
+                    title="改归属船队"
+                    onChange={(e) => {
+                        const fid = Number(e.target.value)
+                        if (fid) patchVessel.mutate({ id: v.id!, fleet_id: fid })
+                    }}
+                >
+                    {fleets.map((f: Fleet) => (
+                        <option key={f.id ?? "none"} value={f.id ?? ""}>
+                            {f.name}
+                        </option>
+                    ))}
+                </select>
+            )}
             <span className="subtle" style={{ marginLeft: "auto", fontSize: 11 }}>
                 {v.asset_count} 资产 · {v.monitor_count} 监控 · {v.event_count} 事件
             </span>
@@ -329,16 +351,6 @@ export function FleetsPage() {
                     ))}
                 </div>
             </div>
-
-            {orphanVessels.length > 0 && (
-                <div className="card">
-                    <div className="card-h">
-                        <h3>未归队的船</h3>
-                        <span className="subtle" style={{ fontSize: 11 }}>还没归到任何船队</span>
-                    </div>
-                    <div style={{ padding: 14 }}>{orphanVessels.map(vesselRow)}</div>
-                </div>
-            )}
         </div>
     )
 }
