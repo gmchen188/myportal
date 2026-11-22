@@ -18,6 +18,7 @@ import { MemoryRouter } from "react-router-dom"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api, type Fleet, type Vessel, type VesselOverview } from "@/api/client"
+import { FleetsPage } from "@/pages/fleets"
 import { OverviewPage } from "@/pages/overview"
 
 vi.mock("@/api/client", async () => {
@@ -35,6 +36,13 @@ vi.mock("@/api/client", async () => {
                 overview: vi.fn(),
                 vesselOverview: vi.fn(),
                 list: vi.fn(),
+                createFleet: vi.fn(),
+                create: vi.fn(),
+                patchFleet: vi.fn(),
+                patchVessel: vi.fn(),
+                removeFleet: vi.fn(),
+                removeVessel: vi.fn(),
+                assignAssets: vi.fn(),
             },
         },
     }
@@ -210,5 +218,50 @@ describe("总览 · 船队视图 / 单船视图", () => {
         // 严重 1、高危 2 —— 堆叠条与 pill 矩阵都要有
         expect(screen.getAllByText(/严重/).length).toBeGreaterThan(0)
         expect(screen.getAllByText(/高危/).length).toBeGreaterThan(0)
+    })
+})
+
+/**
+ * 管理页的写操作。
+ *
+ * ## 为什么单独测
+ *
+ * 读端点全绿，创建却报 **422** —— 因为 `request()` 内部已经
+ * `JSON.stringify(opts.body)`，调用方又写了一层 → body 变成
+ * **一个 JSON 字符串**，FastAPI 收到字符串 → 请求体校验失败。
+ *
+ * **双序列化不报错，只是发错东西** —— 只有真发一次请求才会暴露。
+ * 所以这里断言的是**传进去的是对象**。
+ */
+describe("船队与船舶 · 管理", () => {
+    beforeEach(() => {
+        vi.mocked(api.fleets.list).mockResolvedValue({ fleets: [], vessels: [] })
+        vi.mocked(api.fleets.createFleet).mockResolvedValue({ id: 99, name: "新船队" })
+    })
+
+    function setupManage() {
+        const qc = new QueryClient({
+            defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+        })
+        return render(
+            <QueryClientProvider client={qc}>
+                <MemoryRouter>
+                    <FleetsPage />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        )
+    }
+
+    it("新建船队时传的是对象，不是 JSON 字符串", async () => {
+        setupManage()
+        const input = await screen.findByPlaceholderText("新船队名称")
+        fireEvent.change(input, { target: { value: "新船队" } })
+        fireEvent.click(screen.getByText("新建船队"))
+
+        await waitFor(() => expect(api.fleets.createFleet).toHaveBeenCalled())
+        const arg = vi.mocked(api.fleets.createFleet).mock.calls[0][0]
+        // **双重 JSON.stringify 会让它变成字符串** —— FastAPI 收到字符串就 422
+        expect(typeof arg).toBe("object")
+        expect((arg as { name: string }).name).toBe("新船队")
     })
 })

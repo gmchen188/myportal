@@ -936,22 +936,22 @@ export const api = {
         create: (body: { name: string; fleet_id?: number | null; code?: string | null; imo?: string | null; description?: string | null }) =>
             request<{ id: number; name: string }>("/api/fleets/vessels", {
                 method: "POST",
-                body: JSON.stringify(body),
+                body,
             }),
         createFleet: (body: { name: string; code?: string | null; description?: string | null }) =>
             request<{ id: number; name: string }>("/api/fleets", {
                 method: "POST",
-                body: JSON.stringify(body),
+                body,
             }),
         patchVessel: (id: number, body: { name?: string; fleet_id?: number | null; code?: string | null; imo?: string | null; description?: string | null }) =>
             request<{ id: number; name: string }>(`/api/fleets/vessels/${id}`, {
                 method: "PATCH",
-                body: JSON.stringify(body),
+                body,
             }),
         patchFleet: (id: number, body: { name?: string; code?: string | null; description?: string | null }) =>
             request<{ id: number; name: string }>(`/api/fleets/${id}`, {
                 method: "PATCH",
-                body: JSON.stringify(body),
+                body,
             }),
         removeVessel: (id: number) =>
             request<{ ok: boolean }>(`/api/fleets/vessels/${id}`, { method: "DELETE" }),
@@ -960,7 +960,8 @@ export const api = {
         assignAssets: (vesselId: number, assetIds: number[]) =>
             request<{ ok: boolean; moved: number }>(`/api/fleets/vessels/${vesselId}/assets`, {
                 method: "POST",
-                body: JSON.stringify({ asset_ids: assetIds }),
+                // **传对象，不要自己 stringify** —— request() 内部会 JSON.stringify
+                body: { asset_ids: assetIds },
             }),
     },
     topologies: {
