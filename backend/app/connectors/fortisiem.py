@@ -57,6 +57,12 @@ FS_BASIC_PASSWORD = os.getenv("FORTISIEM_BASIC_PASSWORD", "")
 _ACCEPT = "application/json, text/plain, */*"
 
 
+def _plain(text: str | None) -> str:
+    """把响应体压成一行可读文本 —— SIEM 的错误页是 HTML。"""
+    t = re.sub(r"<[^>]+>", " ", text or "")
+    return re.sub(r"\s+", " ", t).strip()
+
+
 # ── 字段映射（实机 7.5.1 验证，2026-11-21）────────────────────────────────
 #
 # 实机拉到的字段名与文档不完全一致，按实测来：
@@ -424,13 +430,34 @@ class FortiSiemClient:
         if r.status_code != 200:
             raise classify_write_error(r.status_code, r.text)
 
-        # 成功返回：<response><status>Discovery xml is queued</status>
-        #           <sourceIdentifier>RESTAPI_<TaskId></sourceIdentifier></response>
+        body = r.text or ""
+
+        # **HTTP 200 不等于成功** —— SIEM 会在 200 里返回错误文本。
+        #
+        # 实测证据：`PUT deviceMon/updateCredential` 返回
+        #   200 "Not a device configuration XML file."
+        # 同一个 servlet 家族里，报文错也走 200。
+        #
+        # 不检查的话 → 空的 taskId → 资产被标成 `siem_push_status = "ok"`
+        # —— **假成功**，用户以为推进去了，其实 CMDB 里什么都没有。
+        #
+        # 成功的样子：<response><status>Discovery xml is queued</status>
+        #             <sourceIdentifier>RESTAPI_<TaskId></sourceIdentifier></response>
         task_id = ""
-        m = re.search(r"RESTAPI_([A-Za-z0-9_-]+)", r.text or "")
+        m = re.search(r"RESTAPI_([A-Za-z0-9_-]+)", body)
         if m:
             task_id = m.group(1)
-        return {"task_id": task_id, "raw": (r.text or "")[:500]}
+
+        if not task_id:
+            # 没有 taskId = 不是排队成功的响应 → 当成失败
+            detail = _plain(body) or "(空响应体)"
+            raise SiemWriteError(
+                f"FortiSIEM 未接受该请求（HTTP 200 但没有任务号）：{detail[:300]}",
+                kind="bad_request",
+                status=r.status_code,
+            )
+
+        return {"task_id": task_id, "raw": body[:500]}
 
     def cmdb_device_list(self) -> list[dict[str, Any]]:
         """读设备列表（JSON），带 CMDB 的 device id —— 删除时要用。

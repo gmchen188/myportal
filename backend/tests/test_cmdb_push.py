@@ -169,3 +169,87 @@ class TestClassifyWriteError:
         assert "锁定" in str(e)
         e2 = classify_write_error(403, "User is not authorized to access this resource.")
         assert "权限" in str(e2)
+
+
+class TestSiemWriteResponse:
+    """SIEM 会用 HTTP 200 返回错误 —— 必须当成失败。
+
+    **不能与 `TestClassifyWriteError` 同名** —— pytest 里同名类会**静默覆盖**，
+    前者的用例全部消失（不报错，只是少了）。踩过一次。
+    """
+
+    def test_200_without_task_id_is_failure(self):
+        """**HTTP 200 不等于成功。**
+
+        实测证据：`PUT deviceMon/updateCredential` 返回
+        `200 "Not a device configuration XML file."` —— 同一个 servlet 家族里，
+        报文错也走 200。
+
+        不检查的话 → 空的 taskId → 资产被标成 `siem_push_status = "ok"`
+        —— **假成功**。用户以为推进去了，CMDB 里其实什么都没有。
+        """
+        from app.connectors.fortisiem import FortiSiemClient
+        from app.services.cmdb_push import SiemWriteError
+
+        client = FortiSiemClient()
+        # 模拟：HTTP 200 但响应体是错误文本，没有 RESTAPI_<taskId>
+        class FakeResp:
+            status_code = 200
+            text = "Not a device configuration XML file."
+
+        class FakeClient:
+            def post(self, *a, **kw):
+                return FakeResp()
+
+        client._client = FakeClient()
+        client.basic_auth = lambda: ("Super/admin", "x")  # type: ignore[method-assign]
+
+        try:
+            client.cmdb_add_devices("<Devices/>")
+        except SiemWriteError as exc:
+            assert exc.kind == "bad_request"
+            assert "没有任务号" in str(exc)
+        else:
+            raise AssertionError("应当抛 SiemWriteError —— 200 但没有 taskId 是失败")
+
+    def test_200_with_task_id_is_success(self):
+        from app.connectors.fortisiem import FortiSiemClient
+
+        client = FortiSiemClient()
+
+        class FakeResp:
+            status_code = 200
+            text = (
+                "<response><status>Discovery xml is queued</status>"
+                "<sourceIdentifier>RESTAPI_12345</sourceIdentifier></response>"
+            )
+
+        class FakeClient:
+            def post(self, *a, **kw):
+                return FakeResp()
+
+        client._client = FakeClient()
+        client.basic_auth = lambda: ("Super/admin", "x")  # type: ignore[method-assign]
+
+        out = client.cmdb_add_devices("<Devices/>")
+        assert out["task_id"] == "12345"
+
+
+class TestNoDuplicateTestClasses:
+    """**防回归**：pytest 里同名 class 会静默覆盖，前者的用例全部消失。
+
+    踩过：新增 `TestClassifyWriteError` 时与已有的同名 →
+    5 项测试凭空消失，pytest 不报错（只是总数变少），
+    我是在完整验证链里发现「230 掉到 227」才察觉的。
+
+    这类丢失**不会让测试失败**，只会让覆盖变差 —— 所以必须显式防。
+    """
+
+    def test_no_duplicate_class_names(self):
+        import re
+        from pathlib import Path
+
+        src = Path(__file__).read_text(encoding="utf-8")
+        names = re.findall(r"^class (\w+)", src, re.M)
+        dupes = {n for n in names if names.count(n) > 1}
+        assert not dupes, f"同名 test class 会静默覆盖：{dupes}"
