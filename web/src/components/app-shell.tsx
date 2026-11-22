@@ -182,6 +182,17 @@ export function AppShell() {
                         />
                         FortiSIEM {siemOk ? "已连接" : siemConfigured ? "未连通" : "未配置"}
                     </div>
+                    {/* 版本号 —— **让人一眼看出自己跑的是新代码还是旧代码**。
+                        同一个 bug 修了两次、用户报了两次一模一样的报错，
+                        就是因为没人能看出那个页面是旧的。 */}
+                    {version.mine && (
+                        <div
+                            style={{ marginTop: 6, fontFamily: "ui-monospace, monospace", fontSize: 10.5 }}
+                            title={`构建于 ${version.mine.builtAt}`}
+                        >
+                            版本 {version.mine.rev || version.mine.builtAt.slice(0, 10)}
+                        </div>
+                    )}
                 </div>
             </aside>
 

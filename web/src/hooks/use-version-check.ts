@@ -78,8 +78,10 @@ function writeStored(key: string, value: string) {
 export interface VersionCheck {
     /** 页面已经过期（有新版本） */
     stale: boolean
-    /** 新版本号 */
+    /** 新版本号（服务端最新的） */
     current: VersionInfo | null
+    /** **我当前跑的**是哪个版本 —— 永远显示在界面上，让人能自己核对 */
+    mine: VersionInfo | null
     /** 关掉提示 */
     dismiss: () => void
     /** 立刻刷新 */
@@ -89,6 +91,7 @@ export interface VersionCheck {
 export function useVersionCheck(): VersionCheck {
     const [stale, setStale] = useState(false)
     const [current, setCurrent] = useState<VersionInfo | null>(null)
+    const [mine, setMine] = useState<VersionInfo | null>(null)
 
     useEffect(() => {
         let alive = true
@@ -96,6 +99,9 @@ export function useVersionCheck(): VersionCheck {
         const check = async () => {
             const v = await fetchVersion()
             if (!alive || !v) return
+            // **我当前是哪个版本** —— 界面要一直显示它，
+            // 这样「页面是不是旧的」不用靠猜。
+            setMine(v)
             const key = JSON.stringify(v)
             const mine = readStored(VERSION_KEY)
             if (!mine) {
@@ -121,6 +127,7 @@ export function useVersionCheck(): VersionCheck {
     return {
         stale,
         current,
+        mine,
         dismiss: () => {
             if (current) writeStored(DISMISSED_KEY, JSON.stringify(current))
             setStale(false)
