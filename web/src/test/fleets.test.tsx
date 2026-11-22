@@ -281,6 +281,45 @@ describe("船队与船舶 · 管理", () => {
         })
     })
 
+
+    it("清空标签时发的是 code: null（不是空串、也不是不提交）", async () => {
+        // **mock 要在渲染之前设** —— React Query 挂载时就取一次数，
+        // 渲染之后再改 mock 只会更新缓存，页面已经渲染出空列表了。
+        vi.mocked(api.fleets.list).mockResolvedValue({
+            fleets: [
+                {
+                    id: 7,
+                    name: "有标签的队",
+                    code: "OLD-TAG",
+                    description: null,
+                    vessel_count: 0,
+                    asset_count: 0,
+                    monitor_count: 0,
+                    event_count: 0,
+                    events_by_severity: {},
+                    topology_count: 0,
+                    vessels: [],
+                },
+            ],
+            vessels: [],
+        })
+        setupManage()
+
+        const screen2 = await screen.findByText("OLD-TAG")
+        fireEvent.click(screen2)
+
+        const input = await screen.findByPlaceholderText("标签，如 FLEET-A")
+        // **清空** —— 用户把标签删掉
+        fireEvent.change(input, { target: { value: "" } })
+        fireEvent.blur(input)
+
+        await waitFor(() => expect(api.fleets.patchFleet).toHaveBeenCalled())
+        const call = vi.mocked(api.fleets.patchFleet).mock.calls[0]!
+        expect(call[0]).toBe(7)
+        // 空串转成 null —— 后端 `code: str | None`，空串会被当成一个空标签存进去
+        expect(call[1]).toEqual({ name: undefined, code: null })
+    })
+
     it("没填标签时发 null，不是空串", async () => {
         setupManage()
         const nameInput = await screen.findByPlaceholderText("新船队名称")
