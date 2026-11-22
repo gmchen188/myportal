@@ -483,10 +483,15 @@ def patch_fleet(
     fleet = db.get(Fleet, fleet_id)
     if fleet is None or fleet.tenant_id != p.tenant_id:
         raise HTTPException(status_code=404, detail="船队不存在")
-    for k in ("name", "code", "description"):
-        v = getattr(body, k)
-        if v is not None:
-            setattr(fleet, k, v)
+    # **exclude_unset=True 才能区分「没传」和「显式传 null」** ——
+    # 用 `if v is not None` 过滤的话，PATCH {"code": null} 会被整个忽略，
+    # 标签就清不掉（清空标签 = 前端把空串转成 null 发过来）。
+    updates = body.model_dump(exclude_unset=True)
+    # 名字不能被清空 —— 空名字会让列表页出现无名船队。
+    if updates.get("name") == "":
+        updates.pop("name")
+    for k, v in updates.items():
+        setattr(fleet, k, v)
     db.commit()
     audit_log.record(db, tenant_id=p.tenant_id, user_id=getattr(p, "user_id", None), username=getattr(p, "username", None), action="fleet.update", target_type="fleet", target_id=str(fleet.id), detail={})
     return {"id": fleet.id, "name": fleet.name, "code": fleet.code, "description": fleet.description}
@@ -573,10 +578,11 @@ def patch_vessel(
         fleet = db.get(Fleet, body.fleet_id)
         if fleet is None or fleet.tenant_id != p.tenant_id:
             raise HTTPException(status_code=404, detail="船队不存在")
-    for k in ("name", "code", "imo", "description", "fleet_id"):
-        v = getattr(body, k)
-        if v is not None:
-            setattr(vessel, k, v)
+    for k, v in body.model_dump(exclude_unset=True).items():
+        # 名字不能被清空 —— 空名字会让列表页出现无名船。
+        if k == "name" and v == "":
+            continue
+        setattr(vessel, k, v)
     db.commit()
     audit_log.record(db, tenant_id=p.tenant_id, user_id=getattr(p, "user_id", None), username=getattr(p, "username", None), action="vessel.update", target_type="vessel", target_id=str(vessel.id), detail={})
     return {"id": vessel.id, "fleet_id": vessel.fleet_id, "name": vessel.name,

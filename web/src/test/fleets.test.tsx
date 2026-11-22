@@ -259,9 +259,38 @@ describe("船队与船舶 · 管理", () => {
         fireEvent.click(screen.getByText("新建船队"))
 
         await waitFor(() => expect(api.fleets.createFleet).toHaveBeenCalled())
-        const arg = vi.mocked(api.fleets.createFleet).mock.calls[0][0]
+        const arg = vi.mocked(api.fleets.createFleet).mock.calls[0]![0]
         // **双重 JSON.stringify 会让它变成字符串** —— FastAPI 收到字符串就 422
         expect(typeof arg).toBe("object")
         expect((arg as { name: string }).name).toBe("新船队")
+    })
+
+
+    it("新建船队时带上标签", async () => {
+        setupManage()
+        const nameInput = await screen.findByPlaceholderText("新船队名称")
+        const codeInput = screen.getByPlaceholderText("标签（可选）")
+        fireEvent.change(nameInput, { target: { value: "带标签的队" } })
+        fireEvent.change(codeInput, { target: { value: "FLEET-X" } })
+        fireEvent.click(screen.getByText("新建船队"))
+
+        await waitFor(() => expect(api.fleets.createFleet).toHaveBeenCalled())
+        expect(vi.mocked(api.fleets.createFleet).mock.calls[0]![0]).toEqual({
+            name: "带标签的队",
+            code: "FLEET-X",
+        })
+    })
+
+    it("没填标签时发 null，不是空串", async () => {
+        setupManage()
+        const nameInput = await screen.findByPlaceholderText("新船队名称")
+        fireEvent.change(nameInput, { target: { value: "没标签的队" } })
+        fireEvent.click(screen.getByText("新建船队"))
+
+        await waitFor(() => expect(api.fleets.createFleet).toHaveBeenCalled())
+        expect(vi.mocked(api.fleets.createFleet).mock.calls[0]![0]).toEqual({
+            name: "没标签的队",
+            code: null,
+        })
     })
 })

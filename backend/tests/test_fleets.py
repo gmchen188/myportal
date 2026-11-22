@@ -412,3 +412,79 @@ class TestAssetVessel:
         db.close()
         r = client.patch(f"/api/assets/{aid}", json={"vessel_id": 9999}, headers=h)
         assert r.status_code == 404
+
+
+    def test_patch_fleet_can_change_and_clear_code(self, env):
+        """**标签要能改，也要能清空。**
+
+        清空标签 = 前端把空串转成 `null` 发过来（`code: str | None`）。
+
+        **这里有个容易漏的坑**：用 `if v is not None` 过滤字段的话，
+        显式传的 `null` 和「没传这个字段」就分不出来了 —— `null` 会被整个
+        忽略，标签清不掉。要用 `model_dump(exclude_unset=True)`。
+        """
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post("/api/fleets", json={"name": "标签队", "code": "T-1"}, headers=h)
+        assert r.status_code == 200, r.text
+        fid = r.json()["id"]
+        assert r.json()["code"] == "T-1"
+
+        # 改标签
+        r = client.patch(f"/api/fleets/{fid}", json={"code": "T-2"}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["code"] == "T-2"
+
+        # 清空标签
+        r = client.patch(f"/api/fleets/{fid}", json={"code": None}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["code"] is None, r.text
+
+    def test_patch_fleet_cannot_blank_the_name(self, env):
+        """名字不能被清空 —— 否则列表页会出现无名船队。"""
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post("/api/fleets", json={"name": "有名字的队"}, headers=h)
+        fid = r.json()["id"]
+        r = client.patch(f"/api/fleets/{fid}", json={"name": ""}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["name"] == "有名字的队"
+
+    def test_patch_vessel_can_change_and_clear_code(self, env):
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post("/api/fleets", json={"name": "船队X"}, headers=h)
+        fid = r.json()["id"]
+        r = client.post(
+            "/api/fleets/vessels",
+            json={"name": "船Y", "code": "V-1", "fleet_id": fid},
+            headers=h,
+        )
+        assert r.status_code == 200, r.text
+        vid = r.json()["id"]
+        assert r.json()["code"] == "V-1"
+
+        r = client.patch(f"/api/fleets/vessels/{vid}", json={"code": "V-2"}, headers=h)
+        assert r.json()["code"] == "V-2"
+
+        r = client.patch(f"/api/fleets/vessels/{vid}", json={"code": None}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["code"] is None, r.text
+
+    def test_patch_fleet_only_touches_the_given_fields(self, env):
+        """**没传的字段不能被清掉** —— 这就是 exclude_unset 的另一面。"""
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post(
+            "/api/fleets",
+            json={"name": "字段队", "code": "KEEP", "description": "描述"},
+            headers=h,
+        )
+        fid = r.json()["id"]
+        # 只改名字
+        r = client.patch(f"/api/fleets/{fid}", json={"name": "改名了"}, headers=h)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["name"] == "改名了"
+        assert body["code"] == "KEEP", body
+        assert body["description"] == "描述", body

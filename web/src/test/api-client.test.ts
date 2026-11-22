@@ -68,34 +68,34 @@ describe("请求体只序列化一次", () => {
         await api.fleets.createFleet({ name: "新船队" })
 
         expect(sent).toHaveLength(1)
-        expect(sent[0].method).toBe("POST")
+        expect(sent[0]!.method).toBe("POST")
         // **双序列化会得到 "\"{\\"name\\\":\\\"新船队\\\"}\""**
         // —— 一个 JSON 字符串，不是对象。FastAPI 收到字符串就 422。
-        expect(sent[0].body).toBe('{"name":"新船队"}')
-        expect(JSON.parse(sent[0].body)).toEqual({ name: "新船队" })
+        expect(sent[0]!.body).toBe('{"name":"新船队"}')
+        expect(JSON.parse(sent[0]!.body)).toEqual({ name: "新船队" })
     })
 
     it("assignAssets 发出去的 body 是对象", async () => {
         const sent = captureFetch()
         await api.fleets.assignAssets(2, [7, 8])
-        expect(sent[0].body).toBe('{"asset_ids":[7,8]}')
+        expect(sent[0]!.body).toBe('{"asset_ids":[7,8]}')
     })
 
     it("create（新建船）发出去的 body 是对象", async () => {
         const sent = captureFetch()
         await api.fleets.create({ name: "海洋三号", fleet_id: 2 })
-        expect(sent[0].body).toBe('{"name":"海洋三号","fleet_id":2}')
+        expect(sent[0]!.body).toBe('{"name":"海洋三号","fleet_id":2}')
     })
 
     it("patchVessel 发出去的 body 是对象", async () => {
         const sent = captureFetch()
         await api.fleets.patchVessel(2, { name: "海洋三号" })
-        expect(sent[0].body).toBe('{"name":"海洋三号"}')
+        expect(sent[0]!.body).toBe('{"name":"海洋三号"}')
     })
 
     it("既有端点同样是对象（对照：这才是正确写法）", async () => {
         const sent = captureFetch()
         await api.assets.create({ name: "FW-01", type: "防火墙" })
-        expect(sent[0].body).toBe('{"name":"FW-01","type":"防火墙"}')
+        expect(sent[0]!.body).toBe('{"name":"FW-01","type":"防火墙"}')
     })
 })

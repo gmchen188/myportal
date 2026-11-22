@@ -16,9 +16,15 @@ import { api, type Fleet, type Vessel } from "@/api/client"
  *
  * 页面给三件事：
  *
- *   建船队 / 建船     名字、代号、IMO
- *   改名              船队与船都能改
+ *   建船队 / 建船     名字、标签
+ *   改名 / 改标签      船队与船都能改
  *   删                **删船不删资产** —— 资产变成「未归船」，还在清单里
+ *
+ * ## 名称与标签是两回事
+ *
+ * 「海洋三号」是名字（唯一、给人看）；「OCEAN-3」是标签（编码、给系统用，
+ * 和 CMDB 的 `deviceTag` 之类对得上）。两者都要能改，所以编辑是**两个字段**
+ * 而不是把标签塞进名字。
  *
  * ## 未归船的设备怎么办
  *
@@ -26,29 +32,42 @@ import { api, type Fleet, type Vessel } from "@/api/client"
  * `POST /api/fleets/vessels/{id}/assets`。
  */
 
-/** 一行可编辑的名字 */
-function EditableName({
+/**
+ * 一行可编辑的文本（名字或标签）。
+ *
+ * **标签可以是空的** —— 所以显示时用 `emptyHint` 占位，保存时把空串转成
+ * `null`（后端 `code: str | None`，空串会当成一个空标签存进去）。
+ */
+function EditableText({
     value,
     onSave,
     placeholder,
+    emptyHint,
+    mono,
 }: {
-    value: string
-    onSave: (next: string) => void
+    value: string | null
+    onSave: (next: string | null) => void
     placeholder?: string
+    emptyHint?: string
+    mono?: boolean
 }) {
-    const [draft, setDraft] = useState(value)
+    const [draft, setDraft] = useState(value ?? "")
     const [editing, setEditing] = useState(false)
     if (!editing) {
         return (
             <span
-                style={{ cursor: "text", borderBottom: "1px dashed var(--line)" }}
+                style={{
+                    cursor: "text",
+                    borderBottom: "1px dashed var(--line)",
+                    fontFamily: mono ? "ui-monospace, monospace" : undefined,
+                }}
                 onClick={() => {
-                    setDraft(value)
+                    setDraft(value ?? "")
                     setEditing(true)
                 }}
-                title="点击改名"
+                title="点击修改"
             >
-                {value}
+                {value ?? <span className="subtle">{emptyHint ?? "（空）"}</span>}
             </span>
         )
     }
@@ -62,12 +81,13 @@ function EditableName({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={() => {
                 setEditing(false)
-                if (draft.trim() && draft !== value) onSave(draft.trim())
+                const next = draft.trim() || null
+                if (next !== (value ?? null)) onSave(next)
             }}
             onKeyDown={(e) => {
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur()
                 if (e.key === "Escape") {
-                    setDraft(value)
+                    setDraft(value ?? "")
                     setEditing(false)
                 }
             }}
@@ -78,8 +98,9 @@ function EditableName({
 export function FleetsPage() {
     const qc = useQueryClient()
     const [error, setError] = useState<string | null>(null)
-    const [newFleet, setNewFleet] = useState("")
-    const [newVessel, setNewVessel] = useState<{ name: string; fleet_id: number | null } | null>(null)
+    const [newFleetName, setNewFleetName] = useState("")
+    const [newFleetCode, setNewFleetCode] = useState("")
+    const [newVessel, setNewVessel] = useState<{ name: string; code: string; fleet_id: number | null } | null>(null)
 
     const data = useQuery({ queryKey: ["fleets"], queryFn: () => api.fleets.list() })
 
@@ -90,9 +111,14 @@ export function FleetsPage() {
     }
 
     const createFleet = useMutation({
-        mutationFn: () => api.fleets.createFleet({ name: newFleet.trim() }),
+        mutationFn: () =>
+            api.fleets.createFleet({
+                name: newFleetName.trim(),
+                code: newFleetCode.trim() || null,
+            }),
         onSuccess: () => {
-            setNewFleet("")
+            setNewFleetName("")
+            setNewFleetCode("")
             setError(null)
             refresh()
         },
@@ -102,6 +128,7 @@ export function FleetsPage() {
         mutationFn: () =>
             api.fleets.create({
                 name: newVessel!.name.trim(),
+                code: newVessel!.code.trim() || null,
                 fleet_id: newVessel!.fleet_id ?? undefined,
             }),
         onSuccess: () => {
@@ -112,12 +139,14 @@ export function FleetsPage() {
         onError: (e: Error) => setError(e.message),
     })
     const patchFleet = useMutation({
-        mutationFn: (args: { id: number; name: string }) => api.fleets.patchFleet(args.id, { name: args.name }),
+        mutationFn: (args: { id: number; name?: string; code?: string | null }) =>
+            api.fleets.patchFleet(args.id, { name: args.name, code: args.code }),
         onSuccess: refresh,
         onError: (e: Error) => setError(e.message),
     })
     const patchVessel = useMutation({
-        mutationFn: (args: { id: number; name: string }) => api.fleets.patchVessel(args.id, { name: args.name }),
+        mutationFn: (args: { id: number; name?: string; code?: string | null }) =>
+            api.fleets.patchVessel(args.id, { name: args.name, code: args.code }),
         onSuccess: refresh,
         onError: (e: Error) => setError(e.message),
     })
@@ -147,11 +176,17 @@ export function FleetsPage() {
                 borderTop: "1px solid var(--line)",
             }}
         >
-            <EditableName
+            <EditableText
                 value={v.name}
-                onSave={(name) => v.id !== null && patchVessel.mutate({ id: v.id, name })}
+                onSave={(name) => v.id !== null && name && patchVessel.mutate({ id: v.id, name })}
             />
-            {v.code && <span className="bdg neutral mono">{v.code}</span>}
+            <EditableText
+                value={v.code}
+                mono
+                emptyHint="＋标签"
+                placeholder="标签，如 OCEAN-3"
+                onSave={(code) => v.id !== null && patchVessel.mutate({ id: v.id, code })}
+            />
             {v.imo && <span className="subtle mono" style={{ fontSize: 11 }}>IMO {v.imo}</span>}
             <span className="subtle" style={{ marginLeft: "auto", fontSize: 11 }}>
                 {v.asset_count} 资产 · {v.monitor_count} 监控 · {v.event_count} 事件
@@ -182,14 +217,24 @@ export function FleetsPage() {
                     <input
                         className="input"
                         placeholder="新船队名称"
-                        value={newFleet}
-                        style={{ width: 160 }}
-                        onChange={(e) => setNewFleet(e.target.value)}
+                        value={newFleetName}
+                        style={{ width: 150 }}
+                        onChange={(e) => setNewFleetName(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === "Enter" && newFleet.trim()) createFleet.mutate()
+                            if (e.key === "Enter" && newFleetName.trim()) createFleet.mutate()
                         }}
                     />
-                    <button className="btn" disabled={!newFleet.trim()} onClick={() => createFleet.mutate()}>
+                    <input
+                        className="input"
+                        placeholder="标签（可选）"
+                        value={newFleetCode}
+                        style={{ width: 130 }}
+                        onChange={(e) => setNewFleetCode(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && newFleetName.trim()) createFleet.mutate()
+                        }}
+                    />
+                    <button className="btn" disabled={!newFleetName.trim()} onClick={() => createFleet.mutate()}>
                         新建船队
                     </button>
                 </div>
@@ -204,18 +249,24 @@ export function FleetsPage() {
             <div className="card" style={{ marginBottom: 12 }}>
                 <div className="card-h">
                     <h3>船队</h3>
-                    <span className="subtle" style={{ fontSize: 11 }}>点名字可以改名</span>
+                    <span className="subtle" style={{ fontSize: 11 }}>点名字或「＋标签」都能改</span>
                 </div>
                 <div style={{ padding: 14 }}>
                     {fleets.length === 0 && <div className="subtle">还没有船队</div>}
                     {fleets.map((f: Fleet) => (
                         <div key={f.id ?? "none"} style={{ marginBottom: 10 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
-                                <EditableName
+                                <EditableText
                                     value={f.name}
-                                    onSave={(name) => f.id !== null && patchFleet.mutate({ id: f.id, name })}
+                                    onSave={(name) => f.id !== null && name && patchFleet.mutate({ id: f.id, name })}
                                 />
-                                {f.code && <span className="bdg neutral mono">{f.code}</span>}
+                                <EditableText
+                                    value={f.code}
+                                    mono
+                                    emptyHint="＋标签"
+                                    placeholder="标签，如 FLEET-A"
+                                    onSave={(code) => f.id !== null && patchFleet.mutate({ id: f.id, code })}
+                                />
                                 <span className="subtle" style={{ marginLeft: "auto", fontSize: 11 }}>
                                     {f.vessel_count} 艘船 · {f.asset_count} 资产 · {f.topology_count} 张拓扑图
                                 </span>
@@ -235,7 +286,7 @@ export function FleetsPage() {
                                 <button
                                     className="btn"
                                     style={{ height: 24, padding: "0 7px" }}
-                                    onClick={() => setNewVessel({ name: "", fleet_id: f.id })}
+                                    onClick={() => setNewVessel({ name: "", code: "", fleet_id: f.id })}
                                 >
                                     + 加船
                                 </button>
@@ -250,6 +301,16 @@ export function FleetsPage() {
                                         value={newVessel.name}
                                         style={{ width: 180 }}
                                         onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && newVessel.name.trim()) createVessel.mutate()
+                                        }}
+                                    />
+                                    <input
+                                        className="input"
+                                        placeholder="标签（可选）"
+                                        value={newVessel.code}
+                                        style={{ width: 140 }}
+                                        onChange={(e) => setNewVessel({ ...newVessel, code: e.target.value })}
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter" && newVessel.name.trim()) createVessel.mutate()
                                         }}
