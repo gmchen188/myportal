@@ -172,6 +172,114 @@ class Asset(Base):
         }
 
 
+# ── 资产模板与草稿清单 ──────────────────────────────────────────────────────
+
+
+class AssetTemplate(Base):
+    """资产清单的**模板** —— 用户上传的 Excel/CSV 文件解析结果。
+
+    模板定义「这个清单该有哪些列、预置哪些行」。用户据此创建一份
+    **草稿清单**，在草稿里填内容，最后落库到 `assets`。
+
+    为什么不直接把上传的文件导进 assets：
+
+    - 模板往往是**分类骨架**（如某船的设备清单模板：主机、交换机、
+      传感器各若干行，名称待填），不是可入库的数据。
+    - 用户需要「先看结构、再填内容、填一半能存下来明天接着填」。
+      直接 commit 就没有这个中间态。
+    """
+
+    __tablename__ = "asset_templates"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    name = Column(String(200), nullable=False)
+    source_filename = Column(String(300), nullable=True)
+
+    # 表头 —— 原始列名，保留用户的叫法
+    headers = Column(JSON, nullable=False, default=list)
+    # 列 → 资产字段的映射建议（key 是表头，value 是 ASSET_FIELDS 的 key）
+    mapping = Column(JSON, nullable=False, default=dict)
+    # 模板里的预置行（原始表格数据，未映射）
+    template_rows = Column(JSON, nullable=False, default=list)
+    # 模板里出现过的安全区域 —— 生成草稿时用作下拉候选
+    zone_hints = Column(JSON, nullable=False, default=list)
+    # 模板行数（不含表头）
+    row_count = Column(Integer, nullable=False, default=0)
+
+    created_by = Column(String(120), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    tenant = relationship("Tenant")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "source_filename": self.source_filename,
+            "headers": self.headers or [],
+            "mapping": self.mapping or {},
+            "template_rows": self.template_rows or [],
+            "zone_hints": self.zone_hints or [],
+            "row_count": self.row_count,
+            "created_by": self.created_by,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class AssetDraft(Base):
+    """基于模板创建的**资产清单草稿** —— 可反复编辑、保存、提交。
+
+    `rows` 存的是与 `import/file` 预览**同构**的行结构
+    （`{values, row_no, status, issues}`），所以落库能直接复用
+    现有的 commit 逻辑，不必写第二套。
+
+    `status`:
+      draft      —— 还在编辑
+      committed  —— 已经落库到 assets（保留，作为快照可回看）
+    """
+
+    __tablename__ = "asset_drafts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    template_id = Column(Integer, ForeignKey("asset_templates.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    name = Column(String(200), nullable=False)
+    # 草稿行 —— 同构于 ImportRow
+    rows = Column(JSON, nullable=False, default=list)
+    status = Column(String(32), nullable=False, default="draft", index=True)
+
+    # 每次保存版本 +1 —— 想知道「改了多少轮」或回滚时用
+    version = Column(Integer, nullable=False, default=1)
+    # 上次落库的结果摘要（新增/跳过/失败）
+    commit_result = Column(JSON, nullable=True)
+
+    created_by = Column(String(120), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    tenant = relationship("Tenant")
+    template = relationship("AssetTemplate")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "template_id": self.template_id,
+            "name": self.name,
+            "rows": self.rows or [],
+            "status": self.status,
+            "version": self.version,
+            "commit_result": self.commit_result,
+            "created_by": self.created_by,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 # ── 拓扑图 ──────────────────────────────────────────────────────────────────
 class Topology(Base):
     """一张网络拓扑图。

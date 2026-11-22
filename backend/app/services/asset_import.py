@@ -206,9 +206,27 @@ def validate_rows(
     missing_count = 0
 
     def cell(row: list[str], key: str) -> str:
+        """取某字段的值。
+
+        **同一字段被多列映射时，取映射分数最高的那列。**
+
+        真实场景：模板里有「设备类别」和「类型」两列，两列都会匹配到
+        `type` 字段（"类别" 是 type 的同义词）。按列序取第一个的话，
+        拿到的会是「设备类别」的值（如 "主交换机"），而不是真正的类型
+        （如 "交换机"）—— 资产类型就全错了。
+
+        所以这里按 score 排序取最优列；分数相同时保持列序（先出现的优先）。
+        """
+        best_i = -1
+        best_score = -1.0
         for i, m in enumerate(mp):
-            if m["field"] == key and i < len(row):
-                return (row[i] or "").strip()
+            if m["field"] != key:
+                continue
+            sc = float(m.get("score") or 0.0)
+            if sc > best_score:
+                best_score, best_i = sc, i
+        if best_i >= 0 and best_i < len(row):
+            return (row[best_i] or "").strip()
         return ""
 
     for idx, row in enumerate(body):

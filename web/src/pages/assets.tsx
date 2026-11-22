@@ -10,13 +10,15 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
-import { FileUp, Plus, Search, Trash2, X } from "lucide-react"
+import { FileSpreadsheet, FileUp, Plus, Search, Trash2, X } from "lucide-react"
 import { useMemo, useRef, useState } from "react"
 
 import { api, type ImportPreview, type ImportRow } from "@/api/client"
+import { AssetExport } from "@/components/asset-export"
+import { AssetTemplatePanel } from "@/components/asset-template-panel"
 import { useAssetSchema, useAssets, useCommitImport, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets"
 
-type Mode = "list" | "import" | "manual"
+type Mode = "list" | "import" | "manual" | "template"
 
 export function AssetsPage() {
     const [mode, setMode] = useState<Mode>("list")
@@ -37,9 +39,16 @@ export function AssetsPage() {
                         共 {assets.data?.total ?? 0} 件
                     </p>
                 </div>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <AssetExport
+                        filters={{ q, zone, needs_review: needsReview }}
+                        total={assets.data?.total ?? 0}
+                    />
                     <button type="button" className="btn" onClick={() => setMode("manual")}>
                         <Plus size={14} /> 手工录入
+                    </button>
+                    <button type="button" className="btn" onClick={() => setMode("template")}>
+                        <FileSpreadsheet size={14} /> 模板清单
                     </button>
                     <button type="button" className="btn primary" onClick={() => setMode("import")}>
                         <FileUp size={14} /> 导入
@@ -54,6 +63,16 @@ export function AssetsPage() {
                         setMode("list")
                     }}
                     zones={schema.data?.zones ?? []}
+                />
+            )}
+
+            {mode === "template" && (
+                <AssetTemplatePanel
+                    zones={schema.data?.zones ?? []}
+                    onClose={() => setMode("list")}
+                    onDone={() => {
+                        setMode("list")
+                    }}
                 />
             )}
 

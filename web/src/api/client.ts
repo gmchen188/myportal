@@ -14,6 +14,15 @@
  * 租户就只能读哪个租户，前端传别人的 tenant_id 也没用。
  */
 
+/** 解析可能不是 JSON 的响应体 —— 出错时别抛异常，返回 null。 */
+function safeJson(text: string): unknown {
+    try {
+        return JSON.parse(text)
+    } catch {
+        return null
+    }
+}
+
 const API_BASE = import.meta.env.VITE_API_BASE ?? ""
 
 export class ApiError extends Error {
@@ -282,6 +291,48 @@ export interface CommitResult {
     created_items: Array<{ row: number | null; name: string }>
     skipped_items: Array<{ row: number | null; reason: string }>
     failed_items: Array<{ row: number | null; reason: string }>
+}
+
+/** 资产模板 —— 用户上传的 Excel/CSV 解析结果（骨架，不是数据）。 */
+export interface AssetTemplate {
+    id: number
+    name: string
+    source_filename: string | null
+    headers: string[]
+    /** 列 → 资产字段 key */
+    mapping: Record<string, string | null>
+    template_rows: string[][]
+    zone_hints: string[]
+    row_count: number
+    created_by: string | null
+    created_at: string | null
+    updated_at: string | null
+}
+
+/** 草稿清单 —— 基于模板创建，可反复编辑保存，最后落库。 */
+export interface AssetDraft {
+    id: number
+    template_id: number | null
+    name: string
+    rows: ImportRow[]
+    status: "draft" | "committed"
+    version: number
+    commit_result: { created: number; skipped: number; failed: number } | null
+    created_by: string | null
+    created_at: string | null
+    updated_at: string | null
+}
+
+export interface AssetDraftStats {
+    total: number
+    ready: number
+    skip: number
+    needs_fill: number
+}
+
+/** 草稿里的行比 ImportRow 多了 from_template —— 标记「这行是从模板带来的骨架」。 */
+export interface DraftRow extends ImportRow {
+    from_template?: boolean
 }
 
 export interface Topology {
@@ -651,6 +702,85 @@ export const api = {
                 throw new ApiError(res.status, detail)
             }
             return JSON.parse(text) as ImportPreview
+        },
+
+        /* ── 模板 ─────────────────────────────────────────────── */
+
+        /** 上传模板文件。返回解析后的模板（骨架，不是数据）。 */
+        uploadTemplate: async (file: File, name?: string): Promise<AssetTemplate> => {
+            const fd = new FormData()
+            fd.append("file", file)
+            if (name) fd.append("name", name)
+            const headers: Record<string, string> = { "X-Dev-Tenant": getTenant() }
+            const token = getToken()
+            if (token) headers.Authorization = `Bearer ${token}`
+            const res = await fetch(`${API_BASE}/api/assets/templates`, {
+                method: "POST",
+                headers,
+                body: fd,
+            })
+            const text = await res.text()
+            if (!res.ok) {
+                throw new ApiError(res.status, extractDetail(safeJson(text), res.status))
+            }
+            return JSON.parse(text) as AssetTemplate
+        },
+
+        templates: () => request<{ items: AssetTemplate[]; total: number }>("/api/assets/templates"),
+
+        template: (id: number) => request<AssetTemplate>(`/api/assets/templates/${id}`),
+
+        removeTemplate: (id: number) =>
+            request<{ deleted: number }>(`/api/assets/templates/${id}`, { method: "DELETE" }),
+
+        /* ── 草稿 ─────────────────────────────────────────────── */
+
+        /** 基于模板创建草稿清单。 */
+        createDraft: (body: { template_id?: number | null; name?: string }) =>
+            request<{ draft: AssetDraft; stats: AssetDraftStats; issues: ImportIssue[] }>(
+                "/api/assets/drafts",
+                { method: "POST", body },
+            ),
+
+        drafts: () => request<{ items: AssetDraft[]; total: number }>("/api/assets/drafts"),
+
+        draft: (id: number) => request<AssetDraft>(`/api/assets/drafts/${id}`),
+
+        /** 保存草稿（版本 +1，返回重新校验后的状态）。 */
+        saveDraft: (id: number, body: { rows: DraftRow[]; name?: string }) =>
+            request<{ draft: AssetDraft; stats: AssetDraftStats; issues: ImportIssue[] }>(
+                `/api/assets/drafts/${id}`,
+                { method: "PUT", body },
+            ),
+
+        addDraftRow: (id: number) =>
+            request<{ draft: AssetDraft }>(`/api/assets/drafts/${id}/rows`, { method: "POST", body: {} }),
+
+        /** 草稿落库到 assets。 */
+        commitDraft: (id: number) =>
+            request<{ draft: AssetDraft; result: CommitResult; stats: AssetDraftStats }>(
+                `/api/assets/drafts/${id}/commit`,
+                { method: "POST", body: {} },
+            ),
+
+        removeDraft: (id: number) =>
+            request<{ deleted: number }>(`/api/assets/drafts/${id}`, { method: "DELETE" }),
+
+        /* ── 导出 ─────────────────────────────────────────────── */
+
+        /**
+         * 导出资产清单。**下载文件**，不是返回 JSON —— 所以不走 request()。
+         *
+         * 导出的是当前筛选后的那一批 —— 与列表看到的完全一致。
+         */
+        exportUrl: (params: { q?: string; zone?: string; needs_review?: boolean; fmt?: string; fields?: string[] } = {}) => {
+            const qs = new URLSearchParams()
+            for (const [k, v] of Object.entries(params)) {
+                if (v !== undefined && v !== null && v !== "") qs.set(k, String(v))
+            }
+            if (params.fields?.length) qs.set("fields", params.fields.join(","))
+            const s = qs.toString()
+            return `${API_BASE}/api/assets/export${s ? `?${s}` : ""}`
         },
 
         /** 从拓扑图节点生成初步资产行。 */
