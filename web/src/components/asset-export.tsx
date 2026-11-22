@@ -19,6 +19,9 @@ const FIELDS: Array<{ key: string; label: string; def?: boolean }> = [
     { key: "name", label: "资产名称", def: true },
     { key: "type", label: "类型", def: true },
     { key: "zone", label: "安全区域", def: true },
+    // 船队与船 —— 清单按船分组看，导出也得能分出是哪艘船的设备
+    { key: "vessel_name", label: "所属船舶", def: true },
+    { key: "fleet_name", label: "所属船队" },
     { key: "ip", label: "IP 地址", def: true },
     { key: "vendor", label: "厂商" },
     { key: "model", label: "型号" },
@@ -35,7 +38,7 @@ const DEFAULT_KEYS = FIELDS.filter((f) => f.def).map((f) => f.key)
 
 interface Props {
     /** 当前筛选条件 —— 导出的是筛选后的那一批 */
-    filters: { q?: string; zone?: string; needs_review?: boolean }
+    filters: { q?: string; zone?: string; needs_review?: boolean; vessel_id?: number; fleet_id?: number }
     /** 当前总条数 —— 让用户知道会导出多少条 */
     total: number
 }

@@ -116,7 +116,15 @@ export function AssetsPage() {
                     }}
                 >
                     <AssetExport
-                        filters={{ q, zone, needs_review: needsReview }}
+                        // **筛选条件要全传** —— 导出的是「当前看到的那一批」，
+                        // 少了船的筛选就会导出别的船的设备
+                        filters={{
+                            q,
+                            zone,
+                            needs_review: needsReview,
+                            vessel_id: vesselFilter ? Number(vesselFilter) : undefined,
+                            fleet_id: fleetFilter ? Number(fleetFilter) : undefined,
+                        }}
                         total={assets.data?.total ?? 0}
                     />
                     <button type="button" className="btn" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("manual")}>
