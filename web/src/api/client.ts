@@ -263,6 +263,8 @@ export interface CmdbMappedAsset {
     skipped: string[]
     /** CMDB 必填但值为空的字段 */
     missing: string[]
+    /** 这件资产是否已接入监控（device_monitors 里有绑定） */
+    monitored: boolean
 }
 
 export interface CmdbStatus {

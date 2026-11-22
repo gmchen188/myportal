@@ -177,6 +177,7 @@ describe("CMDB 推送面板", () => {
                     },
                     skipped: ["natural_id", "type"],
                     missing: [],
+                    monitored: true,
                 },
             ],
             mapped_count: 1,
@@ -190,8 +191,9 @@ describe("CMDB 推送面板", () => {
             </QueryClientProvider>,
         )
 
-        // **勾选资产才触发预览** —— 没选东西时不该发请求
-        expect(api.assets.cmdbPreview).not.toHaveBeenCalled()
+        // 空 ids 的调用是「取全部资产的监控状态」，不是映射预览
+        expect(api.assets.cmdbPreview).toHaveBeenCalledWith([])
+        expect(api.assets.cmdbPreview).not.toHaveBeenCalledWith([1])
 
         const checkbox = screen.getAllByRole("checkbox")[1] as HTMLInputElement
         fireEvent.click(checkbox)
@@ -221,5 +223,140 @@ describe("CMDB 推送面板", () => {
                 /Purdue Level（IEC 62443 分级）:\s*SL2/.test(el?.textContent ?? ""),
             ),
         ).toBeTruthy()
+    })
+})
+
+
+describe("默认勾选范围", () => {
+    beforeEach(() => {
+        vi.mocked(api.assets.cmdbStatus).mockResolvedValue({
+            write_configured: true,
+            org: "Super",
+            base_url: "https://172.16.20.48",
+            read_configured: true,
+        })
+    })
+
+    it("默认只勾选已接入监控的资产", async () => {
+        // 实测数据形态：14 件资产里只有 7 件接了监控
+        vi.mocked(api.assets.cmdbPreview).mockResolvedValue({
+            items: [
+                { asset_id: 1, name: "FW-EDGE-01", natural_id: "FW-EDGE-01", fields: {}, skipped: [], missing: [], monitored: true },
+                { asset_id: 2, name: "REMOTE-GW", natural_id: "REMOTE-GW", fields: {}, skipped: [], missing: [], monitored: false },
+                { asset_id: 3, name: "CBS-NAV-01", natural_id: "CBS-NAV-01", fields: {}, skipped: [], missing: [], monitored: true },
+            ],
+            mapped_count: 0,
+            write_configured: true,
+        } as never)
+
+        const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        render(
+            <QueryClientProvider client={qc}>
+                <CmdbPushPanel
+                    assets={[
+                        asset({ id: 1, name: "FW-EDGE-01" }),
+                        asset({ id: 2, name: "REMOTE-GW" }),
+                        asset({ id: 3, name: "CBS-NAV-01" }),
+                    ]}
+                    onClose={() => {}}
+                />
+            </QueryClientProvider>,
+        )
+
+        // 等默认勾选生效
+        await waitFor(() => {
+            expect(api.assets.cmdbPreview).toHaveBeenCalledWith([1, 3])
+        })
+
+        // 表格上要标出监控状态
+        // 2 件已接入、1 件未接入
+        await waitFor(() => {
+            expect(screen.getAllByText("已接入")).toHaveLength(2)
+        })
+        expect(screen.getAllByText("未接入")).toHaveLength(1)
+    })
+
+    it("表头全选框也只选已接入监控的 —— 不是全部", async () => {
+        vi.mocked(api.assets.cmdbPreview).mockResolvedValue({
+            items: [
+                { asset_id: 1, name: "FW-EDGE-01", natural_id: "FW-EDGE-01", fields: {}, skipped: [], missing: [], monitored: true },
+                { asset_id: 2, name: "REMOTE-GW", natural_id: "REMOTE-GW", fields: {}, skipped: [], missing: [], monitored: false },
+                { asset_id: 3, name: "CBS-NAV-01", natural_id: "CBS-NAV-01", fields: {}, skipped: [], missing: [], monitored: true },
+            ],
+            mapped_count: 0,
+            write_configured: true,
+        } as never)
+
+        const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        render(
+            <QueryClientProvider client={qc}>
+                <CmdbPushPanel
+                    assets={[
+                        asset({ id: 1, name: "FW-EDGE-01" }),
+                        asset({ id: 2, name: "REMOTE-GW" }),
+                        asset({ id: 3, name: "CBS-NAV-01" }),
+                    ]}
+                    onClose={() => {}}
+                />
+            </QueryClientProvider>,
+        )
+
+        await waitFor(() => {
+            expect(api.assets.cmdbPreview).toHaveBeenCalledWith([1, 3])
+        })
+
+        // **先取消默认勾选**，再点全选框 —— 这样测的是全选框本身的行为
+        const headerCheckbox = screen.getAllByRole("checkbox")[0] as HTMLInputElement
+        fireEvent.click(headerCheckbox)   // 取消
+        await waitFor(() => {
+            expect(api.assets.cmdbPreview).toHaveBeenCalledWith([])
+        })
+
+        fireEvent.click(headerCheckbox)   // 全选
+        await waitFor(() => {
+            // **全选 = 只选已接入监控的 2 件**，不是全部 3 件
+            expect(api.assets.cmdbPreview).toHaveBeenCalledWith([1, 3])
+        })
+        expect(api.assets.cmdbPreview).not.toHaveBeenCalledWith([1, 2, 3])
+    })
+
+    it("勾选里有未接入监控的资产时要警告", async () => {
+        vi.mocked(api.assets.cmdbPreview).mockResolvedValue({
+            items: [
+                { asset_id: 1, name: "FW-EDGE-01", natural_id: "FW-EDGE-01", fields: {}, skipped: [], missing: [], monitored: true },
+                { asset_id: 2, name: "REMOTE-GW", natural_id: "REMOTE-GW", fields: {}, skipped: [], missing: [], monitored: false },
+            ],
+            mapped_count: 0,
+            write_configured: true,
+        } as never)
+
+        const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        render(
+            <QueryClientProvider client={qc}>
+                <CmdbPushPanel
+                    assets={[asset({ id: 1, name: "FW-EDGE-01" }), asset({ id: 2, name: "REMOTE-GW" })]}
+                    onClose={() => {}}
+                />
+            </QueryClientProvider>,
+        )
+
+        await waitFor(() => {
+            expect(api.assets.cmdbPreview).toHaveBeenCalledWith([1])
+        })
+
+        // **默认只勾了已接入的 → 不该有警告**
+        await waitFor(() => {
+            expect(screen.getAllByText("未推送")).toHaveLength(2)
+        })
+        expect(screen.queryByText(/勾选里有 1 件未接入监控的资产/)).toBeNull()
+
+        // 手动勾上未接入的那个 → 必须警告
+        const rowCheckbox = screen.getAllByRole("checkbox")[2] as HTMLInputElement
+        fireEvent.click(rowCheckbox)
+
+        await waitFor(() => {
+            expect(screen.getByText(/勾选里有 1 件未接入监控的资产/)).toBeTruthy()
+        })
+        expect(screen.getAllByText(/REMOTE-GW/).length).toBeGreaterThan(0)
     })
 })

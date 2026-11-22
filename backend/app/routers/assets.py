@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import Principal, principal_from_request, principal_from_request_strict
 from ..connectors.fortisiem import get_client as get_siem_client
-from ..db import Asset, AssetDraft, AssetTemplate, get_session
+from ..db import Asset, AssetDraft, AssetTemplate, DeviceMonitor, get_session
 from ..services import asset_export as ax
 from ..services import asset_import as ai
 from ..services import asset_templates as at
@@ -722,6 +722,41 @@ class CmdbPushIn(BaseModel):
     force: bool = False  # 已推送过的资产是否也重推
 
 
+def _monitored_keys(db: Session, tenant_id: str) -> tuple[set[str], set[str]]:
+    """这个租户下「已接入监控」的设备键。
+
+    返回 (natural_id 集合, ip 集合)。
+
+    ## 为什么需要
+
+    CMDB 里只该有**接了监控的设备**。资产清单包含全部船载设备 ——
+    实测 14 件资产里只有 7 件接了监控（`device_monitors` 表）。
+
+    如果让用户「全选就推」，会把那 7 件没接监控的也灌进 SIEM，
+    设备视图和覆盖率报表全歪 —— 这正是「保存资产时自动写 CMDB」
+    这个方案被否掉的原因。
+
+    所以前端**默认只勾选已接入监控的**，用户要推其他的得自己勾。
+
+    ## 匹配键
+
+    与 `services/topology_import.py` 的设备绑定规则一致：
+    natural_id 与 ip 两类键都试，命中即算已接入。
+    """
+    stmt = select(DeviceMonitor).where(
+        DeviceMonitor.tenant_id == tenant_id,
+        DeviceMonitor.enabled.is_(True),
+    )
+    nat: set[str] = set()
+    ip: set[str] = set()
+    for m in db.scalars(stmt).all():
+        if m.natural_id:
+            nat.add(m.natural_id)
+        if m.ip:
+            ip.add(m.ip)
+    return nat, ip
+
+
 def _cmdb_assets(db: Session, tenant_id: str, asset_ids: list[int]) -> list[Asset]:
     """按 id 取资产，**并按租户过滤** —— 不能让 A 租户推 B 租户的资产。"""
     if not asset_ids:
@@ -759,10 +794,38 @@ def cmdb_preview(
     这类不直观的映射。
     """
     asset_ids = [int(x) for x in ids.split(",") if x.strip().isdigit()]
+    mon_nat, mon_ip = _monitored_keys(db, p.tenant_id)
+
+    def _mark(a: Asset) -> dict[str, Any]:
+        d = map_asset(a).to_dict()
+        d["monitored"] = bool(
+            (a.natural_id and a.natural_id in mon_nat)
+            or (a.ip and a.ip in mon_ip)
+        )
+        return d
+
+    # **不带 ids 时返回全部资产的监控状态**（不含映射明细）——
+    # 前端要靠它算出「默认勾选哪些」，不能等用户先勾上才有数据。
+    if not asset_ids:
+        stmt = select(Asset).where(Asset.tenant_id == p.tenant_id).limit(500)
+        all_assets = list(db.scalars(stmt).all())
+        return {
+            "items": [_mark(a) for a in all_assets],
+            "mapped_count": 0,
+            "monitored_count": sum(
+                1 for a in all_assets
+                if (a.natural_id and a.natural_id in mon_nat)
+                or (a.ip and a.ip in mon_ip)
+            ),
+            "write_configured": get_siem_client().write_configured(),
+        }
+
     assets = _cmdb_assets(db, p.tenant_id, asset_ids)
+    items = [_mark(a) for a in assets]
     return {
-        "items": [map_asset(a).to_dict() for a in assets],
+        "items": items,
         "mapped_count": len(assets),
+        "monitored_count": sum(1 for d in items if d["monitored"]),
         "write_configured": get_siem_client().write_configured(),
     }
 

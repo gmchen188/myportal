@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { AlertTriangle, CheckCircle2, CloudUpload, Loader2, XCircle } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { api, type Asset, type CmdbMappedAsset } from "../api/client"
 
@@ -54,7 +54,50 @@ export function CmdbPushPanel({
         queryFn: () => api.assets.cmdbStatus(),
     })
 
+    // **全部资产的监控状态** —— 不依赖勾选，因为要靠它算出「默认勾选哪些」
+    const monitorMap = useQuery({
+        queryKey: ["cmdb-monitor-map"],
+        queryFn: () => api.assets.cmdbPreview([]),
+    })
+
+    const monitoredIds = useMemo(
+        () =>
+            (monitorMap.data?.items ?? [])
+                .filter((i) => i.monitored)
+                .map((i) => i.asset_id),
+        [monitorMap.data],
+    )
+    const monitoredById = useMemo(
+        () => new Set(monitoredIds),
+        [monitoredIds],
+    )
+
+    // **默认只勾选「已接入监控」的**。
+    //
+    // CMDB 里只该有接了监控的设备 —— 实测 14 件资产里只有 7 件接了。
+    // 默认全选会把没接监控的也灌进 SIEM，设备视图和覆盖率报表全歪。
+    // 用户要推别的得自己勾 —— 那是明确的意图。
+    const [defaulted, setDefaulted] = useState(false)
+    useEffect(() => {
+        if (defaulted || !monitorMap.data) return
+        if (monitoredIds.length > 0) setSelected(new Set(monitoredIds))
+        setDefaulted(true)
+    }, [defaulted, monitorMap.data, monitoredIds])
+
     const ids = [...selected]
+
+    // **勾选里未接入监控的资产** —— 必须明确警告。
+    //
+    // 默认勾选只选已接入的，但用户可以自己加。加了就该提醒：
+    // 把没接监控的设备推进 CMDB，会让 SIEM 的设备视图多出没日志的设备。
+    const selectedUnmonitored = useMemo(
+        () =>
+            ids.filter((id) => !monitoredById.has(id)).map((id) => {
+                const a = assets.find((x) => x.id === id)
+                return a ? a.name : String(id)
+            }),
+        [ids, monitoredById, assets],
+    )
     // **queryKey 必须稳定** —— ids 是每次渲染新建的数组，
     // 直接放进 key 会让 React Query 认为 key 一直在变 → 无限重取，
     // 结果就是「请求发了但预览区永远不显示」。
@@ -153,17 +196,21 @@ export function CmdbPushPanel({
                         <thead>
                             <tr>
                                 <th style={{ width: 34 }}>
+                                    {/* **全选 = 全选已接入监控的** —— 不是全部。
+                                        全选会把没接监控的设备也灌进 SIEM。 */}
                                     <input
                                         type="checkbox"
-                                        checked={selected.size > 0 && selected.size === assets.length}
+                                        checked={monitoredIds.length > 0 && selected.size === monitoredIds.length}
                                         onChange={(e) =>
-                                            setSelected(e.target.checked ? new Set(assets.map((a) => a.id)) : new Set())
+                                            setSelected(e.target.checked ? new Set(monitoredIds) : new Set())
                                         }
+                                        title="全选已接入监控的资产"
                                     />
                                 </th>
                                 <th>资产名称</th>
                                 <th>安全区域</th>
                                 <th>CBS 等级</th>
+                                <th>监控状态</th>
                                 <th>推送状态</th>
                             </tr>
                         </thead>
@@ -176,6 +223,17 @@ export function CmdbPushPanel({
                                     <td style={{ whiteSpace: "nowrap" }}>{a.name}</td>
                                     <td style={{ whiteSpace: "nowrap" }}>{a.zone ?? "—"}</td>
                                     <td style={{ whiteSpace: "nowrap" }}>{a.cbs_class ?? "—"}</td>
+                                    <td style={{ whiteSpace: "nowrap" }}>
+                                        {monitoredById.has(a.id) ? (
+                                            <span className="bdg ok" style={{ whiteSpace: "nowrap" }}>
+                                                已接入
+                                            </span>
+                                        ) : (
+                                            <span className="bdg warn" style={{ whiteSpace: "nowrap" }}>
+                                                未接入
+                                            </span>
+                                        )}
+                                    </td>
                                     <td style={{ whiteSpace: "nowrap" }}>
                                         <PushBadge asset={a} />
                                     </td>
@@ -202,6 +260,33 @@ export function CmdbPushPanel({
                         包含已推送过的 {alreadyPushed.length} 件（默认跳过；CMDB 没有按编号更新语义，重推会产生重复设备）
                     </span>
                 </label>
+            )}
+
+            {selectedUnmonitored.length > 0 && (
+                <div
+                    className="card"
+                    style={{ borderLeft: "3px solid var(--color-accent-600)", padding: 10, marginBottom: 10 }}
+                >
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13 }}>
+                        <AlertTriangle
+                            size={15}
+                            style={{ color: "var(--color-accent-600)", flexShrink: 0, marginTop: 2 }}
+                        />
+                        <div>
+                            <strong>
+                                勾选里有 {selectedUnmonitored.length} 件未接入监控的资产
+                            </strong>
+                            <div className="subtle" style={{ marginTop: 3, fontSize: 12 }}>
+                                {selectedUnmonitored.slice(0, 6).join("、")}
+                                {selectedUnmonitored.length > 6 ? " 等" : ""}
+                            </div>
+                            <div className="subtle" style={{ marginTop: 3, fontSize: 12 }}>
+                                推到 CMDB 会让 SIEM 的设备视图里多出这些没日志的设备 ——
+                                覆盖率报表与关联规则都会受影响。确认要推就继续。
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* 映射预览 —— 让人看清字段去哪了 */}
