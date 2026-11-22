@@ -106,10 +106,15 @@ def _parse_xml_any(xml: str) -> tuple[ET.Element | None, str | None]:
         return None, None
 
     # 先试标准形态
+    #
+    # **first_err 要先存到普通变量里** —— `except ... as e` 在块结束时会把
+    # `e` 删掉（Python 的规定），块外再用它就是 NameError。踩过：第三步
+    # 失败时报「cannot access local variable 'first_err'」。
+    first_err = "未知错误"
     try:
         return ET.fromstring(text), None
-    except ET.ParseError as first_err:
-        pass
+    except ET.ParseError as e:
+        first_err = str(e)
 
     # 试包一层 root
     try:
@@ -138,6 +143,13 @@ def _parse_xml_any(xml: str) -> tuple[ET.Element | None, str | None]:
                 close = f"</{tag}>"
                 k = text.find(close, j)
                 if k < 0:
+                    # **必须推进 i** —— 否则 `while i < n` 永远转下去，
+                    # 这个请求的线程永远不释放，线程池被占满 → **整个后台卡死**。
+                    #
+                    # 实测踩过：属性值里带 `>` 的 cell（AI 生成的 XML 里很常见）
+                    # 会让 `find(">")` 落到标签中间 → tag 解析错 → 找不到闭标签
+                    # → 走进这个分支 → 死循环 → 监控面板「死机」。
+                    i = j + 1
                     continue
                 frag = text[i : k + len(close)]
                 i = k + len(close)

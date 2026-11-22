@@ -19,6 +19,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -691,3 +693,97 @@ class TestImageToTopology:
             headers=h,
         )
         assert r.status_code == 400
+
+
+class TestTopologyParseNoHang:
+    """**解析器不能死循环。**
+
+    ## 这条为什么重要
+
+    `topology_parse` 是监控面板的必经之路（`Topology.to_dict()` 每次都调
+    `node_count()` → `parse_topology()`）。
+
+    解析裸 XML 片段时有一段手写的「逐个切顶层元素」。那里曾经有个
+    **找不到闭标签就 `continue` 却不推进游标**的分支 → `while` 永远转 →
+    **这个请求的线程永远不释放** → 线程池被占满 → **整个后台卡死**，
+    监控面板表现为「死机」。
+
+    实测触发条件：属性值里带 `>`（AI 生成的 XML 里很常见）→
+    `find(">")` 落到标签中间 → tag 解析错 → 找不到闭标签 → 进那个分支。
+
+    ## 为什么用子进程测
+
+    万一以后又写回一个死循环，测试会**卡住整个测试进程**而不是失败。
+    放在子进程里跑 + 超时，才能真正变成「测试失败」而不是「CI 卡死」。
+    """
+
+    XML_WITH_GT_IN_ATTR = (
+        '<mxCell id="a" value="x > y" style="dev;"/>'
+        '<mxCell id="b" value="ok" style="dev;"/>'
+    )
+
+    # **真正触发死循环的样本**（实测：旧代码在这上面永远转下去）。
+    #
+    # 三个条件同时满足才会进到那个分支：
+    #   1. `<root>` 包裹那步解析失败（否则走不到「逐个切顶层元素」）
+    #   2. 标签**不是自闭合**（`text[j-1] != "/"`）
+    #   3. 找不到对应的闭标签（`find(close, j) < 0`）
+    #
+    # `value="x>"` 让 `find(">")` 落在标签中间 → tag 解析成 mxCell →
+    # 文档里又没有 `</mxCell>` → 走进 `k < 0` 分支 → 旧代码不推进游标 →
+    # **死循环**。
+    XML_THAT_HUNG = '<mxCell id="a" value="x>"><mxCell id="b" style="dev;"/>' 
+
+    def _parse_in_subprocess(self, xml: str, timeout: int = 20) -> tuple[int, str]:
+        import os
+        import subprocess
+        import sys
+        import textwrap
+
+        code = textwrap.dedent(
+            f"""
+            import sys, time
+            sys.path.insert(0, r"{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}")
+            from app.services.topology_parse import parse_topology
+            t0 = time.time()
+            g = parse_topology({xml!r})
+            print(f"{{time.time()-t0:.3f}}|{{len(g.get('nodes') or [])}}|{{g.get('error')}}")
+            """
+        )
+        try:
+            r = subprocess.run(
+                [sys.executable, "-c", code],
+                capture_output=True, text=True, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return 124, "超时 —— 解析器死循环了"
+        return r.returncode, (r.stdout or "").strip() + (r.stderr or "")
+
+    def test_attribute_containing_gt_does_not_hang(self):
+        code, out = self._parse_in_subprocess(self.XML_WITH_GT_IN_ATTR)
+        assert code != 124, f"解析器死循环了：{out}"
+        assert code == 0, out
+        secs, nodes, err = out.split("|", 2)
+        assert float(secs) < 5, f"解析耗时 {secs}s，太慢了"
+        assert int(nodes) == 2, f"两个 cell 都该解析出来，实际 {nodes}"
+
+    def test_normal_fragment_still_parses(self):
+        code, out = self._parse_in_subprocess(
+            '<mxStyle name="dev" value="rounded=1"/>'
+            '<mxCell id="a" value="FW-1" style="dev;" x="1" y="2" w="3" h="4"/>'
+        )
+        assert code == 0, out
+        secs, nodes, err = out.split("|", 2)
+        assert int(nodes) == 1
+        assert err == "None"
+
+    def test_the_real_hang_sample(self):
+        """**这个样本在旧代码上会死循环** —— 实测过（变异验证：改回去就卡死）。"""
+        code, out = self._parse_in_subprocess(self.XML_THAT_HUNG)
+        assert code != 124, f"解析器死循环了：{out}"
+        assert code == 0, out
+
+    def test_unclosed_tag_does_not_hang(self):
+        """闭标签缺失（AI 截断的 XML）也不能卡死。"""
+        code, out = self._parse_in_subprocess('<mxCell id="a" value="x" style="dev;"/>')
+        assert code != 124, f"解析器死循环了：{out}"
