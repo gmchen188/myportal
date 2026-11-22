@@ -248,7 +248,7 @@ export function FleetsPage() {
                     />
                     <input
                         className="input"
-                        placeholder="标签（可选）"
+                        placeholder="船队标签（可选）"
                         value={newFleetCode}
                         style={{ width: 130 }}
                         onChange={(e) => setNewFleetCode(e.target.value)}
@@ -329,7 +329,7 @@ export function FleetsPage() {
                                     />
                                     <input
                                         className="input"
-                                        placeholder="标签（可选）"
+                                        placeholder="船舶标签（可选）"
                                         value={newVessel.code}
                                         style={{ width: 140 }}
                                         onChange={(e) => setNewVessel({ ...newVessel, code: e.target.value })}

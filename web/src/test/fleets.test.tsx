@@ -269,7 +269,7 @@ describe("船队与船舶 · 管理", () => {
     it("新建船队时带上标签", async () => {
         setupManage()
         const nameInput = await screen.findByPlaceholderText("新船队名称")
-        const codeInput = screen.getByPlaceholderText("标签（可选）")
+        const codeInput = screen.getByPlaceholderText("船队标签（可选）")
         fireEvent.change(nameInput, { target: { value: "带标签的队" } })
         fireEvent.change(codeInput, { target: { value: "FLEET-X" } })
         fireEvent.click(screen.getByText("新建船队"))
