@@ -10,15 +10,16 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
-import { FileSpreadsheet, FileUp, Plus, Search, Trash2, X } from "lucide-react"
+import { CloudUpload, FileSpreadsheet, FileUp, Plus, Search, Trash2, X } from "lucide-react"
 import { useMemo, useRef, useState } from "react"
 
 import { api, type ImportPreview, type ImportRow } from "@/api/client"
 import { AssetExport } from "@/components/asset-export"
+import { CmdbPushPanel } from "@/components/cmdb-push-panel"
 import { AssetTemplatePanel } from "@/components/asset-template-panel"
 import { useAssetSchema, useAssets, useCommitImport, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets"
 
-type Mode = "list" | "import" | "manual" | "template"
+type Mode = "list" | "import" | "manual" | "template" | "cmdb"
 
 export function AssetsPage() {
     const [mode, setMode] = useState<Mode>("list")
@@ -70,6 +71,9 @@ export function AssetsPage() {
                     <button type="button" className="btn" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("template")}>
                         <FileSpreadsheet size={14} /> 模板清单
                     </button>
+                    <button type="button" className="btn" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("cmdb")}>
+                        <CloudUpload size={14} /> 推送到 SIEM
+                    </button>
                     <button type="button" className="btn primary" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("import")}>
                         <FileUp size={14} /> 导入
                     </button>
@@ -100,6 +104,13 @@ export function AssetsPage() {
                 <ManualPanel
                     fields={schema.data?.fields ?? []}
                     zones={schema.data?.zones ?? []}
+                    onClose={() => setMode("list")}
+                />
+            )}
+
+            {mode === "cmdb" && (
+                <CmdbPushPanel
+                    assets={assets.data?.items ?? []}
                     onClose={() => setMode("list")}
                 />
             )}

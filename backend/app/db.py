@@ -145,6 +145,17 @@ class Asset(Base):
     needs_review = Column(Boolean, nullable=False, default=False)
     notes = Column(Text, nullable=True)
 
+    # ── FortiSIEM CMDB 推送状态 ──────────────────────────────────
+    #
+    # **推送是手动动作，不是保存资产时的副作用**（理由见 services/cmdb_push.py）。
+    # 这三列让列表能直接显示「未推送 / 已推送 / 推送失败」，
+    # 用户自己决定要不要重来 —— 避免重复推产生 CMDB 里的重复设备。
+    #
+    # siem_push_status: None(未推送) / pending(排队中) / ok(已推送) / failed(失败)
+    siem_pushed_at = Column(DateTime(timezone=True), nullable=True)
+    siem_push_status = Column(String(32), nullable=True)
+    siem_task_id = Column(String(128), nullable=True)
+
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
@@ -620,6 +631,12 @@ def _ensure_columns() -> None:
         "tenants": [
             ("is_active", "BOOLEAN NOT NULL DEFAULT 1"),
             ("description", "TEXT"),
+        ],
+        # CMDB 推送状态 —— 老库要补这三列，否则 ORM 查 Asset 报 no such column
+        "assets": [
+            ("siem_pushed_at", "DATETIME"),
+            ("siem_push_status", "VARCHAR(32)"),
+            ("siem_task_id", "VARCHAR(128)"),
         ],
     }
     with engine.begin() as conn:

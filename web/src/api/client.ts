@@ -246,6 +246,37 @@ export interface Asset {
     notes: string | null
     created_at: string | null
     updated_at: string | null
+    /** FortiSIEM CMDB 推送状态：未推送 / pending / ok / failed */
+    siem_push_status: string | null
+    siem_pushed_at: string | null
+    siem_task_id: string | null
+}
+
+/** 一件资产映射到 CMDB 字段后的预览。 */
+export interface CmdbMappedAsset {
+    asset_id: number
+    name: string
+    natural_id: string | null
+    /** 资产字段 → CMDB 字段名 */
+    fields: Record<string, string>
+    /** 没推过去的资产字段（natural_id / type 之类） */
+    skipped: string[]
+    /** CMDB 必填但值为空的字段 */
+    missing: string[]
+}
+
+export interface CmdbStatus {
+    write_configured: boolean
+    org: string
+    base_url: string
+    read_configured: boolean
+}
+
+export interface CmdbPushResult {
+    pushed: number
+    skipped: { id: number; name: string; reason: string }[]
+    task_id: string | null
+    message: string
 }
 
 export interface AssetFieldDef {
@@ -677,6 +708,21 @@ export const api = {
         patch: (id: number, body: Partial<Asset>) =>
             request<Asset>(`/api/assets/${id}`, { method: "PATCH", body }),
         remove: (id: number) => request<{ deleted: number }>(`/api/assets/${id}`, { method: "DELETE" }),
+
+        // ── FortiSIEM CMDB 推送 ─────────────────────────────────────
+        //
+        // **推送是手动动作**，不是保存资产时的副作用 —— 理由见
+        // backend/app/services/cmdb_push.py。
+        cmdbStatus: () => request<CmdbStatus>("/api/assets/cmdb/status"),
+        cmdbPreview: (ids: number[]) =>
+            request<{ items: CmdbMappedAsset[]; mapped_count: number; write_configured: boolean }>(
+                `/api/assets/cmdb/preview?ids=${ids.join(",")}`,
+            ),
+        cmdbPush: (assetIds: number[], force = false) =>
+            request<CmdbPushResult>("/api/assets/cmdb/push", {
+                method: "POST",
+                body: { asset_ids: assetIds, force },
+            }),
 
         /** 上传文件做导入预览。不写库 —— 用户确认后再 commit。 */
         importFile: async (file: File, tenant?: string): Promise<ImportPreview> => {

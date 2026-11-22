@@ -24,11 +24,18 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..auth import Principal, principal_from_request
+from ..auth import Principal, principal_from_request, principal_from_request_strict
+from ..connectors.fortisiem import get_client as get_siem_client
 from ..db import Asset, AssetDraft, AssetTemplate, get_session
 from ..services import asset_export as ax
 from ..services import asset_import as ai
 from ..services import asset_templates as at
+from ..services import audit as audit_log
+from ..services.cmdb_push import (
+    SiemWriteError,
+    build_add_xml,
+    map_asset,
+)
 
 router = APIRouter(prefix="/api/assets", tags=["assets"])
 
@@ -697,4 +704,164 @@ def _commit_rows(
         "created_items": created,
         "skipped_items": skipped,
         "failed_items": failed,
+    }
+
+
+# ── FortiSIEM CMDB 推送 ───────────────────────────────────────────────────
+#
+# **推送是显式的手动动作，不是保存资产时的副作用。**
+# 理由写在 services/cmdb_push.py 里 —— 简单说：CMDB 只该有「接了监控的设备」，
+# 而资产清单包含全部船载设备。
+#
+# 这三个端点用**严格认证**（`principal_from_request_strict`）——
+# 推送会改 SIEM 侧的设备库，属于管理动作，不能是开发模式免令牌。
+
+
+class CmdbPushIn(BaseModel):
+    asset_ids: list[int] = Field(default_factory=list)
+    force: bool = False  # 已推送过的资产是否也重推
+
+
+def _cmdb_assets(db: Session, tenant_id: str, asset_ids: list[int]) -> list[Asset]:
+    """按 id 取资产，**并按租户过滤** —— 不能让 A 租户推 B 租户的资产。"""
+    if not asset_ids:
+        return []
+    stmt = select(Asset).where(Asset.tenant_id == tenant_id, Asset.id.in_(asset_ids))
+    return list(db.scalars(stmt).all())
+
+
+@router.get("/cmdb/status")
+def cmdb_status(p: Principal = Depends(principal_from_request_strict)):
+    """写凭据配没配、能不能写。
+
+    **只读，不碰 SIEM** —— 让前端能提前告诉用户「没配写凭据」，
+    而不是等点推送才失败。
+    """
+    client = get_siem_client()
+    return {
+        "write_configured": client.write_configured(),
+        "org": client.org,
+        "base_url": client.base_url,
+        "read_configured": client.configured,
+    }
+
+
+@router.get("/cmdb/preview")
+def cmdb_preview(
+    p: Principal = Depends(principal_from_request_strict),
+    db: Session = Depends(get_session),
+    ids: str = Query(default=""),
+):
+    """映射预览 —— **纯本地计算，不碰 SIEM**。
+
+    用户在点「推送」之前先看到「我的资产会变成 CMDB 的哪些字段」，
+    尤其要看清 `zone → deviceTag`、`cbs_class → purdueLevel`
+    这类不直观的映射。
+    """
+    asset_ids = [int(x) for x in ids.split(",") if x.strip().isdigit()]
+    assets = _cmdb_assets(db, p.tenant_id, asset_ids)
+    return {
+        "items": [map_asset(a).to_dict() for a in assets],
+        "mapped_count": len(assets),
+        "write_configured": get_siem_client().write_configured(),
+    }
+
+
+@router.post("/cmdb/push")
+def cmdb_push(
+    body: CmdbPushIn,
+    p: Principal = Depends(principal_from_request_strict),
+    db: Session = Depends(get_session),
+):
+    """把选中的资产推到 FortiSIEM CMDB。
+
+    **幂等**：默认跳过 `siem_push_status == "ok"` 的资产
+    （`force=True` 可以重推）。CMDB 没有「按 natural_id upsert」语义，
+    重复推会产生重复设备。
+
+    **失败不阻断资产保存** —— 推送失败只把该资产标成 failed，
+    资产本身照旧在库里。
+
+    **不自动同步删除** —— myPortal 删资产不动 SIEM，
+    避免误删 SIEM 里正被事件关联的设备。
+    """
+    client = get_siem_client()
+    if not client.write_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="FortiSIEM 写凭据未配置，无法推送 CMDB。",
+        )
+
+    assets = _cmdb_assets(db, p.tenant_id, body.asset_ids)
+    if not assets:
+        raise HTTPException(status_code=400, detail="没有可推送的资产（检查 id 或租户）。")
+
+    # 幂等过滤
+    skipped: list[dict[str, Any]] = []
+    to_push: list[Asset] = []
+    for a in assets:
+        if a.siem_push_status == "ok" and not body.force:
+            skipped.append({"id": a.id, "name": a.name, "reason": "已推送过（用 force 可重推）"})
+            continue
+        to_push.append(a)
+
+    if not to_push:
+        return {
+            "pushed": 0,
+            "skipped": skipped,
+            "task_id": None,
+            "message": "选中的资产都已推送过。",
+        }
+
+    mapped = [map_asset(a) for a in to_push]
+    xml_body = build_add_xml(mapped)
+
+    try:
+        result = client.cmdb_add_devices(xml_body)
+    except SiemWriteError as exc:
+        # 记成 failed，但**不抛** —— 资产还在库里，用户可以改配置后重推
+        now = datetime.now()
+        for a in to_push:
+            a.siem_push_status = "failed"
+            a.siem_pushed_at = now
+        db.commit()
+        audit_log.record(
+            db,
+            tenant_id=p.tenant_id,
+            action="cmdb_push_failed",
+            user_id=getattr(p, "user_id", None),
+            username=getattr(p, "username", None),
+            target_type="asset",
+            detail={"count": len(to_push), "error": str(exc), "kind": exc.kind},
+        )
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    task_id = result.get("task_id") or None
+    now = datetime.now()
+    for a in to_push:
+        a.siem_push_status = "ok"
+        a.siem_pushed_at = now
+        a.siem_task_id = task_id
+    db.commit()
+
+    audit_log.record(
+        db,
+        tenant_id=p.tenant_id,
+        action="cmdb_push",
+        user_id=getattr(p, "user_id", None),
+        username=getattr(p, "username", None),
+        target_type="asset",
+        detail={
+            "count": len(to_push),
+            "task_id": task_id,
+            "asset_ids": [a.id for a in to_push],
+        },
+    )
+
+    return {
+        "pushed": len(to_push),
+        "skipped": skipped,
+        "task_id": task_id,
+        "message": f"已提交 {len(to_push)} 台设备到 FortiSIEM CMDB。"
+        + (f"（任务号 {task_id}）" if task_id else ""),
     }

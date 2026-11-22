@@ -19,7 +19,9 @@ FortiSIEM 连接器。
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -34,6 +36,22 @@ FS_CLIENT_SECRET = os.getenv("FORTISIEM_CLIENT_SECRET", "")
 FS_ORG = os.getenv("FORTISIEM_ORG", "Super")
 FS_TIMEOUT = float(os.getenv("FORTISIEM_TIMEOUT", "15.0"))
 FS_VERIFY_TLS = os.getenv("FORTISIEM_VERIFY_TLS", "false").lower() not in ("0", "false", "no")
+
+# ── 写凭据（Basic Auth）──────────────────────────────────────────────────────
+#
+# **读和写是两套凭据，权限等级不同** —— 实机 7.5.1 测出来的：
+#
+#   OAuth client_credentials（上面那套）→ 读 200，写 403
+#   Basic Auth admin 账号             → 写端点也 403（账号权限不足）
+#
+# 官方 Integration API Guide 对写端点的凭据要求是
+# 「any FortiSIEM account that has the appropriate access」，
+# curl 示例用 Basic Auth（`-u super/admin:xxx`），**不是** OAuth。
+#
+# `FORTISIEM_BASIC_USER` 存的是**不带组织前缀**的用户名；
+# 组织前缀在调用时拼成 `<org>/<user>` —— 官方 SP 部署的写法。
+FS_BASIC_USER = os.getenv("FORTISIEM_BASIC_USER", "")
+FS_BASIC_PASSWORD = os.getenv("FORTISIEM_BASIC_PASSWORD", "")
 
 # 内部面要这个 Accept —— 严格 JSON 会 406
 _ACCEPT = "application/json, text/plain, */*"
@@ -356,6 +374,128 @@ class FortiSiemClient:
                 }
             )
         return out
+
+    # ── 写操作（CMDB）────────────────────────────────────────────────────
+    #
+    # 与读路径分开：读用 OAuth，写用 Basic Auth。
+    # **原因**（实机 7.5.1）：OAuth token 的 scope 是 `appserver/user`（只读级），
+    # 写端点一律 403；Basic Auth 是官方对写端点要求的认证方式。
+
+    def basic_auth(self) -> tuple[str, str] | None:
+        """Basic Auth 凭据 (user, password) —— 没配就返回 None。"""
+        if not FS_BASIC_USER or not FS_BASIC_PASSWORD:
+            return None
+        # 官方 SP 部署写法：<组织>/<用户名>
+        return (f"{self.org}/{FS_BASIC_USER}", FS_BASIC_PASSWORD)
+
+    def write_configured(self) -> bool:
+        """写凭据配齐了没。"""
+        return bool(FS_BASIC_USER and FS_BASIC_PASSWORD)
+
+    def cmdb_add_devices(self, xml_body: str) -> dict[str, Any]:
+        """把设备加进 CMDB。
+
+        `POST /phoenix/rest/device/discovery/add`
+        - body 是 **XML**（官方 schema `device.xsd`）
+        - **异步**：返回 taskId，要再查状态
+        - 一次可以带多台设备
+
+        失败时抛 `SiemWriteError`（带 `kind` 区分锁定 / 无权限 / 报文错 / 网络）。
+        """
+        from ..services.cmdb_push import SiemWriteError, classify_write_error
+
+        auth = self.basic_auth()
+        if auth is None:
+            raise SiemWriteError(
+                "FortiSIEM 写凭据未配置（FORTISIEM_BASIC_USER / FORTISIEM_BASIC_PASSWORD）",
+                kind="unauthorized",
+            )
+
+        try:
+            r = self._ensure_client().post(
+                f"{self.base_url}/phoenix/rest/device/discovery/add",
+                content=xml_body.encode("utf-8"),
+                headers={"Content-Type": "application/xml", "Accept": _ACCEPT},
+                auth=auth,
+            )
+        except Exception as exc:  # 网络层
+            raise SiemWriteError(f"连不上 FortiSIEM：{exc}", kind="network") from exc
+
+        if r.status_code != 200:
+            raise classify_write_error(r.status_code, r.text)
+
+        # 成功返回：<response><status>Discovery xml is queued</status>
+        #           <sourceIdentifier>RESTAPI_<TaskId></sourceIdentifier></response>
+        task_id = ""
+        m = re.search(r"RESTAPI_([A-Za-z0-9_-]+)", r.text or "")
+        if m:
+            task_id = m.group(1)
+        return {"task_id": task_id, "raw": (r.text or "")[:500]}
+
+    def cmdb_device_list(self) -> list[dict[str, Any]]:
+        """读设备列表（JSON），带 CMDB 的 device id —— 删除时要用。
+
+        `POST /phoenix/rest/pub/device` —— 注意是 POST，GET 会 405。
+        """
+        try:
+            r = self._ensure_client().post(
+                f"{self.base_url}/phoenix/rest/pub/device",
+                headers=self._headers(),
+                content=b"",
+            )
+        except Exception as exc:
+            raise RuntimeError(f"连不上 FortiSIEM：{exc}") from exc
+        if r.status_code != 200:
+            return []
+        try:
+            return list(r.json().get("data", []))
+        except Exception:
+            return []
+
+    def cmdb_delete_devices(self, device_ids: list[int]) -> dict[str, list[int]]:
+        """从 CMDB 删设备。
+
+        `POST /phoenix/rest/pub/device/delete`
+        - body 是 **JSON 数组**：`[id1, id2]`（官方格式，实测确认）
+        - 返回 `{"success": "[968352]", "failed": "[968351,968353]"}`
+
+        **当前 OAuth 凭据就能调这个端点** —— 实测 200。
+        所以这个方法比加设备更容易落地，但也更危险，
+        调用方必须确认过再删。
+        """
+        from ..services.cmdb_push import SiemWriteError, classify_write_error
+
+        if not device_ids:
+            return {"success": [], "failed": []}
+
+        try:
+            r = self._ensure_client().post(
+                f"{self.base_url}/phoenix/rest/pub/device/delete",
+                content=json.dumps(list(device_ids)).encode("utf-8"),
+                headers={"Content-Type": "application/json", "Accept": _ACCEPT},
+            )
+        except Exception as exc:
+            raise SiemWriteError(f"连不上 FortiSIEM：{exc}", kind="network") from exc
+
+        if r.status_code != 200:
+            raise classify_write_error(r.status_code, r.text)
+        try:
+            data = r.json()
+        except Exception:
+            return {"success": [], "failed": list(device_ids)}
+
+        def _parse(raw: str) -> list[int]:
+            out: list[int] = []
+            for chunk in str(raw or "").strip("[] ").split(","):
+                chunk = chunk.strip()
+                if chunk.isdigit():
+                    out.append(int(chunk))
+            return out
+
+        return {
+            "success": _parse(data.get("success", "")),
+            "failed": _parse(data.get("failed", "")),
+        }
 
     def status(self, *, use_cache: bool = True) -> SiemStatus:
         """带缓存的探活入口。真正的探测逻辑在 _probe() 里。"""
