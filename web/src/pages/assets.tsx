@@ -11,9 +11,9 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { CloudUpload, FileSpreadsheet, FileUp, Plus, Search, Trash2, X } from "lucide-react"
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, Fragment } from "react"
 
-import { api, type ImportPreview, type ImportRow } from "@/api/client"
+import { api, type Asset, type ImportPreview, type ImportRow } from "@/api/client"
 import { AssetExport } from "@/components/asset-export"
 import { CmdbPushPanel } from "@/components/cmdb-push-panel"
 import { AssetTemplatePanel } from "@/components/asset-template-panel"
@@ -26,10 +26,64 @@ export function AssetsPage() {
     const [q, setQ] = useState("")
     const [zone, setZone] = useState("")
     const [needsReview, setNeedsReview] = useState<boolean | undefined>(undefined)
+    // 按船队 / 单船筛选 —— 后端也支持这两个参数，筛选在服务端做
+    const [fleetFilter, setFleetFilter] = useState<string>("")
+    const [vesselFilter, setVesselFilter] = useState<string>("")
 
-    const assets = useAssets({ q, zone, needs_review: needsReview })
+    const assets = useAssets({
+        q,
+        zone,
+        needs_review: needsReview,
+        vessel_id: vesselFilter ? Number(vesselFilter) : undefined,
+        fleet_id: fleetFilter ? Number(fleetFilter) : undefined,
+    })
     const schema = useAssetSchema()
     const del = useDeleteAsset()
+    const fleetData = useQuery({ queryKey: ["fleets"], queryFn: () => api.fleets.list() })
+
+    /**
+     * 资产清单**先按船队-单船分类**。
+     *
+     * 没有船这一层时，资产是一张平铺的表 —— 船上的人看不出哪台设备装在哪艘船。
+     * 分组后每台设备的位置一目了然。
+     *
+     * **没归船的设备单列一组，不藏起来** —— 导入进来的设备常常还不知道
+     * 装在哪艘船上，藏起来等于让它们从清单里消失。
+     */
+    const groups = useMemo(() => {
+        const items = assets.data?.items ?? []
+        const byVessel = new Map<number | null, Asset[]>()
+        for (const a of items) {
+            const key = a.vessel_id ?? null
+            const bucket = byVessel.get(key)
+            if (bucket) bucket.push(a)
+            else byVessel.set(key, [a])
+        }
+        const out: Array<{
+            fleetName: string
+            fleetId: number | null
+            vessels: Array<{ vesselName: string; vesselId: number | null; assets: Asset[] }>
+        }> = []
+        for (const f of fleetData.data?.fleets ?? []) {
+            const vessels = f.vessels
+                .map((v) => ({
+                    vesselName: v.name,
+                    vesselId: v.id,
+                    assets: byVessel.get(v.id ?? null) ?? [],
+                }))
+                .filter((v) => v.assets.length > 0)
+            if (vessels.length > 0) out.push({ fleetName: f.name, fleetId: f.id, vessels })
+        }
+        const orphans = byVessel.get(null) ?? []
+        if (orphans.length > 0) {
+            out.push({
+                fleetName: "未归船",
+                fleetId: null,
+                vessels: [{ vesselName: "未归船的设备", vesselId: null, assets: orphans }],
+            })
+        }
+        return out
+    }, [assets.data, fleetData.data])
 
     return (
         <div>
@@ -150,6 +204,38 @@ export function AssetsPage() {
                                     </option>
                                 ))}
                             </select>
+                            {/* 船队 / 单船筛选 —— 与清单的分组一致 */}
+                            <select
+                                className="select"
+                                style={{ width: 150 }}
+                                value={fleetFilter}
+                                onChange={(e) => {
+                                    setFleetFilter(e.target.value)
+                                    setVesselFilter("")
+                                }}
+                            >
+                                <option value="">全部船队</option>
+                                {(fleetData.data?.fleets ?? []).map((f) => (
+                                    <option key={f.id ?? "none"} value={f.id ?? ""}>
+                                        {f.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                className="select"
+                                style={{ width: 150 }}
+                                value={vesselFilter}
+                                onChange={(e) => setVesselFilter(e.target.value)}
+                            >
+                                <option value="">全部船舶</option>
+                                {(fleetData.data?.vessels ?? [])
+                                    .filter((v) => v.id !== null)
+                                    .map((v) => (
+                                        <option key={v.id ?? "none"} value={v.id ?? ""}>
+                                            {v.name}
+                                        </option>
+                                    ))}
+                            </select>
                             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
                                 <input
                                     type="checkbox"
@@ -177,8 +263,45 @@ export function AssetsPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {(assets.data?.items ?? []).map((a) => (
-                                        <tr key={a.id}>
+                                    {groups.map((g) => (
+                                        <Fragment key={g.fleetId ?? "none"}>
+                                            {/* 船队标题行 */}
+                                            <tr>
+                                                <td
+                                                    colSpan={8}
+                                                    style={{
+                                                        background: "#eef2f9",
+                                                        padding: "7px 12px",
+                                                        fontWeight: 700,
+                                                        fontSize: 13,
+                                                        borderTop: "1px solid var(--line)",
+                                                    }}
+                                                >
+                                                    船队 · {g.fleetName}
+                                                    <span className="subtle" style={{ fontWeight: 400, marginLeft: 8 }}>
+                                                        {g.vessels.reduce((n, v) => n + v.assets.length, 0)} 件资产
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {g.vessels.map((v) => (
+                                                <Fragment key={v.vesselId ?? "none"}>
+                                                    {/* 船标题行 */}
+                                                    <tr>
+                                                        <td
+                                                            colSpan={8}
+                                                            style={{
+                                                                padding: "5px 12px 5px 26px",
+                                                                fontSize: 12,
+                                                                color: "var(--muted)",
+                                                                background: "#f8fafc",
+                                                            }}
+                                                        >
+                                                            ▸ {v.vesselName}
+                                                            <span style={{ marginLeft: 8 }}>{v.assets.length} 件</span>
+                                                        </td>
+                                                    </tr>
+                                                    {v.assets.map((a) => (
+                                                        <tr key={a.id}>
                                             <td className="strong mono">{a.name}</td>
                                             <td>{a.type}</td>
                                             <td className="mono muted">{a.zone ?? "—"}</td>
@@ -209,6 +332,10 @@ export function AssetsPage() {
                                                 </button>
                                             </td>
                                         </tr>
+                                                    ))}
+                                                </Fragment>
+                                            ))}
+                                        </Fragment>
                                     ))}
                                     {!assets.data?.items.length && (
                                         <tr>

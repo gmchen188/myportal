@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.connectors.fortisiem import get_client  # noqa: E402
 from app.db import init_db  # noqa: E402
-from app.routers import admin, assets, auth as auth_router, monitoring, siem, topologies  # noqa: E402
+from app.routers import admin, assets, auth as auth_router, fleets, monitoring, siem, topologies  # noqa: E402
 
 app = FastAPI(
     title="myPortal backend",
@@ -54,6 +54,7 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(admin.router)
 app.include_router(assets.router)
+app.include_router(fleets.router)
 app.include_router(topologies.router)
 app.include_router(monitoring.router)
 app.include_router(siem.router)

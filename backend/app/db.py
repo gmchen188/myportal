@@ -139,6 +139,13 @@ class Asset(Base):
     cbs_class = Column(String(64), nullable=True)
     status = Column(String(32), nullable=True, default="在用")
 
+    # 这件资产属于哪艘船 —— 船队视图与单船视图的分组依据。
+    #
+    # **可空**：还没归船的资产也要能存在（导入进来的设备往往还不知道
+    # 装在哪艘船上）。空着的资产在总览里归到「未归船」，
+    # 在资产清单里单列一组 —— **不能因为没归船就看不见**。
+    vessel_id = Column(Integer, ForeignKey("vessels.id", ondelete="SET NULL"), nullable=True, index=True)
+
     # 来源：cmdb / ur_ledger / import / topology_image
     source = Column(String(32), nullable=False, default="import")
     # 该行是否由「拓扑图生成」而来 —— 这类行缺必填字段，等用户补
@@ -178,6 +185,16 @@ class Asset(Base):
             "source": self.source,
             "needs_review": self.needs_review,
             "notes": self.notes,
+            # 归属到哪艘船 —— 资产清单按船队-单船分类的依据
+            "vessel_id": self.vessel_id,
+            # CMDB 推送状态 —— 前端用它显示「未推送/推送中/已推送/推送失败」。
+            #
+            # **漏掉这三个字段的后果是静默的**：前端 `siem_push_status !== "ok"`
+            # 永远成立，于是**已推送的资产也显示成「未推送」** —— 用户会再推一次，
+            # CMDB 里就多了一台重复设备。
+            "siem_push_status": self.siem_push_status,
+            "siem_pushed_at": self.siem_pushed_at.isoformat() if self.siem_pushed_at else None,
+            "siem_task_id": self.siem_task_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -292,6 +309,64 @@ class AssetDraft(Base):
 
 
 # ── 拓扑图 ──────────────────────────────────────────────────────────────────
+class Fleet(Base):
+    """一支船队 —— 船的上层分组。
+
+    总览分**两级**：船队视图看整支船队的设备与事件，单船视图看某一艘船。
+    船队这一层是**业务视角**，与**租户**不同 —— 租户管的是安全隔离
+    （谁能看到什么），船队管的是**归属**（这堆设备属于哪支船队哪艘船）。
+
+    所以两者不是一回事：一支船队不会跨租户，一艘船也不会跨租户。
+    """
+
+    __tablename__ = "fleets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    name = Column(String(200), nullable=False, index=True)
+    # 船队代号 / 呼号 —— 现场常按代号叫船队
+    code = Column(String(64), nullable=True, index=True)
+    description = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    tenant = relationship("Tenant")
+
+
+class Vessel(Base):
+    """一艘船 —— 资产的直接归属。
+
+    **资产挂在船上**，而不是直接挂在船队上 —— 因为船队视图是聚合出来的，
+    有了船才能按船聚合。事件与监控设备**不需要**这一列：它们通过
+    `natural_id → assets → vessel` 归属到船。
+    """
+
+    __tablename__ = "vessels"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(String(64), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    # 船队 —— 可以为空（还没归队的船）
+    #
+    # **必须是 Integer**：fleet_id 指向 fleets.id（整数主键）。
+    # 写成 String(64) 时 SQLite 会把值存成文本 '2'，于是
+    # `vessel.fleet_id == fleet.id` 永远不成立 —— 船队视图会显示「0 艘船」。
+    fleet_id = Column(Integer, ForeignKey("fleets.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    name = Column(String(200), nullable=False, index=True)
+    # 船代号 / 呼号 / IMO 编号
+    code = Column(String(64), nullable=True, index=True)
+    imo = Column(String(32), nullable=True)
+    description = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    tenant = relationship("Tenant")
+    fleet = relationship("Fleet")
+
+
 class Topology(Base):
     """一张网络拓扑图。
 
@@ -307,6 +382,9 @@ class Topology(Base):
 
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
+    # 这张图属于哪支船队 —— 一支船队一张总图。
+    # 船队视图从它取「这支船队有几张图、多少节点」。
+    fleet_id = Column(Integer, ForeignKey("fleets.id", ondelete="SET NULL"), nullable=True, index=True)
     xml = Column(Text, nullable=False, default="")
     # 拓扑图里每个节点对应哪件资产。
     #
@@ -637,6 +715,11 @@ def _ensure_columns() -> None:
             ("siem_pushed_at", "DATETIME"),
             ("siem_push_status", "VARCHAR(32)"),
             ("siem_task_id", "VARCHAR(128)"),
+            # 船队/单船视图的分组依据 —— 老库的资产全为空（未归船）
+            ("vessel_id", "INTEGER"),
+        ],
+        "topologies": [
+            ("fleet_id", "INTEGER"),
         ],
     }
     with engine.begin() as conn:
@@ -652,6 +735,49 @@ def _ensure_columns() -> None:
                 conn.execute(sa.text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
 
 
+def _rebuild_vessels_if_misbuilt() -> None:
+    """`vessels.fleet_id` 的类型不对就重建这张表。
+
+    ## 为什么需要
+
+    早期版本把 `fleet_id` 声明成了 `String(64)`，于是 SQLite 把它建成
+    VARCHAR 列，存进去的值是**文本** `'2'` 而不是整数 `2`。
+    症状很隐蔽：数据库里看着有船队有船，但
+    `vessel.fleet_id == fleet.id` 永远不成立 —— **船队视图显示「0 艘船、
+    0 资产」**，而 totals 又是另一个数。
+
+    **SQLite 不能改列类型**（`ALTER TABLE ... ALTER COLUMN` 不存在），
+    只能重建表。
+
+    ## 为什么重建是安全的
+
+    表里只有**播种**产生的数据（船队与船），没有用户录入的业务数据 ——
+    用户录入的是**资产**，在另一张表上。
+
+    重建后 `assets.vessel_id` 会指向不存在的 id，所以先清空，
+    让随后的播种重新挂一遍。
+    """
+    import sqlalchemy as sa
+
+    with engine.begin() as conn:
+        inspector = sa.inspect(conn)
+        if "vessels" not in set(inspector.get_table_names()):
+            return
+        cols = {c["name"]: c for c in inspector.get_columns("vessels")}
+        fk = cols.get("fleet_id")
+        if fk is None:
+            return
+        # 已经是整数列 → 不用动
+        #
+        # `type` 是 SQLAlchemy 的**类型对象**（VARCHAR 类），不是字符串 ——
+        # 直接 `.upper()` 会 AttributeError。用 str() 取它的名字。
+        if str(fk["type"]).upper() in ("INTEGER", "INT"):
+            return
+        conn.execute(sa.text("DROP TABLE vessels"))
+        conn.execute(sa.text("UPDATE assets SET vessel_id = NULL"))
+    Base.metadata.create_all(engine)
+
+
 def init_db() -> None:
     """建表 + 补列 + 播种开发租户与初始管理员。
 
@@ -659,8 +785,10 @@ def init_db() -> None:
     """
     Base.metadata.create_all(engine)
     _ensure_columns()
+    _rebuild_vessels_if_misbuilt()
     seed_tenants()
     seed_admin_user()
+    seed_fleets_and_vessels()
 
 
 def seed_tenants() -> None:
@@ -727,6 +855,88 @@ def seed_admin_user() -> None:
                 role="super_admin",
             )
         )
+        db.commit()
+
+
+def seed_fleets_and_vessels() -> None:
+    """给每个租户备好一支船队与一艘船，并把现有数据挂上去。
+
+    ## 为什么要有这一步
+
+    总览分**船队视图**与**单船视图**两级，资产清单也按船队-单船分组 ——
+    但这些数据是**后加的维度**，库里原本没有船这一层。
+
+    没有兜底的话：船队列表是空的 → 总览的船队视图一片空白 →
+    用户以为功能坏了。而资产还在（14 件），只是没有船可挂。
+
+    ## 挂哪个
+
+    - **拓扑** → 船队：按拓扑名派生。现有的「船队网络拓扑 V1」正好
+      就是一支船队。
+    - **资产** → 船：每支船队一艘「未命名船舶」，所有没归船的资产归它。
+
+    ## 只播种不覆盖
+
+    已存在的船队/船保持原样（用户可能已经改过名字、已经分配过资产）。
+    反复跑不会把用户的数据冲掉。
+    """
+    with SessionLocal() as db:
+        tenants = db.query(Tenant).all()
+        for tenant in tenants:
+            fleets = (
+                db.query(Fleet)
+                .filter(Fleet.tenant_id == tenant.id)
+                .order_by(Fleet.id)
+                .all()
+            )
+            if not fleets:
+                # 用现有拓扑的名字当船队名 —— 「船队网络拓扑 V1」就是它
+                topo = (
+                    db.query(Topology)
+                    .filter(Topology.tenant_id == tenant.id)
+                    .order_by(Topology.id)
+                    .first()
+                )
+                name = topo.name if topo else "默认船队"
+                fleet = Fleet(tenant_id=tenant.id, name=name)
+                db.add(fleet)
+                db.flush()
+                fleets = [fleet]
+
+            for fleet in fleets:
+                vessels = (
+                    db.query(Vessel)
+                    .filter(Vessel.tenant_id == tenant.id, Vessel.fleet_id == fleet.id)
+                    .all()
+                )
+                if not vessels:
+                    vessel = Vessel(
+                        tenant_id=tenant.id,
+                        fleet_id=fleet.id,
+                        name="未命名船舶",
+                        description="导入的设备先归在这里，确认所属船舶后再改。",
+                    )
+                    db.add(vessel)
+                    db.flush()
+                    vessels = [vessel]
+
+                # 拓扑挂到船队（第一支）
+                if fleet is fleets[0]:
+                    for topo in (
+                        db.query(Topology)
+                        .filter(Topology.tenant_id == tenant.id, Topology.fleet_id.is_(None))
+                        .all()
+                    ):
+                        topo.fleet_id = fleet.id
+
+                # 没归船的资产挂到第一艘船
+                first = vessels[0]
+                for asset in (
+                    db.query(Asset)
+                    .filter(Asset.tenant_id == tenant.id, Asset.vessel_id.is_(None))
+                    .all()
+                ):
+                    asset.vessel_id = first.id
         db.commit()
 
 

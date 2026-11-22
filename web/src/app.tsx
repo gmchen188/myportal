@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { AdminPage } from "@/pages/admin"
 import { AssetsPage } from "@/pages/assets"
 import { EventsPage } from "@/pages/events"
+import { FleetsPage } from "@/pages/fleets"
 import { LoginPage } from "@/pages/login"
 import { MonitorPage } from "@/pages/monitor"
 import { OverviewPage } from "@/pages/overview"
@@ -80,6 +81,7 @@ export function App() {
                 <Route element={<AppShell />}>
                     <Route index element={guarded(<OverviewPage />)} />
                     <Route path="assets" element={guarded(<AssetsPage />)} />
+                    <Route path="fleets" element={guarded(<FleetsPage />)} />
                     <Route path="topologies" element={guarded(<TopologiesPage />)} />
                     <Route path="monitor" element={guarded(<MonitorPage />)} />
                     <Route path="events" element={guarded(<EventsPage />)} />

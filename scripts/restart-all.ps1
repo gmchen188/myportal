@@ -88,7 +88,9 @@ if ($NtDir) {
 }
 
 # ── 重启 ─────────────────────────────────────────────────────────────────
-foreach ($name in @("MyPortalWeb", "NetworkTopology")) {
+# MyPortalBackend 也要在列里 —— **后台改了代码必须重启才生效**。
+# （曾经只重启前端与画布，结果新端点 404，排查半天才发现是后端没重启。）
+foreach ($name in @("MyPortalBackend", "MyPortalWeb", "NetworkTopology")) {
     Write-Step "重启 $name"
     try {
         Restart-Service -Name $name -Force -ErrorAction Stop

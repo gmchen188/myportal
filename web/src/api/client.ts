@@ -248,6 +248,8 @@ export interface Asset {
     updated_at: string | null
     /** FortiSIEM CMDB 推送状态：未推送 / pending / ok / failed */
     siem_push_status: string | null
+    /** 归属到哪艘船 —— 资产清单按船队-单船分类的依据 */
+    vessel_id: number | null
     siem_pushed_at: string | null
     siem_task_id: string | null
 }
@@ -265,6 +267,87 @@ export interface CmdbMappedAsset {
     missing: string[]
     /** 这件资产是否已接入监控（device_monitors 里有绑定） */
     monitored: boolean
+}
+
+/** 一艘船 —— 资产的直接归属 */
+export interface Vessel {
+    /** null = 「未归船」那一档（还没确认属于哪艘船） */
+    id: number | null
+    fleet_id: number | null
+    name: string
+    code: string | null
+    imo: string | null
+    description: string | null
+    asset_count: number
+    monitor_count: number
+    event_count: number
+    events_by_severity: Record<string, number>
+}
+
+/** 一支船队 —— 船的上层分组 */
+export interface Fleet {
+    /** null = 「未归队」那一档 */
+    id: number | null
+    name: string
+    code: string | null
+    description: string | null
+    vessel_count: number
+    asset_count: number
+    monitor_count: number
+    event_count: number
+    events_by_severity: Record<string, number>
+    topology_count: number
+    vessels: Vessel[]
+}
+
+export interface FleetOverview {
+    fleets: Fleet[]
+    totals: {
+        fleet_count: number
+        vessel_count: number
+        asset_count: number
+        monitor_count: number
+        event_count: number
+    }
+}
+
+/** 单船视图的数据 */
+export interface VesselOverview {
+    vessel: {
+        id: number
+        fleet_id: number | null
+        fleet_name: string | null
+        name: string
+        code: string | null
+        imo: string | null
+        description: string | null
+    }
+    assets: Array<{
+        id: number
+        natural_id: string | null
+        name: string
+        type: string
+        zone: string | null
+        ip: string | null
+        status: string | null
+        siem_push_status: string | null
+    }>
+    monitored: Array<{
+        natural_id: string
+        node_label: string | null
+        ip: string | null
+        channel: string
+        enabled: number
+    }>
+    topologies: Array<{ id: number; name: string; node_count: number }>
+    events: Array<{
+        id: number
+        title: string
+        severity: string
+        device_natural_id: string | null
+        occurred_at: string | null
+    }>
+    events_by_severity: Record<string, number>
 }
 
 export interface CmdbStatus {
@@ -694,7 +777,7 @@ export const api = {
 
     // 资产
     assets: {
-        list: (params: { q?: string; zone?: string; needs_review?: boolean; limit?: number; offset?: number } = {}) => {
+        list: (params: { q?: string; zone?: string; needs_review?: boolean; vessel_id?: number; fleet_id?: number; limit?: number; offset?: number } = {}) => {
             const qs = new URLSearchParams()
             for (const [k, v] of Object.entries(params)) {
                 if (v !== undefined && v !== null && v !== "") qs.set(k, String(v))
@@ -821,7 +904,7 @@ export const api = {
          *
          * 导出的是当前筛选后的那一批 —— 与列表看到的完全一致。
          */
-        exportUrl: (params: { q?: string; zone?: string; needs_review?: boolean; fmt?: string; fields?: string[] } = {}) => {
+        exportUrl: (params: { q?: string; zone?: string; needs_review?: boolean; vessel_id?: number; fleet_id?: number; fmt?: string; fields?: string[] } = {}) => {
             const qs = new URLSearchParams()
             for (const [k, v] of Object.entries(params)) {
                 if (v !== undefined && v !== null && v !== "") qs.set(k, String(v))
@@ -841,6 +924,45 @@ export const api = {
     },
 
     // 拓扑
+    fleets: {
+        list: () => request<{ fleets: Fleet[]; vessels: Vessel[] }>("/api/fleets"),
+        overview: () => request<FleetOverview>("/api/fleets/overview"),
+        vesselOverview: (id: number) =>
+            request<VesselOverview>(`/api/fleets/vessels/${id}/overview`),
+        vessels: (params: { fleet_id?: number } = {}) => {
+            const q = params.fleet_id ? `?fleet_id=${params.fleet_id}` : ""
+            return request<{ vessels: Vessel[] }>(`/api/fleets/vessels${q}`)
+        },
+        create: (body: { name: string; fleet_id?: number | null; code?: string | null; imo?: string | null; description?: string | null }) =>
+            request<{ id: number; name: string }>("/api/fleets/vessels", {
+                method: "POST",
+                body: JSON.stringify(body),
+            }),
+        createFleet: (body: { name: string; code?: string | null; description?: string | null }) =>
+            request<{ id: number; name: string }>("/api/fleets", {
+                method: "POST",
+                body: JSON.stringify(body),
+            }),
+        patchVessel: (id: number, body: { name?: string; fleet_id?: number | null; code?: string | null; imo?: string | null; description?: string | null }) =>
+            request<{ id: number; name: string }>(`/api/fleets/vessels/${id}`, {
+                method: "PATCH",
+                body: JSON.stringify(body),
+            }),
+        patchFleet: (id: number, body: { name?: string; code?: string | null; description?: string | null }) =>
+            request<{ id: number; name: string }>(`/api/fleets/${id}`, {
+                method: "PATCH",
+                body: JSON.stringify(body),
+            }),
+        removeVessel: (id: number) =>
+            request<{ ok: boolean }>(`/api/fleets/vessels/${id}`, { method: "DELETE" }),
+        removeFleet: (id: number) =>
+            request<{ ok: boolean }>(`/api/fleets/${id}`, { method: "DELETE" }),
+        assignAssets: (vesselId: number, assetIds: number[]) =>
+            request<{ ok: boolean; moved: number }>(`/api/fleets/vessels/${vesselId}/assets`, {
+                method: "POST",
+                body: JSON.stringify({ asset_ids: assetIds }),
+            }),
+    },
     topologies: {
         list: () => request<{ items: Topology[] }>("/api/topologies"),
         get: (id: number) => request<Topology>(`/api/topologies/${id}`),

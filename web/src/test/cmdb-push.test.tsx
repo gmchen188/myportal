@@ -53,6 +53,7 @@ function asset(over: Partial<Asset> = {}): Asset {
         created_at: null,
         updated_at: null,
         siem_push_status: null,
+        vessel_id: null,
         siem_pushed_at: null,
         siem_task_id: null,
         ...over,

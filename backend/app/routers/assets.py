@@ -24,9 +24,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..auth import Principal, principal_from_request, principal_from_request_strict
+from ..auth import Principal, principal_from_request, principal_from_request_strict, require_admin
 from ..connectors.fortisiem import get_client as get_siem_client
-from ..db import Asset, AssetDraft, AssetTemplate, DeviceMonitor, get_session
+from ..db import Asset, AssetDraft, AssetTemplate, DeviceMonitor, Vessel, get_session
 from ..services import asset_export as ax
 from ..services import asset_import as ai
 from ..services import asset_templates as at
@@ -69,6 +69,8 @@ class AssetPatch(BaseModel):
     status: str | None = None
     notes: str | None = None
     needs_review: bool | None = None
+    # 改归属 —— 资产归到哪艘船
+    vessel_id: int | None = None
 
 
 class CommitIn(BaseModel):
@@ -84,6 +86,8 @@ def _filtered_assets(
     q: str | None = None,
     zone: str | None = None,
     needs_review: bool | None = None,
+    vessel_id: int | None = None,
+    fleet_id: int | None = None,
 ):
     """按筛选条件取资产 —— 列表与导出**共用**。
 
@@ -102,6 +106,20 @@ def _filtered_assets(
         stmt = stmt.where(Asset.zone == zone)
     if needs_review is not None:
         stmt = stmt.where(Asset.needs_review == needs_review)
+    # 按船 / 船队筛 —— 资产清单「先按船队-单船分类」的那一层。
+    #
+    # **船队筛选走子查询**，不 join —— join 会把一条资产在多艘船下
+    # 重复列出来（资产只属于一艘船，但 fleet 的 join 路径不同）。
+    if vessel_id is not None:
+        stmt = stmt.where(Asset.vessel_id == vessel_id)
+    if fleet_id is not None:
+        stmt = stmt.where(
+            Asset.vessel_id.in_(
+                select(Vessel.id).where(
+                    Vessel.tenant_id == tenant_id, Vessel.fleet_id == fleet_id
+                )
+            )
+        )
     return stmt.order_by(Asset.name)
 
 
@@ -112,10 +130,12 @@ def list_assets(
     q: str | None = Query(default=None),
     zone: str | None = Query(default=None),
     needs_review: bool | None = Query(default=None),
+    vessel_id: int | None = Query(default=None),
+    fleet_id: int | None = Query(default=None),
     limit: int = Query(default=200, le=1000),
     offset: int = Query(default=0, ge=0),
 ):
-    stmt = _filtered_assets(db, p.tenant_id, q, zone, needs_review)
+    stmt = _filtered_assets(db, p.tenant_id, q, zone, needs_review, vessel_id, fleet_id)
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     stmt = stmt.offset(offset).limit(limit)
     items = [a.to_dict() for a in db.scalars(stmt).all()]
@@ -131,6 +151,8 @@ def export_assets(
     needs_review: bool | None = Query(default=None),
     fmt: str = Query(default="csv"),
     fields: str | None = Query(default=None),
+    vessel_id: int | None = Query(default=None),
+    fleet_id: int | None = Query(default=None),
 ):
     """导出资产清单为 CSV / Excel。
 
@@ -142,7 +164,7 @@ def export_assets(
     **导出是「读」动作，不改任何数据。**
     """
     keys = [k for k in (fields or "").split(",") if k.strip()] or None
-    stmt = _filtered_assets(db, p.tenant_id, q, zone, needs_review)
+    stmt = _filtered_assets(db, p.tenant_id, q, zone, needs_review, vessel_id, fleet_id)
     assets = [a.to_dict() for a in db.scalars(stmt).all()]
 
     content, media_type, ext = ax.export_assets(assets, fmt=fmt, keys=keys)
@@ -479,7 +501,25 @@ def patch_asset(
     if not a or a.tenant_id != p.tenant_id:
         # 别的租户的记录答 404 而不是 403 —— 403 确认了资源存在
         raise HTTPException(404, "资产不存在")
+
+    # 改归属到别的船是**管理动作** —— 开发租户头不能改归属。
+    # 其他字段（名字、状态、备注）是业务编辑，保持原来的宽松度。
+    if body.vessel_id is not None:
+        require_admin(p)
+        # 0 表示「移出这条船」—— model_dump(exclude_none=True) 会把 null 丢掉，
+        # 所以清空用一个显式的哨兵值，而不是 null。
+        if body.vessel_id == 0:
+            a.vessel_id = None
+        else:
+            vessel = db.get(Vessel, body.vessel_id)
+            # **必须是本租户的船** —— 否则能把资产挂到别的租户的船上
+            if vessel is None or vessel.tenant_id != p.tenant_id:
+                raise HTTPException(404, "船不存在")
+            a.vessel_id = vessel.id
+
     for k, v in body.model_dump(exclude_none=True).items():
+        if k == "vessel_id":
+            continue  # 上面单独处理（含清空）
         setattr(a, k, v)
     db.commit()
     return a.to_dict()

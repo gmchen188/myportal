@@ -3,7 +3,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api, type DraftRow, type ImportRow } from "@/api/client"
 
 /** 资产列表。 */
-export function useAssets(params: { q?: string; zone?: string; needs_review?: boolean } = {}) {
+export function useAssets(
+    params: {
+        q?: string
+        zone?: string
+        needs_review?: boolean
+        /** 按船 / 船队筛选 —— 后端在服务端过滤 */
+        vessel_id?: number
+        fleet_id?: number
+    } = {},
+) {
     return useQuery({
         queryKey: ["assets", params],
         queryFn: () => api.assets.list(params),

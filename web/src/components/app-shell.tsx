@@ -4,7 +4,10 @@
  * 布局用 CSS Grid 而不是固定像素 —— 375px 窄屏下侧栏收成抽屉。
  */
 
-import { NavLink, Outlet, useLocation } from "react-router-dom"
+import {
+    NavLink,
+    Outlet,
+    useLocation } from "react-router-dom"
 import {
     Boxes,
     ChevronDown,
@@ -17,6 +20,7 @@ import {
     Settings2,
     ShieldAlert,
     X,
+    Ship,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -27,6 +31,8 @@ import { useHealth } from "@/hooks/use-health"
 const NAV = [
     { to: "/", label: "总览", icon: LayoutDashboard, end: true },
     { to: "/assets", label: "资产清单", icon: Boxes },
+    // 船队与船舶 —— 总览的船队/单船视图与资产清单的分组都靠它
+    { to: "/fleets", label: "船队与船舶", icon: Ship },
     { to: "/topologies", label: "网络拓扑", icon: Network },
     { to: "/monitor", label: "监控面板", icon: MonitorSmartphone },
     { to: "/events", label: "安全事件", icon: ShieldAlert },

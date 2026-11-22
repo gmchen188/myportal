@@ -1,0 +1,398 @@
+"""船队 / 船舶 —— 总览的两级视图与资产清单的分组依据。
+
+## 为什么这组测试重要
+
+「船队-单船」是**归属关系**，归属错了不会报错 —— 设备会静默地
+出现在错误的船下面，运维照着错的归属去排查。
+
+所以每个归属路径都要测：统计算对、删船不删资产、跨租户看不到、
+批量归船幂等。
+
+## 库隔离
+
+照 `test_admin.py` 的姿势：`dependency_overrides` 换掉 `get_session`，
+**不用 `with TestClient(app)`** —— 那会跑 lifespan → init_db() →
+在真实库上建表。真实库一个字节都不动。
+
+播种函数要单独测，它用的是全局 engine —— 用 monkeypatch 把它换到临时库。
+"""
+
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from app.db import (
+    Asset,
+    Base,
+    DeviceMonitor,
+    Fleet,
+    Incident,
+    Tenant,
+    Topology,
+    User,
+    Vessel,
+    get_session,
+)
+from app.main import app
+from app.services.passwords import hash_password
+
+ASI = "t-asi"
+DONGFANG = "t-dongfang"
+STRONG = "Str0ng!Passw0rd"
+
+
+@pytest.fixture()
+def env(tmp_path):
+    """临时库 + 两个租户 + 三种角色。"""
+    engine = create_engine(
+        f"sqlite:///{tmp_path / 'fleets.db'}",
+        future=True,
+        connect_args={"check_same_thread": False},
+    )
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
+
+    db = Session()
+    db.add(Tenant(id=ASI, slug="asi", name="AquaSync Innovation", locale="zh-CN"))
+    db.add(Tenant(id=DONGFANG, slug="dongfang", name="东方海运", locale="zh-CN"))
+    for uid, role in ((1, "super_admin"), (2, "tenant_admin"), (3, "viewer")):
+        db.add(
+            User(
+                id=uid,
+                tenant_id=ASI,
+                username=f"u{uid}",
+                password_hash=hash_password(STRONG),
+                display_name=role,
+                role=role,
+            )
+        )
+    db.commit()
+    db.close()
+
+    def override():
+        s = Session()
+        try:
+            yield s
+        finally:
+            s.close()
+
+    app.dependency_overrides[get_session] = override
+    client = TestClient(app)
+    yield client, Session
+    app.dependency_overrides.clear()
+
+
+def _login(client, username, password=STRONG, tenant="asi"):
+    r = client.post("/api/auth/login", json={"username": username, "password": password, "tenant": tenant})
+    assert r.status_code == 200, r.text
+    return {"Authorization": "Bearer " + r.json()["access_token"]}
+
+
+def _seed_tree(Session):
+    """一支船队、两艘船、三件资产、两条监控、三条事件。"""
+    db = Session()
+    fleet = Fleet(tenant_id=ASI, name="东海船队", code="DF")
+    db.add(fleet)
+    db.flush()
+    v1 = Vessel(tenant_id=ASI, fleet_id=fleet.id, name="海洋一号", code="HY1")
+    v2 = Vessel(tenant_id=ASI, fleet_id=fleet.id, name="海洋二号", code="HY2")
+    db.add_all([v1, v2])
+    db.flush()
+    db.add_all(
+        [
+            Asset(tenant_id=ASI, natural_id="A1", name="A1", type="防火墙", zone="Zone 1", vessel_id=v1.id),
+            Asset(tenant_id=ASI, natural_id="A2", name="A2", type="网关", zone="Zone 1", vessel_id=v1.id),
+            Asset(tenant_id=ASI, natural_id="A3", name="A3", type="交换机", zone="Zone 2", vessel_id=v2.id),
+            # **没归船的资产** —— 它不能从清单里消失
+            Asset(tenant_id=ASI, natural_id="A4", name="A4", type="摄像头", zone="Zone 3", vessel_id=None),
+        ]
+    )
+    # device_monitors.topology_id 是 NOT NULL —— 监控设备一定挂在某张图上
+    topo = Topology(tenant_id=ASI, name="船队网络拓扑", xml="<mxfile/>", fleet_id=fleet.id)
+    db.add(topo)
+    db.flush()
+    db.add_all(
+        [
+            DeviceMonitor(
+                tenant_id=ASI, topology_id=topo.id, node_id="d1", node_label="A1",
+                natural_id="A1", channel="fortisiem", enabled=1,
+            ),
+            DeviceMonitor(
+                tenant_id=ASI, topology_id=topo.id, node_id="d3", node_label="A3",
+                natural_id="A3", channel="fortisiem", enabled=1,
+            ),
+        ]
+    )
+    db.add_all(
+        [
+            Incident(tenant_id=ASI, title="严重事件", severity="critical", device_natural_id="A1"),
+            Incident(tenant_id=ASI, title="高危事件", severity="high", device_natural_id="A1"),
+            Incident(tenant_id=ASI, title="低危事件", severity="low", device_natural_id="A3"),
+        ]
+    )
+    db.commit()
+    ids = {"fleet": fleet.id, "v1": v1.id, "v2": v2.id}
+    db.close()
+    return ids
+
+
+# ── 船队视图 ────────────────────────────────────────────────────────────────
+class TestFleetOverview:
+    def test_counts_by_vessel(self, env):
+        """每艘船的资产/监控/事件数要分开算，不能混在一起。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get("/api/fleets/overview", headers=h)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["totals"]["asset_count"] == 4
+        assert data["totals"]["monitor_count"] == 2
+        assert data["totals"]["event_count"] == 3
+
+        fleet = data["fleets"][0]
+        assert fleet["name"] == "东海船队"
+        assert fleet["vessel_count"] == 2
+        by_name = {v["name"]: v for v in fleet["vessels"]}
+        assert by_name["海洋一号"]["asset_count"] == 2
+        assert by_name["海洋一号"]["monitor_count"] == 1
+        assert by_name["海洋一号"]["event_count"] == 2
+        assert by_name["海洋二号"]["asset_count"] == 1
+        assert by_name["海洋二号"]["event_count"] == 1
+
+    def test_severity_split_per_vessel(self, env):
+        """严重度分布按船拆开 —— 船队的人要知道哪艘船更严重。"""
+        client, Session = env
+        _seed_tree(Session)
+        h = _login(client, "u1")
+        data = client.get("/api/fleets/overview", headers=h).json()
+        fleet = data["fleets"][0]
+        by_name = {v["name"]: v for v in fleet["vessels"]}
+        assert by_name["海洋一号"]["events_by_severity"] == {"critical": 1, "high": 1}
+        assert by_name["海洋二号"]["events_by_severity"] == {"low": 1}
+        assert fleet["events_by_severity"] == {"critical": 1, "high": 1, "low": 1}
+
+    def test_unassigned_assets_stay_visible(self, env):
+        """**没归船的设备不能消失** —— 它单列一组。"""
+        client, Session = env
+        _seed_tree(Session)
+        h = _login(client, "u1")
+        data = client.get("/api/fleets/overview", headers=h).json()
+        names = [v["name"] for f in data["fleets"] for v in f["vessels"]]
+        assert "未归船" in names, names
+        orphan = next(v for f in data["fleets"] for v in f["vessels"] if v["name"] == "未归船")
+        assert orphan["asset_count"] == 1
+        assert orphan["id"] is None
+
+    def test_fleet_id_is_an_integer(self, env):
+        """`fleet_id` 必须是整数列。
+
+        写成 String(64) 时 SQLite 存成文本 '2'，`vessel.fleet_id == fleet.id`
+        永远不成立 —— **船队视图显示 0 艘船**，而 totals 是另一个数。
+        这个测试就是钉住那个坑。
+        """
+        client, Session = env
+        ids = _seed_tree(Session)
+        db = Session()
+        v = db.get(Vessel, ids["v1"])
+        assert isinstance(v.fleet_id, int), f"fleet_id 是 {type(v.fleet_id)} —— 文本会比不上整数主键"
+        db.close()
+
+
+# ── 单船视图 ────────────────────────────────────────────────────────────────
+class TestVesselOverview:
+    def test_lists_assets_and_monitors(self, env):
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get(f"/api/fleets/vessels/{ids['v1']}/overview", headers=h)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["vessel"]["name"] == "海洋一号"
+        assert data["vessel"]["fleet_name"] == "东海船队"
+        assert [a["name"] for a in data["assets"]] == ["A1", "A2"]
+        assert [m["natural_id"] for m in data["monitored"]] == ["A1"]
+        assert data["events_by_severity"] == {"critical": 1, "high": 1}
+
+    def test_unknown_vessel_is_404(self, env):
+        client, _ = env
+        h = _login(client, "u1")
+        assert client.get("/api/fleets/vessels/9999/overview", headers=h).status_code == 404
+
+
+# ── 管理动作 ────────────────────────────────────────────────────────────────
+class TestManage:
+    def test_create_fleet_and_vessel(self, env):
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post("/api/fleets", json={"name": "南海船队"}, headers=h)
+        assert r.status_code == 200, r.text
+        fleet_id = r.json()["id"]
+        r = client.post(
+            "/api/fleets/vessels",
+            json={"name": "远洋三号", "fleet_id": fleet_id, "code": "Y3"},
+            headers=h,
+        )
+        assert r.status_code == 200, r.text
+        vid = r.json()["id"]
+        db = Session()
+        v = db.get(Vessel, vid)
+        assert v.fleet_id == fleet_id
+        db.close()
+
+    def test_delete_vessel_keeps_assets(self, env):
+        """**删船不删资产** —— 资产变成「未归船」，还在清单里。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        assert client.delete(f"/api/fleets/vessels/{ids['v1']}", headers=h).status_code == 200
+        db = Session()
+        a = db.query(Asset).filter(Asset.natural_id == "A1").first()
+        assert a is not None, "资产被删了 —— 不该发生"
+        assert a.vessel_id is None, "资产应该变成未归船"
+        db.close()
+
+    def test_delete_fleet_keeps_vessels(self, env):
+        """删船队 —— 船变成「未归队」，船与资产都保留。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        assert client.delete(f"/api/fleets/{ids['fleet']}", headers=h).status_code == 200
+        db = Session()
+        v = db.get(Vessel, ids["v1"])
+        assert v is not None, "船被删了 —— 不该发生"
+        assert v.fleet_id is None
+        db.close()
+
+    def test_assign_assets_is_idempotent(self, env):
+        """批量归船幂等 —— 同一批再归一次，结果一样。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        a4 = db.query(Asset).filter(Asset.natural_id == "A4").first()
+        aid = a4.id
+        db.close()
+        r = client.post(f"/api/fleets/vessels/{ids['v1']}/assets", json={"asset_ids": [aid]}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["moved"] == 1
+        r = client.post(f"/api/fleets/vessels/{ids['v1']}/assets", json={"asset_ids": [aid]}, headers=h)
+        assert r.json()["moved"] == 0, "重复归船不该再报改动"
+
+    def test_other_tenants_fleet_is_invisible(self, env):
+        """**跨租户看不到别人的船** —— 船队是业务归属，也是隔离边界。"""
+        client, Session = env
+        db = Session()
+        db.add(Fleet(tenant_id=DONGFANG, name="别人的船队"))
+        db.commit()
+        db.close()
+        h = _login(client, "u1")
+        data = client.get("/api/fleets", headers=h).json()
+        assert all(f["name"] != "别人的船队" for f in data["fleets"])
+
+
+# ── 认证 ────────────────────────────────────────────────────────────────────
+class TestAuthGate:
+    def test_manage_endpoints_need_a_token(self, env):
+        """**管理端点必须严格认证** —— 开发租户头也不能绕过。"""
+        client, _ = env
+        for method, path, body in [
+            ("post", "/api/fleets", {"name": "X"}),
+            ("patch", "/api/fleets/1", {"name": "X"}),
+            ("delete", "/api/fleets/1", None),
+            ("post", "/api/fleets/vessels", {"name": "X"}),
+            ("patch", "/api/fleets/vessels/1", {"name": "X"}),
+            ("delete", "/api/fleets/vessels/1", None),
+            ("post", "/api/fleets/vessels/1/assets", {"asset_ids": [1]}),
+        ]:
+            r = getattr(client, method)(path, json=body) if body else getattr(client, method)(path)
+            assert r.status_code == 401, f"{method} {path} → {r.status_code}"
+
+    def test_viewer_cannot_manage(self, env):
+        """只读的人不能建船队。"""
+        client, _ = env
+        h = _login(client, "u3")
+        assert client.post("/api/fleets", json={"name": "X"}, headers=h).status_code == 403
+
+    def test_read_endpoints_allow_viewer(self, env):
+        client, _ = env
+        h = _login(client, "u3")
+        assert client.get("/api/fleets", headers=h).status_code == 200
+        assert client.get("/api/fleets/overview", headers=h).status_code == 200
+
+
+# ── 资产侧的筛选与归属 ──────────────────────────────────────────────────────
+class TestAssetVessel:
+    def test_filter_by_vessel(self, env):
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get(f"/api/assets?vessel_id={ids['v1']}", headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["total"] == 2
+
+    def test_filter_by_fleet(self, env):
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get(f"/api/assets?fleet_id={ids['fleet']}", headers=h)
+        assert r.json()["total"] == 3, "船队下的三件（未归船的那件不算）"
+
+    def test_asset_list_carries_vessel_and_siem_status(self, env):
+        """列表要带 vessel_id 与 siem_push_status。
+
+        **漏掉 siem_push_status 的后果是静默的**：前端
+        `siem_push_status !== "ok"` 永远成立 → **已推送的资产也显示成
+        「未推送」** → 用户再推一次 → CMDB 里多一台重复设备。
+        """
+        client, Session = env
+        _seed_tree(Session)
+        h = _login(client, "u1")
+        item = client.get("/api/assets", headers=h).json()["items"][0]
+        assert "vessel_id" in item
+        assert "siem_push_status" in item
+        assert "siem_pushed_at" in item
+
+    def test_patch_asset_moves_it_to_a_vessel(self, env):
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        a4 = db.query(Asset).filter(Asset.natural_id == "A4").first()
+        aid = a4.id
+        db.close()
+        r = client.patch(f"/api/assets/{aid}", json={"vessel_id": ids["v1"]}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["vessel_id"] == ids["v1"]
+
+    def test_patch_asset_can_unassign(self, env):
+        """**清空归属**用 0 表示 —— model_dump(exclude_none=True) 会把 null 丢掉。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        a1 = db.query(Asset).filter(Asset.natural_id == "A1").first()
+        aid = a1.id
+        db.close()
+        r = client.patch(f"/api/assets/{aid}", json={"vessel_id": 0}, headers=h)
+        assert r.status_code == 200, r.text
+        assert r.json()["vessel_id"] is None
+
+    def test_cannot_move_asset_to_another_tenants_vessel(self, env):
+        """不能把资产挂到别的租户的船上。"""
+        client, Session = env
+        _seed_tree(Session)
+        db = Session()
+        db.add(Vessel(tenant_id=DONGFANG, fleet_id=None, name="别人的船"))
+        db.commit()
+        db.close()
+        h = _login(client, "u1")
+        db = Session()
+        a1 = db.query(Asset).filter(Asset.natural_id == "A1").first()
+        aid = a1.id
+        db.close()
+        r = client.patch(f"/api/assets/{aid}", json={"vessel_id": 9999}, headers=h)
+        assert r.status_code == 404
