@@ -16,9 +16,10 @@
  * 单独的 layouts 表），不在这一版范围里。
  */
 
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
+import { ImagePlus, Loader2 } from "lucide-react"
 
 import { api } from "@/api/client"
 import { SeverityBadge, SeverityShape } from "@/components/severity"
@@ -44,8 +45,11 @@ function saveLayout(l: Layout): void {
 }
 
 export function MonitorPage() {
+    const qc = useQueryClient()
     const topologies = useQuery({ queryKey: ["topologies"], queryFn: () => api.topologies.list() })
     const [topologyId, setTopologyId] = useState<number | null>(null)
+    const [imageError, setImageError] = useState<string | null>(null)
+    const fileRef = useRef<HTMLInputElement>(null)
     const [layout, setLayout] = useState<Layout>(() => loadLayout())
     const [dragging, setDragging] = useState<string | null>(null)
     const dragOffset = useRef({ x: 0, y: 0 })
@@ -58,6 +62,40 @@ export function MonitorPage() {
             setTopologyId(first.id)
         }
     }, [topologies.data, topologyId])
+
+    /*
+     * **用一张架构图生成拓扑图。**
+     *
+     * 监控面板是「拓扑图 + 设备绑定」的组合：图上有形状，绑定把形状和资产
+     * 清单里的真实设备对上，事件才能点亮节点。没有图就什么都没有。
+     *
+     * 以前图只能手工画（跳去另一个应用）—— 现在丢一张架构图进来就有。
+     */
+    const fromImage = useMutation({
+        mutationFn: async (file: File) => {
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => {
+                    // "data:image/png;base64,XXXX" → 只要 "XXXX"
+                    const s = String(reader.result ?? "")
+                    resolve(s.slice(s.indexOf(",") + 1))
+                }
+                reader.onerror = () => reject(new Error("读取图片失败"))
+                reader.readAsDataURL(file)
+            })
+            return api.topologies.fromImage({
+                name: file.name.replace(/\.[^.]+$/, "") || "架构图生成",
+                image_base64: base64,
+                mime: file.type || "image/png",
+            })
+        },
+        onSuccess: (t) => {
+            setImageError(null)
+            void qc.invalidateQueries({ queryKey: ["topologies"] })
+            setTopologyId(t.id)
+        },
+        onError: (e: Error) => setImageError(e.message),
+    })
 
     const panel = useQuery({
         queryKey: ["monitor-panel", topologyId],
@@ -168,8 +206,35 @@ export function MonitorPage() {
             <div className="card" style={{ padding: 24, textAlign: "center" }}>
                 <p className="muted">还没有拓扑图。</p>
                 <p className="subtle" style={{ marginTop: 6 }}>
-                    先到 <Link to="/topologies" className="link">网络拓扑</Link> 保存一张，再回来做监控。
+                    可以到 <Link to="/topologies" className="link">网络拓扑</Link> 保存一张，
+                    或者直接用一张架构图生成。
                 </p>
+                <div style={{ marginTop: 12 }}>
+                    <button
+                        className="btn primary"
+                        disabled={fromImage.isPending}
+                        onClick={() => fileRef.current?.click()}
+                    >
+                        {fromImage.isPending ? "生成中…" : "用架构图生成"}
+                    </button>
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        style={{ display: "none" }}
+                        data-testid="monitor-import-image-empty"
+                        onChange={(e) => {
+                            const f = e.target.files?.[0]
+                            e.target.value = ""
+                            if (f) fromImage.mutate(f)
+                        }}
+                    />
+                </div>
+                {imageError && (
+                    <div style={{ marginTop: 10, color: "#dc2626" }} role="alert">
+                        {imageError}
+                    </div>
+                )}
             </div>
         )
     }
@@ -196,8 +261,48 @@ export function MonitorPage() {
                             </option>
                         ))}
                     </select>
+                    <button
+                        className="btn primary"
+                        style={{ height: 28 }}
+                        disabled={fromImage.isPending}
+                        onClick={() => fileRef.current?.click()}
+                        title="上传一张网络架构图，AI 识别成拓扑图并绑好设备"
+                    >
+                        {fromImage.isPending ? (
+                            <>
+                                <Loader2 size={13} className="spin" /> 生成中…
+                            </>
+                        ) : (
+                            <>
+                                <ImagePlus size={13} /> 用架构图生成
+                            </>
+                        )}
+                    </button>
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        style={{ display: "none" }}
+                        data-testid="monitor-import-image"
+                        onChange={(e) => {
+                            const f = e.target.files?.[0]
+                            // 清掉 value —— 同一张图再选一次也能触发 change
+                            e.target.value = ""
+                            if (f) fromImage.mutate(f)
+                        }}
+                    />
                 </div>
             </div>
+
+            {imageError && (
+                <div
+                    className="card"
+                    style={{ padding: 12, marginBottom: 12, borderLeft: "3px solid #dc2626" }}
+                    role="alert"
+                >
+                    <span style={{ color: "#dc2626" }}>{imageError}</span>
+                </div>
+            )}
 
             {/* 严重度统计 */}
             <div className="grid g-4" style={{ marginBottom: 14 }}>

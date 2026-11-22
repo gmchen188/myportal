@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import Principal, principal_from_request
 from ..db import DeviceMonitor, Topology, get_session
+from ..services.image_to_topology import ImageToTopologyError, generate_from_image
 from ..services.topology_import import (
     TopologyImportError,
     import_assets_as_nodes,
@@ -76,6 +77,110 @@ def save_topology(
     db.add(t)
     db.commit()
     return t.to_dict(include_xml=True)
+
+
+class TopologyFromImageIn(BaseModel):
+    """一张架构图 → 一张拓扑图。"""
+
+    name: str
+    """新拓扑图的名字"""
+
+    image_base64: str
+    """图片的 base64（不带 data: 前缀）"""
+
+    mime: str = "image/png"
+    prompt: str | None = None
+    """额外的提示（默认用内置的那条）"""
+
+    bind_assets: bool = True
+    """画完要不要顺手把资产清单里的设备绑上去 —— 绑了监控面板才有颜色"""
+
+
+@router.post("/from-image")
+def create_topology_from_image(
+    body: TopologyFromImageIn,
+    p: Principal = Depends(principal_from_request),
+    db: Session = Depends(get_session),
+):
+    """**用一张架构图生成拓扑图**，并顺手绑好资产。
+
+    ## 为什么要有这个
+
+    监控面板是**拓扑图 + 设备绑定**的组合：图上有形状，绑定把形状和资产清单里
+    的真实设备对上，事件才能点亮节点。没有图，就只有一张空白的画布。
+
+    「图从哪来」以前只有一条路：跳去 networktopology 手工画。用户要的是
+    **在监控面板这一页，丢一张架构图进去就有监控面板**。
+
+    ## 这条链路的四步
+
+        图片 →(networktopology 的 AI)→ draw.io XML
+             →(存拓扑)→ Topology.xml
+             →(绑资产)→ device_monitors
+             →(监控面板)→ 有颜色的图
+
+    ## 绑资产为什么在这步做
+
+    因为**图上的设备名要和资产清单里的对得上**才有意义。AI 从截图里读到的
+    名字（FW-EDGE-01、CBS-NAV-01 ...）正是资产清单里的 natural_id ——
+    绑定一建好，FortiSIEM 拉回来的事件就落到对应节点上。
+
+    不绑也不会失败，只是图是灰的（unknown）。
+    """
+    if not body.name.strip():
+        raise HTTPException(400, "拓扑图名称不能为空")
+    try:
+        result = generate_from_image(
+            body.image_base64,
+            mime=body.mime or "image/png",
+            prompt=body.prompt or "",
+        )
+    except ImageToTopologyError as e:
+        # 502 —— 上游（画图服务）的问题，不是本接口的入参问题
+        raise HTTPException(502, str(e)) from e
+
+    t = Topology(
+        tenant_id=p.tenant_id,
+        name=body.name.strip(),
+        xml=result.xml,
+        origin="image",
+        description=result.message[:500] or None,
+    )
+    db.add(t)
+    db.commit()
+
+    bound = 0
+    bind_error: str | None = None
+    if body.bind_assets:
+        try:
+            # 可导入的资产 = 本租户里还没绑到这张图的
+            importable = list_importable_assets(
+                db, tenant_id=p.tenant_id, topology_id=t.id
+            )
+            asset_ids = [int(a["id"]) for a in (importable.get("items") or [])]
+            if asset_ids:
+                summary = import_assets_as_nodes(
+                    db,
+                    tenant_id=p.tenant_id,
+                    topology_id=t.id,
+                    asset_ids=asset_ids,
+                )
+                # bound_existing = 绑到了图里已有的同名节点（AI 读出来的名字）
+                # added            = 新画出来的节点
+                bound = int(summary.get("bound_existing", 0) or 0) + int(
+                    summary.get("added", 0) or 0
+                )
+        except TopologyImportError as e:
+            # 图已经存下来了 —— 绑定失败不该把整张图丢掉
+            bind_error = str(e)
+        except Exception as e:  # noqa: BLE001 —— 绑定是锦上添花，不该毁掉结果
+            bind_error = f"绑定设备时出错：{e}"
+
+    out = t.to_dict(include_xml=True)
+    out["bound_assets"] = bound
+    out["bind_error"] = bind_error
+    out["ai_message"] = result.message[:500]
+    return out
 
 
 @router.get("/{topology_id}")

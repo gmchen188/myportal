@@ -587,3 +587,107 @@ class TestAssetVessel:
         items = r.json()["items"]
         assert items, "一致组合应该有结果"
         assert all(a["vessel_id"] == ids["v1"] for a in items)
+
+
+class TestImageToTopology:
+    """图片 → 拓扑图。"""
+
+    def test_sse_parsing_picks_the_last_xml(self):
+        """**取最后一个 XML** —— 模型可能画完再改一次。
+
+        SSE 的形状是实测出来的：每行 `data: {json}`，
+        XML 在 `tool-input-available` 事件的 `input.xml` 里。
+        """
+        from app.services.image_to_topology import _parse_sse
+
+        sse = "\n".join([
+            'data: {"type":"start"}',
+            'data: {"type":"text-delta","id":"0","delta":"画好了"}',
+            'data: {"type":"tool-input-available","toolCallId":"c1","toolName":"get_shape_library","input":{"library":"cisco19"}}',
+            # **raw 字符串** —— JSON 里的 \" 必须保留反斜杠，
+            # 普通字符串会把它吃掉一层，JSON 就成了裸引号、解析直接失败。
+            r'data: {"type":"tool-input-available","toolCallId":"c2","toolName":"display_diagram","input":{"xml":"<mxCell id=\"a\"/>"}}',
+            r'data: {"type":"tool-input-available","toolCallId":"c3","toolName":"display_diagram","input":{"xml":"<mxCell id=\"b\"/><mxCell id=\"c\"/>"}}',
+            "data: [DONE]",
+        ])
+        xml, text, tools = _parse_sse(sse)
+        assert xml is not None
+        assert 'id="c"' in xml, xml
+        assert 'id="b"' in xml
+        # 后一个覆盖前一个 —— 只有一个 id="b"、没有 id="a"
+        assert 'id="a"' not in xml
+        assert text == "画好了"
+        assert "display_diagram" in tools
+
+    def test_sse_ignores_non_mxcell_xml(self):
+        """别的工具也可能带 xml 字段 —— 只有含 mxCell 的才算图。"""
+        from app.services.image_to_topology import _parse_sse
+
+        sse = (
+            r'data: {"type":"tool-input-available","toolName":"other",'
+            r'"input":{"xml":"<html>not a diagram</html>"}}\n'
+        )
+        xml, _, _ = _parse_sse(sse)
+        assert xml is None
+
+    def test_endpoint_saves_the_topology(self, env, monkeypatch):
+        """端点：存下拓扑、origin=image、返回绑定数。"""
+        client, Session = env
+        h = _login(client, "u1")
+
+        def fake_generate(image_base64, mime="image/png", prompt="", timeout=0):
+            from app.services.image_to_topology import TopologyFromImage
+            return TopologyFromImage(
+                xml='<mxStyle name="dev" value="x"/><mxCell id="d1" value="FW-EDGE-01" style="dev;" x="1" y="2" w="3" h="4"/>',
+                message="画好了",
+                tool_calls=["display_diagram"],
+            )
+
+        import app.routers.topologies as topo_router
+        monkeypatch.setattr(topo_router, "generate_from_image", fake_generate)
+
+        r = client.post(
+            "/api/topologies/from-image",
+            json={"name": "架构图", "image_base64": "aGk="},
+            headers=h,
+        )
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["origin"] == "image"
+        assert "<mxCell" in body["xml"]
+        assert body["name"] == "架构图"
+        # 存下来了
+        db = Session()
+        t = db.query(Topology).filter(Topology.name == "架构图").first()
+        assert t is not None
+        db.close()
+
+    def test_endpoint_reports_upstream_failure(self, env, monkeypatch):
+        """上游挂了 → 502，并且带上人话说明。"""
+        client, Session = env
+        h = _login(client, "u1")
+
+        def boom(*a, **k):
+            from app.services.image_to_topology import ImageToTopologyError
+            raise ImageToTopologyError("连不上画图服务（http://127.0.0.1:6002/networktopology）")
+
+        import app.routers.topologies as topo_router
+        monkeypatch.setattr(topo_router, "generate_from_image", boom)
+
+        r = client.post(
+            "/api/topologies/from-image",
+            json={"name": "架构图", "image_base64": "aGk="},
+            headers=h,
+        )
+        assert r.status_code == 502, r.text
+        assert "连不上" in r.json()["detail"]
+
+    def test_endpoint_rejects_empty_name(self, env, monkeypatch):
+        client, Session = env
+        h = _login(client, "u1")
+        r = client.post(
+            "/api/topologies/from-image",
+            json={"name": "  ", "image_base64": "aGk="},
+            headers=h,
+        )
+        assert r.status_code == 400

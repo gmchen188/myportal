@@ -1019,6 +1019,30 @@ export const api = {
         graph: (id: number) => request<TopologyGraph>(`/api/topologies/${id}/graph`),
 
         /**
+         * **用一张架构图生成拓扑图**，并顺手把资产绑上去。
+         *
+         * 图由 networktopology 的 AI 识别（它有 VLM 凭据和画图规范），
+         * 这边只是代理：图片进去，draw.io XML 出来，顺带建好 device_monitors
+         * 绑定 —— 绑定好了监控面板才有颜色。
+         *
+         * **慢** —— 模型要读图、画图、再改图，通常十几秒。
+         */
+        fromImage: (body: {
+            name: string
+            image_base64: string
+            mime?: string
+            prompt?: string
+            bind_assets?: boolean
+        }) =>
+            request<
+                Topology & {
+                    bound_assets: number
+                    bind_error: string | null
+                    ai_message: string
+                }
+            >("/api/topologies/from-image", { method: "POST", body }),
+
+        /**
          * 可导入为拓扑节点的资产 —— 还没绑到这张图上的。
          *
          * 「已绑到本拓扑」的会被排除 —— 重复导入不产生重复节点。
