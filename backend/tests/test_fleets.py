@@ -381,6 +381,22 @@ class TestAssetVessel:
         assert r.status_code == 200, r.text
         assert r.json()["vessel_id"] is None
 
+    def test_export_carries_vessel_and_fleet_names(self, env):
+        """导出表里要有**船名与船队名**，不是 id。
+
+        `to_dict()` 只有 `vessel_id` —— 交付方拿到一列数字没有意义。
+        """
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get("/api/assets/export?fmt=csv", headers=h)
+        assert r.status_code == 200, r.text
+        body = r.content.decode("utf-8-sig")
+        assert "所属船舶" in body
+        assert "所属船队" in body
+        assert "海洋一号" in body, body[:400]
+        assert "东海船队" in body, body[:400]
+
     def test_cannot_move_asset_to_another_tenants_vessel(self, env):
         """不能把资产挂到别的租户的船上。"""
         client, Session = env

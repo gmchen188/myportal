@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import Principal, principal_from_request, principal_from_request_strict, require_admin
 from ..connectors.fortisiem import get_client as get_siem_client
-from ..db import Asset, AssetDraft, AssetTemplate, DeviceMonitor, Vessel, get_session
+from ..db import Asset, AssetDraft, AssetTemplate, DeviceMonitor, Fleet, Vessel, get_session
 from ..services import asset_export as ax
 from ..services import asset_import as ai
 from ..services import asset_templates as at
@@ -142,6 +142,36 @@ def list_assets(
     return {"items": items, "total": total, "offset": offset, "limit": limit}
 
 
+def _add_vessel_names(db: Session, tenant_id: str, assets: list[dict[str, Any]]) -> None:
+    """给导出的资产补上「所属船舶」与「所属船队」的**名字**。
+
+    `to_dict()` 里只有 `vessel_id` —— 交付方拿到一列数字没有意义，
+    「这批设备是哪艘船的」才是导出表要回答的问题。
+
+    **一次查询查完**，不在循环里查数据库。
+    """
+    ids = {a.get("vessel_id") for a in assets if a.get("vessel_id")}
+    if not ids:
+        for a in assets:
+            a["vessel_name"] = ""
+            a["fleet_name"] = ""
+        return
+    vessels = db.query(Vessel).filter(Vessel.tenant_id == tenant_id, Vessel.id.in_(ids)).all()
+    fleet_ids = {v.fleet_id for v in vessels if v.fleet_id}
+    fleets = (
+        db.query(Fleet).filter(Fleet.tenant_id == tenant_id, Fleet.id.in_(fleet_ids)).all()
+        if fleet_ids
+        else []
+    )
+    vessel_name = {v.id: v.name for v in vessels}
+    fleet_name = {f.id: f.name for f in fleets}
+    fleet_of_vessel = {v.id: v.fleet_id for v in vessels}
+    for a in assets:
+        vid = a.get("vessel_id")
+        a["vessel_name"] = vessel_name.get(vid, "")
+        a["fleet_name"] = fleet_name.get(fleet_of_vessel.get(vid), "")
+
+
 @router.get("/export")
 def export_assets(
     p: Principal = Depends(principal_from_request),
@@ -166,6 +196,8 @@ def export_assets(
     keys = [k for k in (fields or "").split(",") if k.strip()] or None
     stmt = _filtered_assets(db, p.tenant_id, q, zone, needs_review, vessel_id, fleet_id)
     assets = [a.to_dict() for a in db.scalars(stmt).all()]
+    # **船名与船队名**，不是 id —— 导出表是给人看的
+    _add_vessel_names(db, p.tenant_id, assets)
 
     content, media_type, ext = ax.export_assets(assets, fmt=fmt, keys=keys)
 

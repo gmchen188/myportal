@@ -37,6 +37,10 @@ EXPORT_FIELDS: list[dict[str, str]] = [
     {"key": "name", "label": "资产名称"},
     {"key": "type", "label": "类型"},
     {"key": "zone", "label": "安全区域"},
+    # 船队与船 —— 清单按船分组看，导出后也得能分出是哪艘船的设备。
+    # **导出的是名字不是 id** —— 交付方拿到一列数字没用。
+    {"key": "vessel_name", "label": "所属船舶"},
+    {"key": "fleet_name", "label": "所属船队"},
     {"key": "ip", "label": "IP 地址"},
     {"key": "vendor", "label": "厂商"},
     {"key": "model", "label": "型号"},
