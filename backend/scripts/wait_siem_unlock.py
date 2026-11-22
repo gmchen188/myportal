@@ -10,15 +10,28 @@
     HTTP 403 - Account locked due to consecutive login failures.
 
 **这个 403 不是权限问题** —— 跟 "User is not authorized" 是两回事。
-锁定会自动过期（时长可配，默认 15 分钟），但没有 API 能主动解锁
-（管理端点不在 /phoenix/rest 下）。
 
-脚本只做**只读探测**：锁定期间请求不会被校验凭据，所以**不增加失败计数**。
-一解锁就停下来 —— 后续由人决定什么时候试真正的写操作。
+## 实测补充（2026-11-22，本机 172.16.20.48）
+
+- **锁定期实测超过 44 分钟**（文档默认 15 分钟）—— 这台机器的锁定期被改过。
+  所以默认探测间隔是 **300 秒**：高频探测有「自己给自己续锁」的风险
+  （万一锁定期间也计数）。
+- **锁定是账号级的**：GUI 登录（`/phoenix/rest/h5/sec/login`）**也**返回
+  `Account locked due to consecutive login failures.`，与 Basic Auth 共享状态。
+  GUI 与 API 是两套认证路径，但锁定状态是同一个账号级的。
+- 锁定事件会被 **SIEM 自己记成 incident**：
+  `eventType=PH_RULE_ACCOUNT_LOCKOUT_SYSTEM`、`incidentTagName=Brute Force Logon`、
+  `incidentTarget=user:admin`。用它可以确认锁定起点时间戳：
+
+      POST /phoenix/rest/pub/incident  (Bearer token, OAuth)
+      → data[].incidentFirstSeen = 锁定发生的毫秒时间戳
+
+- 管理端点（用户/角色/解锁）**全在 404** —— OAuth 与 Basic 都够不到，
+  解锁只能等锁定期自动过期。
 
 用法：
     cd backend
-    python scripts/wait_siem_unlock.py [--max-minutes 30]
+    python scripts/wait_siem_unlock.py [--max-minutes 120] [--interval 300]
 """
 from __future__ import annotations
 
@@ -117,14 +130,17 @@ def verify(env: dict[str, str]) -> tuple[str, str]:
                 n = -1
             return "ok", f"认证通过，设备数={n}"
         if "locked" in text.lower():
-            return "locked", "仍锁定（解锁后又被锁 —— 口令不对）"
+            return "locked", "仍锁定（锁定期间不比对口令，不累积失败）"
         return "wrong", f"HTTP {r.status_code}: {text[:140]}"
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--max-minutes", type=int, default=30)
-    ap.add_argument("--interval", type=int, default=60)
+    ap.add_argument("--max-minutes", type=int, default=120)
+    # **默认 300 秒（5 分钟）** —— 锁定实测已超 44 分钟（这台机器的锁定期被改过，
+    # 文档默认是 15 分钟）。高频探测有「自己给自己续锁」的风险：
+    # 万一锁定期间也计数，高频就是自续锁。
+    ap.add_argument("--interval", type=int, default=300)
     args = ap.parse_args()
 
     env = load_env()
