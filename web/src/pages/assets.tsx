@@ -32,25 +32,45 @@ export function AssetsPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <div>
-                    <h2 style={{ margin: 0, fontSize: 16 }}>资产清单</h2>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginBottom: 14,
+                    // **窄屏要能换行** —— 否则标题被按钮挤成两行
+                    // （实测「资产清单」竖成「资产」「清单」两行）
+                    flexWrap: "wrap",
+                }}
+            >
+                <div style={{ minWidth: 0 }}>
+                    <h2 style={{ margin: 0, fontSize: 16, whiteSpace: "nowrap" }}>资产清单</h2>
                     <p className="subtle" style={{ margin: "3px 0 0" }}>
                         共 {assets.data?.total ?? 0} 件
                     </p>
                 </div>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div
+                    style={{
+                        marginLeft: "auto",
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        // **按钮不许被压扁** —— 窄屏下 flex 子项默认
+                        // 可以收缩到内容宽度以下，文字就换行了
+                        justifyContent: "flex-end",
+                    }}
+                >
                     <AssetExport
                         filters={{ q, zone, needs_review: needsReview }}
                         total={assets.data?.total ?? 0}
                     />
-                    <button type="button" className="btn" onClick={() => setMode("manual")}>
+                    <button type="button" className="btn" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("manual")}>
                         <Plus size={14} /> 手工录入
                     </button>
-                    <button type="button" className="btn" onClick={() => setMode("template")}>
+                    <button type="button" className="btn" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("template")}>
                         <FileSpreadsheet size={14} /> 模板清单
                     </button>
-                    <button type="button" className="btn primary" onClick={() => setMode("import")}>
+                    <button type="button" className="btn primary" style={{ whiteSpace: "nowrap" }} onClick={() => setMode("import")}>
                         <FileUp size={14} /> 导入
                     </button>
                 </div>

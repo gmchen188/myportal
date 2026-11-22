@@ -187,3 +187,89 @@ describe("导出组件", () => {
         })
     })
 })
+
+
+/**
+ * 窄屏渲染回归 —— **这三个是实测出来的真问题，不是假设**。
+ *
+ * ## 1. 导出面板跑到屏幕左侧，被裁掉一半
+ *
+ * 用 `position: absolute; right: 0` 时，面板位置取决于按钮父容器在哪。
+ * 375px 下工具栏 flex 换行，按钮被推到左边，面板也跟着跑到左边 ——
+ * 「Excel」按钮整个看不见，「CSV」只露一半。
+ *
+ * 修法：改**固定定位** + left/right 贴边，与按钮位置无关。
+ *
+ * ## 2. 顶栏标题被压成两行
+ *
+ * 「资产清单」被按钮挤成「资产」「清单」两行。
+ * 修法：容器 `flexWrap: "wrap"` + 标题 `whiteSpace: "nowrap"`。
+ *
+ * ## 3. 草稿编辑器的按钮文字被竖排
+ *
+ * 「加一行」竖成「加/一/行」、「保存」竖成「保/存」。
+ * flex 子项默认可收缩到内容宽度以下 —— 必须 `flexShrink: 0` +
+ * `whiteSpace: "nowrap"`。
+ */
+describe("窄屏渲染回归", () => {
+    async function readSrc(rel: string): Promise<string> {
+        const { readFileSync } = await import("node:fs")
+        const { join } = await import("node:path")
+        return readFileSync(join(process.cwd(), "src", rel), "utf8")
+    }
+
+    it("导出面板必须固定定位，不能跟按钮走", async () => {
+        const src = await readSrc("components/asset-export.tsx")
+        // 面板的 style 块里必须有 position: "fixed"
+        const panelBlock = src.slice(src.indexOf("className=\"card\""), src.indexOf("导出 {fmt.toUpperCase()}"))
+        const noComment = panelBlock
+            .split("\n")
+            .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+            .join("\n")
+        expect(noComment).toContain('position: "fixed"')
+        // 固定定位必须左右贴边 —— 只有一个 left 或 right 仍会溢出
+        expect(noComment).toContain("left: 12")
+        expect(noComment).toContain("right: 12")
+    })
+
+    it("顶栏要允许换行，标题不许被压成两行", async () => {
+        const src = await readSrc("pages/assets.tsx")
+        const bar = src.slice(src.indexOf("资产清单</h2>") - 1200, src.indexOf("资产清单</h2>"))
+        const noComment = bar
+            .split("\n")
+            .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+            .join("\n")
+        // 容器要 flexWrap
+        expect(noComment).toContain('flexWrap: "wrap"')
+        // 标题要 nowrap
+        const title = src.slice(src.indexOf("资产清单</h2>") - 300, src.indexOf("资产清单</h2>"))
+        expect(title).toContain('whiteSpace: "nowrap"')
+    })
+
+    it("草稿编辑器的每个按钮都要防压扁（竖排）", async () => {
+        const src = await readSrc("components/asset-template-panel.tsx")
+
+        // **必须逐个按钮断言** —— 只断言「这段代码里存在 flexShrink」
+        // 是假阳性：三个按钮里只要还有一个带 flexShrink: 0，
+        // 整段断言就通过，但另外两个按钮仍会被压扁（实测「加一行」
+        // 竖成「加/一/行」）。
+        // **用 onClick 处理器当锚点**，不能用可见文本 ——
+        // 「保存」在按钮外也出现过（说明文字里），indexOf 会命中错的位置。
+        for (const handler of [
+            "onClick={() => void doAddRow()}",
+            "onClick={() => void doSave()}",
+            "onClick={() => void doCommit()}",
+        ]) {
+            const idx = src.indexOf(handler)
+            expect(idx).toBeGreaterThan(-1)
+            // style 属性在 onClick 之前（按钮标签内部）
+            const btnBlock = src.slice(Math.max(0, idx - 400), idx)
+            const noComment = btnBlock
+                .split("\n")
+                .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+                .join("\n")
+            expect(noComment).toContain("flexShrink: 0")
+            expect(noComment).toContain('whiteSpace: "nowrap"')
+        }
+    })
+})

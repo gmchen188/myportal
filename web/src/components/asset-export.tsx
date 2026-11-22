@@ -74,12 +74,24 @@ export function AssetExport({ filters, total }: Props) {
                 <div
                     className="card"
                     style={{
-                        position: "absolute",
-                        right: 0,
-                        top: "100%",
-                        marginTop: 6,
-                        zIndex: 30,
-                        width: 330,
+                        // **窄屏必须固定定位，不能跟着按钮走。**
+                        //
+                        // 用 absolute + right:0 时，面板的位置取决于按钮的
+                        // 父容器在哪 —— 而窄屏下工具栏会 flex 换行，按钮被推到
+                        // 左侧，面板也跟着跑到屏幕左边并被裁掉一半
+                        // （实测 375px 下「Excel」按钮整个看不见）。
+                        //
+                        // 固定定位 + left/right 贴边 = 面板永远在视口内，
+                        // 与按钮在哪个位置无关。
+                        position: "fixed",
+                        left: 12,
+                        right: 12,
+                        top: 120,
+                        zIndex: 100,
+                        width: "auto",
+                        maxWidth: 380,
+                        marginLeft: "auto",
+                        marginRight: "auto",
                         padding: 14,
                         boxShadow: "0 8px 28px rgba(15,23,42,.18)",
                     }}

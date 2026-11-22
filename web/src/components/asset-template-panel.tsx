@@ -440,7 +440,7 @@ function DraftEditor({
             )}
 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-                <button type="button" className="btn" onClick={onBack}>
+                <button type="button" className="btn" style={{ whiteSpace: "nowrap", flexShrink: 0 }} onClick={onBack}>
                     ← 返回
                 </button>
                 <input
@@ -450,21 +450,54 @@ function DraftEditor({
                     onChange={(e) => setName(e.target.value)}
                     aria-label="清单名称"
                 />
-                <span className="bdg ok">{readyCount} 可落库</span>
-                <span className="bdg warn">{needsFill} 待补充</span>
+                <span className="bdg ok" style={{ whiteSpace: "nowrap" }}>
+                    {readyCount} 可落库
+                </span>
+                <span className="bdg warn" style={{ whiteSpace: "nowrap" }}>
+                    {needsFill} 待补充
+                </span>
                 {found && (
-                    <span className="bdg neutral" title="每次保存版本 +1">
+                    <span className="bdg neutral" style={{ whiteSpace: "nowrap" }} title="每次保存版本 +1">
                         第 {found.version} 版
                     </span>
                 )}
-                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                    <button type="button" className="btn" onClick={() => void doAddRow()} disabled={addRow.isPending}>
+                <div
+                    style={{
+                        marginLeft: "auto",
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        justifyContent: "flex-end",
+                    }}
+                >
+                    {/* 按钮文字不许被压扁 ——
+                        flex 子项默认可收缩到内容宽度以下，窄屏下
+                        「加一行」会竖成「加/一/行」、「保存」竖成「保/存」。 */}
+                    <button
+                        type="button"
+                        className="btn"
+                        style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                        onClick={() => void doAddRow()}
+                        disabled={addRow.isPending}
+                    >
                         <Plus size={13} /> 加一行
                     </button>
-                    <button type="button" className="btn" onClick={() => void doSave()} disabled={save.isPending}>
+                    <button
+                        type="button"
+                        className="btn"
+                        style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                        onClick={() => void doSave()}
+                        disabled={save.isPending}
+                    >
                         <Save size={13} /> {save.isPending ? "保存中…" : "保存"}
                     </button>
-                    <button type="button" className="btn primary" onClick={() => void doCommit()} disabled={commit.isPending}>
+                    <button
+                        type="button"
+                        className="btn primary"
+                        style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                        onClick={() => void doCommit()}
+                        disabled={commit.isPending}
+                    >
                         <Upload size={13} /> {commit.isPending ? "落库中…" : "落库到资产清单"}
                     </button>
                 </div>

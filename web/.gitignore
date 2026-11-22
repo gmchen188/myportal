@@ -6,3 +6,6 @@ dist/
 .env.*
 !.env.example
 coverage/
+
+# Pages 构建产物（base=/<repo>/）—— 与本地服务的 dist 分开
+dist-pages/

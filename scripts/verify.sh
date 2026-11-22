@@ -51,8 +51,16 @@ run_in "$WEB" "Unit tests (vitest)" \
   "$NODE" node_modules/vitest/vitest.mjs run
 
 # CI 构建时传 VITE_BASE（Pages 项目站点在 /<repo>/ 下）
+#
+# **输出到 dist-pages，不覆盖 dist** —— dist 是本地 Windows 服务托管的目录
+# （base=/ 的构建）。用同一个目录的话，verify 一次就把本地服务托管的
+# Pages 版产物换上去了，index.html 引用 /myportal/assets/...，
+# 本地服务把那个路径回落成 index.html —— **浏览器整页白屏**。
+#
+# VITE_OUT_DIR 对应 vite.config.ts 里的 build.outDir。
 run_in "$WEB" "Build (vite)" \
-  env VITE_BASE=/myportal/ "$NODE" node_modules/vite/bin/vite.js build
+  env VITE_BASE=/myportal/ VITE_OUT_DIR=dist-pages \
+  "$NODE" node_modules/vite/bin/vite.js build
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then

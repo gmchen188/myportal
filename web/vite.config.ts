@@ -40,7 +40,20 @@ export default defineConfig({
         },
     },
     build: {
-        outDir: "dist",
+        // **输出目录可覆盖** —— 本地服务与 Pages 构建不能抢同一个目录。
+        //
+        // 踩过的坑：verify.sh 用 `VITE_BASE=/myportal/` 构建（Pages 版），
+        // 产物写进 web/dist —— 而本地 Windows 服务托管的正是 web/dist。
+        // 于是本地服务的 index.html 引用 /myportal/assets/...，
+        // 静态服务器把那个路径当 SPA 路由回落到 index.html，
+        // **浏览器拿到的是 Content-Type: text/html 的 JS 请求 —— 整页白屏**。
+        //
+        // curl 看 index.html 是 200、curl 看资源也是 200（回落的内容），
+        // 只有真浏览器才暴露「白屏」。
+        //
+        // 所以：本地服务用 dist（base=/），Pages 构建用 dist-pages
+        // （base=/<repo>/），两者互不覆盖。
+        outDir: process.env.VITE_OUT_DIR ?? "dist",
         sourcemap: true,
     },
     test: {
