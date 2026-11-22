@@ -27,6 +27,7 @@ import { useEffect, useState } from "react"
 import { getTenant, setTenant } from "@/api/client"
 import { useAuth } from "@/components/auth-context"
 import { useHealth } from "@/hooks/use-health"
+import { useVersionCheck } from "@/hooks/use-version-check"
 
 const NAV = [
     { to: "/", label: "总览", icon: LayoutDashboard, end: true },
@@ -60,6 +61,9 @@ export function AppShell() {
     // observer 共用一个 queryKey —— 后台不可达时形成死循环。
     // 详见 components/auth-context.tsx。
     const { me, canManage, logout } = useAuth()
+
+    // **页面是不是旧代码** —— 自己发现自己过期，比让用户去猜该不该 F5 靠谱
+    const version = useVersionCheck()
 
     // 路由变了就收起抽屉
     useEffect(() => {
@@ -343,6 +347,36 @@ export function AppShell() {
                     </div>
                 </header>
 
+                {version.stale && (
+                    <div
+                        role="status"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "8px 14px",
+                            background: "#fef3c7",
+                            borderBottom: "1px solid #fcd34d",
+                            color: "#78350f",
+                            fontSize: 13,
+                        }}
+                    >
+                        <span>
+                            页面已更新（{version.current?.rev || "新版本"}）—— 刷新后生效
+                        </span>
+                        <button className="btn" style={{ height: 24 }} onClick={version.reload}>
+                            立即刷新
+                        </button>
+                        <button
+                            className="btn"
+                            style={{ height: 24 }}
+                            onClick={version.dismiss}
+                            title="这次先不提示"
+                        >
+                            稍后
+                        </button>
+                    </div>
+                )}
                 <main id="main" style={{ flex: 1, padding: 16, minWidth: 0 }}>
                     <Outlet />
                 </main>

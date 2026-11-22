@@ -130,6 +130,25 @@ export interface ErrorMeta {
 }
 
 /**
+ * FastAPI 的校验错误消息 → 人话。
+ *
+ * 只收**实测见过**的，不搞全集 —— 收不全的会直接显示英文原文，
+ * 那也没坏处（原文比「HTTP 422」强）。
+ */
+const VALIDATION_MESSAGES: Record<string, string> = {
+    "Field required": "缺少必填字段",
+    "Input should be a valid dictionary or object to extract fields from":
+        "请求体不是一个 JSON 对象（前端可能把请求体序列化了两次）",
+    "Input should be a valid string": "应该是字符串",
+    "Input should be a valid integer": "应该是整数",
+    "Input should be a valid list": "应该是列表",
+    "String should have at least 1 character": "至少要 1 个字符",
+    "String should have at most 64 characters": "最多 64 个字符",
+    "String should have at most 200 characters": "最多 200 个字符",
+    "String should have at most 32 characters": "最多 32 个字符",
+}
+
+/**
  * 从错误响应里取出**人话**。
  *
  * 后台有两种错误形状：
@@ -150,6 +169,33 @@ export function extractDetail(payload: unknown, status: number): string {
 
         const detail = obj.detail
         if (typeof detail === "string" && detail) return detail
+        if (Array.isArray(detail)) {
+            /*
+             * **FastAPI 的 422 里 detail 是数组，不是字符串。**
+             *
+             * 实测踩过：新建船队报「[422] HTTP 422」，但真正的原因
+             * （"Input should be a valid dictionary or object to extract
+             * fields from" —— 请求体被序列化成了 JSON 字符串）被这个
+             * 分支漏掉了，只剩一个 HTTP 码。
+             *
+             * **「HTTP 422」对用户没有任何意义** —— 他不知道该改哪里。
+             * 所以这里把字段位置和消息翻译出来。
+             */
+            const parts = detail
+                .map((d) => {
+                    const item = (d ?? {}) as Record<string, unknown>
+                    const loc = Array.isArray(item.loc)
+                        ? item.loc
+                              .filter((x) => x !== "body" && x !== "query" && x !== "path")
+                              .join(".")
+                        : ""
+                    const raw = typeof item.msg === "string" ? item.msg : "字段不合法"
+                    const msg = VALIDATION_MESSAGES[raw] ?? raw
+                    return loc ? `${loc}：${msg}` : msg
+                })
+                .filter(Boolean)
+            if (parts.length) return parts.join("；")
+        }
         if (detail && typeof detail === "object") {
             const inner = detail as Record<string, unknown>
             // **error 与 detail 同时存在时要拼起来** ——

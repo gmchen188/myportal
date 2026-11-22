@@ -1,4 +1,6 @@
 import { fileURLToPath, URL } from "node:url"
+import { writeFileSync } from "node:fs"
+import { execSync } from "node:child_process"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 
@@ -6,8 +8,47 @@ import tailwindcss from "@tailwindcss/vite"
 // 才认得 `test` 字段。
 import { defineConfig } from "vitest/config"
 
+/**
+ * 构建时写一个 `version.json` —— 前端拿它判断**自己是不是旧页面**。
+ *
+ * ## 为什么需要
+ *
+ * 踩过的坑：修完「新建船队 422」，用户又报了一次 422 —— 因为他那个页面
+ * 是**部署前就打开的**，里面跑的还是旧 bundle。SPA 不会自动换代码，
+ * `index.html` 的 `no-cache` 只在**刷新时**才起作用。
+ *
+ * 于是同一个 bug 修了两次，用户看到的是两个一模一样的报错。
+ *
+ * 现在前端每 60 秒拉一次这个文件，版本变了就提示刷新 ——
+ * **不用再靠用户自己判断该不该 F5**。
+ */
+function versionFile() {
+    return {
+        name: "myportal-write-version",
+        apply: "build" as const,
+        closeBundle() {
+            let rev = ""
+            try {
+                rev = execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+                    .toString()
+                    .trim()
+            } catch {
+                // 不是 git 仓库（Pages 的 Actions 里是 checkout 过的，但
+                // 本地拷一份产物时可能不是）—— 时间戳也够用。
+            }
+            const builtAt = new Date().toISOString()
+            const outDir = process.env.VITE_OUT_DIR ?? "dist"
+            writeFileSync(
+                fileURLToPath(new URL(`./${outDir}/version.json`, import.meta.url)),
+                JSON.stringify({ rev, builtAt }, null, 2),
+                "utf-8",
+            )
+        },
+    }
+}
+
 export default defineConfig({
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), versionFile()],
     // **base 必须是部署路径**。GitHub Pages 的项目站点挂在 /<仓库名>/ 下
     // （这里是 /myportal/），而 Vite 默认 base="/" —— 构建出的 index.html
     // 会引用 "/assets/xxx.js"，浏览器去域名根找，资源 404，页面全白。

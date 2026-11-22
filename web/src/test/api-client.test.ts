@@ -99,3 +99,61 @@ describe("请求体只序列化一次", () => {
         expect(sent[0]!.body).toBe('{"name":"FW-01","type":"防火墙"}')
     })
 })
+
+
+describe("422 要说人话，不能只丢一个 HTTP 码", () => {
+    beforeEach(() => {
+        localStorage.clear()
+    })
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
+    it("FastAPI 的 detail 是数组时，提取出字段和原因", async () => {
+        // **后端对双序列化的 body 实际返回的就是这个形状**
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(async () => ({
+                ok: false,
+                status: 422,
+                text: async () =>
+                    JSON.stringify({
+                        detail: [
+                            {
+                                type: "model_attributes_type",
+                                loc: ["body"],
+                                msg: "Input should be a valid dictionary or object to extract fields from",
+                                input: '{"name": "X"}',
+                            },
+                        ],
+                    }),
+            })),
+        )
+
+        await expect(api.fleets.createFleet({ name: "X" })).rejects.toThrow(/JSON 对象/)
+    })
+
+    it("缺必填字段时点名是哪个字段", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(async () => ({
+                ok: false,
+                status: 422,
+                text: async () =>
+                    JSON.stringify({
+                        detail: [{ type: "missing", loc: ["body", "name"], msg: "Field required" }],
+                    }),
+            })),
+        )
+
+        await expect(api.fleets.createFleet({ name: "X" })).rejects.toThrow(/name.*缺少必填字段/)
+    })
+
+    it("看不懂的 shape 仍然退回 HTTP 码（既有契约不变）", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(async () => ({ ok: false, status: 418, text: async () => "{}" })),
+        )
+        await expect(api.fleets.createFleet({ name: "X" })).rejects.toThrow("HTTP 418")
+    })
+})
