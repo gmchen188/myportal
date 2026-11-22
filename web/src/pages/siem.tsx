@@ -39,6 +39,20 @@ function windowLabel(minutes: number): string {
 
 export function SiemPage() {
     const status = useSiemStatus()
+
+    /**
+     * 错误文本 —— 用 `.detail`（人话）不用 `.message`（带 "[502] " 前缀）。
+     *
+     * 同时记下状态码与是否带四段诊断，用于区分「后台挂了」与
+     * 「SIEM 连不上」—— 这两者的处置方向完全不同。
+     */
+    const statusError = status.error as { detail?: string; message?: string; status?: number } | null
+    const statusErrorStatus = statusError?.status ?? 0
+    const statusErrorHasProbes = Boolean(
+        (statusError as { meta?: { probes?: unknown } } | null)?.meta?.probes,
+    )
+    const statusErrorText =
+        statusError?.detail ?? statusError?.message ?? "未知错误"
     const refresh = useSiemRefresh()
 
     /** 重新检测的失败原因 —— 后端返回的是 {error, stage} 结构 */
@@ -216,8 +230,25 @@ export function SiemPage() {
                         {data ? "刷新连接状态失败" : "无法获取连接状态"}
                     </b>
                     <div className="subtle" style={{ marginTop: 4 }}>
-                        {status.error instanceof Error ? status.error.message : String(status.error)}
+                        {/* 用 .detail 不是 .message ——
+                            message 带 "[502] " 前缀，对用户是噪音；
+                            detail 才是后端给的人话。 */}
+                        {statusErrorText}
                     </div>
+                    {/*
+                      502 有两种完全不同的原因，处置也不同 ——
+                      不说清楚用户会查错方向：
+                        · 后端进程死了   → 要去启动后端
+                        · 后端活着但 SIEM 连不上 → 要查 SIEM 的网络/凭据
+                      后端主动返回的 502 带着四段诊断（stage/probes），
+                      那种情况 detail 里已经有具体原因了。
+                    */}
+                    {statusErrorStatus === 502 && !statusErrorHasProbes && (
+                        <div className="subtle" style={{ marginTop: 6 }}>
+                            提示：这个 502 更可能是**后台服务本身没在运行**，
+                            而不是 FortiSIEM 不可达 —— 先确认后台已启动，再排查 SIEM 侧。
+                        </div>
+                    )}
                     {data && (
                         <div className="subtle" style={{ marginTop: 6 }}>
                             下面显示的是**上一次成功探测**的结果，不是当前状态。

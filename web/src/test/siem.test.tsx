@@ -243,3 +243,60 @@ describe("502 消息的完整度", () => {
         expect(extractDetail({ detail: { detail: "超时" } }, 502)).toBe("超时")
     })
 })
+
+
+/**
+ * 兜底错误文案 —— **用户看到的是这句话，不是 HTTP 码**。
+ *
+ * 实测踩过：后端进程被杀后，SIEM 页显示的是
+ * 「fortisiem 无法获取连接状态 [502] HTTP 502」。
+ *
+ * 「HTTP 502」对用户毫无意义 —— 他不知道该做什么。而 502/503/504
+ * 是「上游不可用」的语义，处置跟「SIEM 连不上」完全不同：
+ * 前者要**启动后端**，后者要查 SIEM 的网络和凭据。
+ */
+describe("兜底错误文案", () => {
+    it("502 没有可读诊断时要说「后台不可达」，不能只丢一个 HTTP 码", () => {
+        const detail = extractDetail(null, 502)
+        expect(detail).toContain("后台不可达")
+        expect(detail).toContain("不是 FortiSIEM 的问题")
+        // **不能出现裸的 HTTP 码**
+        expect(detail).not.toBe("HTTP 502")
+    })
+
+    it("504 同样归到「后台不可达」（网关超时）", () => {
+        expect(extractDetail(null, 504)).toContain("后台不可达")
+    })
+
+    it("503 不归到「后台不可达」—— 语义模糊，可能是后端自己返回的", () => {
+        // 既有契约：extractDetail({}, 503) 就是 "HTTP 503"
+        expect(extractDetail({}, 503)).toBe("HTTP 503")
+    })
+
+    it("后端主动返回的 502 带诊断时走诊断分支，不被兜底覆盖", () => {
+        const detail = extractDetail(
+            {
+                detail: {
+                    error: "FortiSIEM 不可达",
+                    detail: "未配置 FORTISIEM_CLIENT_ID",
+                    stage: "auth",
+                },
+            },
+            502,
+        )
+        expect(detail).toContain("FortiSIEM 不可达")
+        expect(detail).toContain("认证取 Token")
+        expect(detail).not.toContain("后台不可达")
+    })
+
+    it("404 要说「版本不一致」，不是干巴巴一个码", () => {
+        const detail = extractDetail(null, 404)
+        expect(detail).toContain("版本")
+        expect(detail).not.toBe("HTTP 404")
+    })
+
+    it("其它状态码仍然给 HTTP 码（不要过度包装 —— 既有契约）", () => {
+        expect(extractDetail(null, 418)).toBe("HTTP 418")
+        expect(extractDetail(null, 500)).toBe("HTTP 500")
+    })
+})
