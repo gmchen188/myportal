@@ -109,7 +109,10 @@ $Services = @(
         Display = "myPortal Web (production build)"
         Desc = "myPortal 正式前端（production build），并把 /api、/health 代理到后台 9102。端口 5174。"
         Exe = $Node
-        Args = 'scripts\serve-static.mjs --root "' + $MyPortal + '\web\dist" --port 5174 --api http://127.0.0.1:9102'
+        # `--nt` = 画布应用的同源前缀。
+        # 不加的话，正式前端的「打开画布」按钮（/networktopology/zh）
+        # 会落到 SPA fallback —— 用户点下去看到的是 myPortal 自己。
+        Args = 'scripts\serve-static.mjs --root "' + $MyPortal + '\web\dist" --port 5174 --api http://127.0.0.1:9102 --nt http://127.0.0.1:6010'
         # 用 myPortal 自己的 scripts/ —— 服务脚本跟着服务走，
         # 不依赖另一个仓库的目录结构
         Dir = $MyPortal

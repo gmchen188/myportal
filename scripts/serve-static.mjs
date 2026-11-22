@@ -33,6 +33,17 @@ function arg(name, fallback = null) {
 const root = resolve(arg("root", "."))
 const port = Number(arg("port", "5174"))
 const apiOrigin = arg("api", null)
+// 画布应用（networktopology）的同源前缀。
+//
+// **为什么需要它**：正式前端的「打开画布」按钮指向 `/networktopology/zh`
+// （见 web/src/pages/topologies.tsx 的 VITE_NT_BASE）。没有这条代理时，
+// 那个 URL 会落到 SPA fallback —— 用户点下去看到的是 myPortal 自己，
+// 画布根本没打开。
+//
+// 路径**原样转发**：画布的 build 用了 `NEXT_PUBLIC_BASE_PATH=/networktopology`，
+// 它自己认这个前缀，剥掉反而 404。
+const ntOrigin = arg("nt", "http://127.0.0.1:6010")
+const ntPrefix = arg("nt-prefix", "/networktopology")
 const base = arg("base", "")
 
 const MIME = {
@@ -60,9 +71,13 @@ if (!existsSync(join(root, "index.html"))) {
     process.exit(1)
 }
 
-/** 把 /api 与 /health 转发到后端 —— 让静态站与后台同源。 */
-function proxy(req, res) {
-    const target = new URL(req.url, apiOrigin)
+/**
+ * 转发到另一个 origin —— 让静态站与后台/画布同源。
+ *
+ * `origin` 决定转发到哪；**路径原样保留**。
+ */
+function proxy(req, res, origin = apiOrigin) {
+    const target = new URL(req.url, origin)
     const headers = { ...req.headers, host: target.host }
     const upstream = http.request(
         target,
@@ -79,7 +94,7 @@ function proxy(req, res) {
             JSON.stringify({
                 detail: {
                     error: "后台不可达",
-                    detail: `无法连接后台 ${apiOrigin}：${err.code || err.message}`,
+                    detail: `无法连接 ${origin}：${err.code || err.message}`,
                 },
             }),
         )
@@ -93,6 +108,18 @@ const server = createServer((req, res) => {
     // 后端路径 → 转发
     if (apiOrigin && (raw === "/health" || raw.startsWith("/api/"))) {
         proxy(req, res)
+        return
+    }
+
+    // 画布应用 → 转发到 networktopology。
+    //
+    // 必须排在 SPA fallback **之前** —— 否则 `/networktopology/zh`
+    // 会回 myPortal 的 index.html，用户点「打开画布」看到的是自己。
+    if (
+        ntOrigin &&
+        (raw === ntPrefix || raw.startsWith(`${ntPrefix}/`))
+    ) {
+        proxy(req, res, ntOrigin)
         return
     }
 
@@ -122,7 +149,10 @@ const server = createServer((req, res) => {
 server.listen(port, "127.0.0.1", () => {
     console.log(
         `[serve-static] ${root} → http://127.0.0.1:${port}${base}` +
-            (apiOrigin ? `  (代理 /api,/health → ${apiOrigin})` : ""),
+            (apiOrigin ? `  (代理 /api,/health → ${apiOrigin})` : "") +
+            (ntOrigin
+                ? `  (代理 ${ntPrefix} → ${ntOrigin})`
+                : ""),
     )
 })
 
