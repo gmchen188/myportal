@@ -50,10 +50,67 @@ from dataclasses import dataclass
 # networktopology 的地址。
 #
 # 默认指向本机的 dev 端口；生产部署时用环境变量指到实际托管它的地址。
-NT_BASE = os.getenv("MP_NT_BASE_URL", "http://127.0.0.1:6002/networktopology").rstrip("/")
+#
+# 默认指向 **6010** —— 那是画布应用本身（Windows 服务 NetworkTopology），常驻。
+#
+# **不要指 6002** —— 那是 next dev：它的 HMR 握手失败，画布永远停在
+# 「正在加载画布…」。API 虽然能用，但那是开发模式，不是部署形态。
+NT_BASE = os.getenv("MP_NT_BASE_URL", "http://127.0.0.1:6010/networktopology").rstrip("/")
 
 # 有配 access code 的话必须带上（networktopology 的 ACCESS_CODE_LIST）。
 NT_ACCESS_CODE = os.getenv("MP_NT_ACCESS_CODE", "")
+
+# networktopology 的运行期配置文件。
+#
+# **为什么后端要读它**：画布应用是 Windows 服务，standalone 产物**不读
+# `.env.local`**（那是 next dev 才读的）—— 所以它进程里没有模型配置，
+# chat route 直接回 500「AI_MODEL environment variable is required」。
+#
+# 但 chat route 支持 `x-ai-*` 这几个 header 传模型配置（实测过），
+# 所以这边读它的 .env.local，把配置**当 header 带过去**。
+# 密钥不落到 myPortal 的环境变量里，也不进注册表。
+NT_ENV_FILE = os.getenv(
+    "MP_NT_ENV_FILE",
+    os.path.join(r"C:\Users\gmche\Work\networktopology", ".env.local"),
+)
+
+
+def _read_env_file(path: str) -> dict[str, str]:
+    """读 `.env.local` —— 只取键值，不打印任何值。"""
+    out: dict[str, str] = {}
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                out[k.strip()] = v.strip().strip('"').strip("'")
+    except OSError:
+        return {}
+    return out
+
+
+def _model_headers() -> dict[str, str]:
+    """模型配置 → chat route 认识的 header。
+
+    没有就返回空 —— 让画布服务用它自己的配置（如果它有的话）。
+    """
+    env = _read_env_file(NT_ENV_FILE)
+    headers: dict[str, str] = {}
+    provider = env.get("AI_PROVIDER") or os.getenv("MP_AI_PROVIDER", "")
+    model = env.get("AI_MODEL") or os.getenv("MP_AI_MODEL", "")
+    api_key = env.get("MINIMAX_API_KEY") or os.getenv("MP_AI_API_KEY", "")
+    base_url = env.get("MINIMAX_BASE_URL") or os.getenv("MP_AI_BASE_URL", "")
+    if provider:
+        headers["x-ai-provider"] = provider
+    if model:
+        headers["x-ai-model"] = model
+    if api_key:
+        headers["x-ai-api-key"] = api_key
+    if base_url:
+        headers["x-ai-base-url"] = base_url
+    return headers
 
 # 图生图要跑一会儿（模型读图 + 画图 + 改图），给足时间。
 DEFAULT_TIMEOUT = int(os.getenv("MP_NT_IMAGE_TIMEOUT", "240"))
@@ -159,6 +216,8 @@ def generate_from_image(
     headers = {"content-type": "application/json"}
     if NT_ACCESS_CODE:
         headers["x-access-code"] = NT_ACCESS_CODE
+    # 模型配置随请求带过去（画布服务是 Windows 服务，进程里没有）
+    headers.update(_model_headers())
 
     req = urllib.request.Request(
         f"{NT_BASE}/api/chat",

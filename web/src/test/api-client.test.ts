@@ -157,3 +157,18 @@ describe("422 要说人话，不能只丢一个 HTTP 码", () => {
         await expect(api.fleets.createFleet({ name: "X" })).rejects.toThrow("HTTP 418")
     })
 })
+
+
+describe("405 的提示", () => {
+    it("告诉用户是后台服务没更新，而不是干巴巴一个 HTTP 码", async () => {
+        const { extractDetail } = await import("@/api/client")
+        const msg = extractDetail({ detail: "Method Not Allowed" }, 405)
+        expect(msg).toContain("后台服务还没更新")
+        expect(msg).toContain("restart-all.ps1")
+    })
+
+    it("别的状态码不受影响", async () => {
+        const { extractDetail } = await import("@/api/client")
+        expect(extractDetail({ detail: "资产名称不能为空" }, 400)).toBe("资产名称不能为空")
+    })
+})

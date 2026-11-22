@@ -159,6 +159,17 @@ const VALIDATION_MESSAGES: Record<string, string> = {
  * （分段实测结果）—— 那是运维定位问题的关键，不能只剩一句「HTTP 502」。
  */
 export function extractDetail(payload: unknown, status: number): string {
+    /*
+     * **405 单独说。**
+     *
+     * 刚加的新端点，后台服务还没重启到新代码时，请求会落到「路径存在但
+     * 方法不匹配」→ FastAPI 回 405。那不是用户的问题，是**服务没更新**。
+     *
+     * 光显示「HTTP 405」没人知道该干什么，所以这里直接说清楚。
+     */
+    if (status === 405) {
+        return "后台服务还没更新到这个版本 —— 跑一下 scripts/restart-all.ps1 重启后台"
+    }
     if (payload && typeof payload === "object") {
         const obj = payload as Record<string, unknown>
         const direct = obj.error
