@@ -551,3 +551,39 @@ class TestAssetVessel:
         assert body["name"] == "改名了"
         assert body["code"] == "KEEP", body
         assert body["description"] == "描述", body
+
+
+    def test_asset_filter_rejects_a_vessel_from_another_fleet(self, env):
+        """「船队 A + 船队 B 的船」要报错，**不能返回空列表**。
+
+        空列表看起来像「设备丢了」—— 用户会去查数据、查导入记录，
+        其实只是筛选条件打架。
+        """
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        db = Session()
+        other = Fleet(tenant_id=ASI, name="另一支船队")
+        db.add(other)
+        db.flush()
+        oid = other.id
+        db.close()
+        # v1 在 ids["fleet"]，用另一支船队去筛它 → 矛盾
+        r = client.get(
+            f"/api/assets?vessel_id={ids['v1']}&fleet_id={oid}", headers=h
+        )
+        assert r.status_code == 400, r.text
+        assert "不属于" in r.json()["detail"]
+
+    def test_asset_filter_by_fleet_and_its_vessel_works(self, env):
+        """一致��组合正常返回。"""
+        client, Session = env
+        ids = _seed_tree(Session)
+        h = _login(client, "u1")
+        r = client.get(
+            f"/api/assets?vessel_id={ids['v1']}&fleet_id={ids['fleet']}", headers=h
+        )
+        assert r.status_code == 200, r.text
+        items = r.json()["items"]
+        assert items, "一致组合应该有结果"
+        assert all(a["vessel_id"] == ids["v1"] for a in items)

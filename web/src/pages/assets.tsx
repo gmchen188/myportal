@@ -21,6 +21,27 @@ import { useAssetSchema, useAssets, useCommitImport, useCreateAsset, useDeleteAs
 
 type Mode = "list" | "import" | "manual" | "template" | "cmdb"
 
+/**
+ * 船舶下拉的候选项 —— **按选中的船队过滤**。
+ *
+ * ## 为什么抽成纯函数
+ *
+ * 这个规则本身很小，但它挂在一个**很重的组件**（资产清单页）上 ——
+ * 在组件里测它，就得把整页渲染出来（表格、导入、导出、CMDB 面板），
+ * 一慢就超时，于是测试在资源竞争下变成 flaky（单独跑绿、全量跑红）。
+ *
+ * 规则用纯函数测，秒过且稳定；组件那边只留一条「接线对不对」的检查。
+ */
+export function filterVesselsByFleet<T extends { id: number | null; fleet_id: number | null }>(
+    vessels: T[],
+    fleetFilter: string,
+): T[] {
+    return vessels
+        .filter((v) => v.id !== null)
+        // 没选船队 → 全部船；选了 → 只有那支船队的船
+        .filter((v) => !fleetFilter || v.fleet_id === Number(fleetFilter))
+}
+
 export function AssetsPage() {
     const [mode, setMode] = useState<Mode>("list")
     const [q, setQ] = useState("")
@@ -235,10 +256,14 @@ export function AssetsPage() {
                                 value={vesselFilter}
                                 onChange={(e) => setVesselFilter(e.target.value)}
                             >
-                                <option value="">全部船舶</option>
-                                {(fleetData.data?.vessels ?? [])
-                                    .filter((v) => v.id !== null)
-                                    .map((v) => (
+                                <option value="">
+                                    {fleetFilter ? "该船队的全部船舶" : "全部船舶"}
+                                </option>
+                                {/* **选了船队就只列那支船队的船。**
+                                    不然会出现「船队 A + 船队 B 的船」这种
+                                    互相矛盾的筛选组合 —— 后端按两个条件
+                                    取交集，结果是空列表，用户还以为设备丢了。 */}
+                                {filterVesselsByFleet(fleetData.data?.vessels ?? [], fleetFilter).map((v) => (
                                         <option key={v.id ?? "none"} value={v.id ?? ""}>
                                             {v.name}
                                         </option>

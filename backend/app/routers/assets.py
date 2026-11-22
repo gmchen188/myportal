@@ -110,6 +110,19 @@ def _filtered_assets(
     #
     # **船队筛选走子查询**，不 join —— join 会把一条资产在多艘船下
     # 重复列出来（资产只属于一艘船，但 fleet 的 join 路径不同）。
+    if fleet_id is not None and vessel_id is not None:
+        # **矛盾组合要报错，不能返回空列表。**
+        # 「船队 A + 船队 B 的船」取交集必然是空的 —— 而空列表看起来像
+        # 「设备丢了」，用户会去查数据、查导入记录，其实只是筛选条件打架。
+        vessel = (
+            db.query(Vessel)
+            .filter(Vessel.id == vessel_id, Vessel.tenant_id == tenant_id)
+            .first()
+        )
+        if vessel is None:
+            raise HTTPException(status_code=404, detail="船不存在")
+        if vessel.fleet_id != fleet_id:
+            raise HTTPException(status_code=400, detail="这艘船不属于该船队")
     if vessel_id is not None:
         stmt = stmt.where(Asset.vessel_id == vessel_id)
     if fleet_id is not None:
