@@ -110,7 +110,9 @@ $Services = @(
         Desc = "myPortal 正式前端（production build），并把 /api、/health 代理到后台 9102。端口 5174。"
         Exe = $Node
         Args = 'scripts\serve-static.mjs --root "' + $MyPortal + '\web\dist" --port 5174 --api http://127.0.0.1:9102'
-        Dir = $NetTopo
+        # 用 myPortal 自己的 scripts/ —— 服务脚本跟着服务走，
+        # 不依赖另一个仓库的目录结构
+        Dir = $MyPortal
         Env = @{}
     },
     @{
